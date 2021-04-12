@@ -1,0 +1,43 @@
+---
+- name: what cluster am i creating?
+  debug:
+    var: cluster_name
+    verbosity: 0
+
+- name: check if the cluster already exists
+  command: "rosa describe cluster --cluster {{ cluster_name }}"
+  register: _cluster_exists
+  failed_when: false
+  changed_when: false
+
+# - debug:
+#     var: _cluster_exists
+
+- name: create cluster
+  command: "rosa create cluster -y --cluster-name={{ cluster_name }}"
+  when:
+    - _cluster_exists.rc == 1
+    - _cluster_exists.stderr is search("There is no cluster with identifier or name")
+
+- name: wait until cluster is ready
+  command: "rosa describe cluster --cluster={{ cluster_name }}"
+  register: _cluster_ready
+  until:
+    - _cluster_ready.rc == 0
+    - _cluster_ready.stdout is regex("State:\s+ready")
+  retries: 20
+  delay: 120
+  failed_when: _cluster_ready.rc != 0
+  changed_when: false
+
+- name: tell user to just wait longer
+  fail:
+    msg: |
+      The cluster did become ready within 40 minutes
+      of running the create. You can run ansible again, or
+      simply wait a while longer and check it with:
+        $ rosa describe cluster --cluster={{ cluster_name }}
+    verbosity: 0
+  when:
+    - _cluster_ready.rc == 0
+    - _cluster_ready.stdout is not regex("State:\s+ready")

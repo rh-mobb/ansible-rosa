@@ -1,0 +1,8 @@
+---
+# defaults file for roles/bootstrap
+
+aws_access_key_id: ~
+aws_secret_access_key: ~
+rosa_token: ~
+aws_default_region: us-west-2
+

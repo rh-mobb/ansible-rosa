@@ -1,0 +1,31 @@
+---
+- name: what cluster am i creating?
+  debug:
+    var: cluster_name
+    verbosity: 0
+
+- name: check if the cluster exists
+  command: "rosa describe cluster --cluster {{ cluster_name }}"
+  register: _cluster_exists
+  failed_when: false
+  changed_when: false
+
+# - debug:
+#     var: _cluster_exists
+
+- name: delete cluster
+  command: "rosa delete cluster -y --cluster={{ cluster_name }}"
+  when: 
+    - _cluster_exists.rc == 0
+    - _cluster_exists.stdout is search("Name:\s+" + cluster_name)
+
+- name: wait until cluster is deleted
+  command: "rosa describe cluster --cluster={{ cluster_name }}"
+  register: _cluster_deleted
+  until: 
+    - _cluster_deleted.rc == 1
+    - _cluster_deleted.stderr is search("There is no cluster with identifier or name")
+  retries: 20
+  delay: 120
+  changed_when: false
+  failed_when: false

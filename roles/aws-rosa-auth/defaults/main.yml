@@ -1,0 +1,8 @@
+---
+# defaults file for roles/bootstrap
+
+aws_access_key_id: ~
+aws_secret_access_key: ~
+aws_default_region: us-east-2
+rosa_token: "{{ lookup('env', 'ROSA_TOKEN') | default('') }}"
+# aws_profile: rosa

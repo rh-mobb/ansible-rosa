@@ -1,0 +1,42 @@
+---
+- name: ensure aws_access_key_id exist for rosa profile
+  ini_file:
+    path: "{{ ansible_env.HOME }}/.aws/credentials"
+    section: default
+    option: aws_access_key_id
+    value: "{{ aws_access_key_id }}"
+  when: aws_access_key_id != "" and aws_access_key_id != None
+
+- name: ensure aws_secret_access_key exist for rosa profile
+  ini_file:
+    path: "{{ ansible_env.HOME }}/.aws/credentials"
+    section: default
+    option: aws_secret_access_key
+    value: "{{ aws_secret_access_key }}"
+  when: aws_secret_access_key != "" and aws_secret_access_key != None
+
+- name: ensure default region is set for rosa profile
+  ini_file:
+    path: "{{ ansible_env.HOME }}/.aws/config"
+    section: default
+    option: region
+    value: "{{ aws_default_region }}"
+  when: aws_default_region != "" and aws_default_region != None
+
+- name: verify aws permissions
+  command: aws sts get-caller-identity
+  changed_when: false
+
+- name: check if rosa is logged in
+  command: rosa verify permissions
+  failed_when: false
+  changed_when: false
+  register: _rosa_has_token
+
+- name: authenticate rosa using token
+  command: "rosa login --token={{ rosa_token }}"
+  when: _rosa_has_token.stderr is search("Not logged in")
+
+- name: initialize rosa
+  command: rosa init
+  changed_when: false
