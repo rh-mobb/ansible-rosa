@@ -8,9 +8,9 @@ help:
 	@echo GLHF
 
 virtualenv:
-	python3 -m venv virtualenv
-	. virtualenv/bin/activate
-	pip3 install -r requirements.txt
+	python3 -m venv $(VIRTUALENV)
+	. $(VIRTUALENV)/bin/activate
+	./virtualenv/bin/pip3 install -r requirements.txt --use-feature=2020-resolver
 
 image:
 	 docker build -t paulczar/ansible-rosa .

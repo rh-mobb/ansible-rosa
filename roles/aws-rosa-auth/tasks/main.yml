@@ -27,16 +27,18 @@
   command: aws sts get-caller-identity
   changed_when: false
 
-- name: check if rosa is logged in
-  command: rosa verify permissions
+- name: check if rosa is logged in (a changed result means no)
+  command: rosa list clusters
   failed_when: false
-  changed_when: false
   register: _rosa_has_token
+  changed_when: _rosa_has_token.stderr is search("Not logged in")
 
 - name: authenticate rosa using token
-  command: "rosa login --token={{ rosa_token }}"
+  rosa_auth:
+    token: "{{ rosa_token }}"
   when: _rosa_has_token.stderr is search("Not logged in")
 
 - name: initialize rosa
-  command: rosa init
+  rosa_init:
+    state: present
   changed_when: false
