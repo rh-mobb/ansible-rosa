@@ -1,6 +1,30 @@
 # ansible-rosa
 
+This project contains a set of modules for working with ROSA as well as some example playbooks.
+
 Will create/delete ROSA clusters, by default a single cluster called `my-rosa-cluster`, but if you know how to work ansible inventories, it can do multiple clusters.
+
+## ROSA Ansible Modules
+
+> See [here](docs/modules.md) for detailed documentation
+
+```yaml
+- name: authenticate rosa using token
+  rosa_auth:
+    token: "{{ rosa_token }}"
+
+- name: initialize rosa
+  rosa_init:
+    state: present
+
+- name: create cluster
+  rosa_cluster:
+    name: "my-rosa-cluster"
+    compute_nodes: 4
+    multi_az: yes
+```
+
+## Examples using ROSA Ansible Modules
 
 ## Prerequisites
 
@@ -94,3 +118,11 @@ make delete
 3. Delete the cluster
 
     Do one of the above but change `create.yaml` to `delete.yaml`.
+
+
+## ToDos
+
+### Add custom domain support
+
+* https://access.redhat.com/articles/5599621
+* https://github.com/openshift/custom-domains-operator/blob/master/TESTING.md

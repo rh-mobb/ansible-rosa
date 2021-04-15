@@ -14,15 +14,14 @@
 #     var: _cluster_exists
 
 - name: delete cluster
-  command: "rosa delete cluster -y --cluster={{ cluster_name }}"
-  when: 
-    - _cluster_exists.rc == 0
-    - _cluster_exists.stdout is search("Name:\s+" + cluster_name)
+  rosa_cluster:
+    name: "{{ cluster_name }}"
+    state: absent
 
 - name: wait until cluster is deleted
   command: "rosa describe cluster --cluster={{ cluster_name }}"
   register: _cluster_deleted
-  until: 
+  until:
     - _cluster_deleted.rc == 1
     - _cluster_deleted.stderr is search("There is no cluster with identifier or name")
   retries: 20

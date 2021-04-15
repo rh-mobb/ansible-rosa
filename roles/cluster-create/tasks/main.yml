@@ -14,10 +14,9 @@
 #     var: _cluster_exists
 
 - name: create cluster
-  command: "rosa create cluster -y --cluster-name={{ cluster_name }}"
-  when:
-    - _cluster_exists.rc == 1
-    - _cluster_exists.stderr is search("There is no cluster with identifier or name")
+  rosa_cluster:
+    name: "{{ cluster_name }}"
+    # state: dry-run
 
 - name: wait until cluster is ready
   command: "rosa describe cluster --cluster={{ cluster_name }}"
