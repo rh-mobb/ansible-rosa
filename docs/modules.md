@@ -2,6 +2,7 @@
 
 ### rosa_auth
 
+```
 module: rosa_auth
 
 short_description: authenticate with rosa
@@ -24,9 +25,11 @@ options:
 
 author:
     - Paul Czarkowski (@paulczar)
+```
 
 ### rosa_init
 
+```
 module: rosa_init
 
 short_description: Applies templates to support Red Hat OpenShift Service on AWS.
@@ -49,9 +52,11 @@ options:
 
 author:
     - Paul Czarkowski (@paulczar)
+```
 
 ### rosa_cluster
 
+```
 module: rosa_cluster
 
 short_description: Create Rosa Cluster
@@ -138,3 +143,4 @@ options:
 
 author:
     - Paul Czarkowski (@paulczar)
+```
