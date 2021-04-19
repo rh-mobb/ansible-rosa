@@ -134,6 +134,11 @@ options:
         description: The Subnet IDs to use when installing the cluster. SubnetIDs should come in pairs; two per availability zone, one private and one public. Subnets are comma separated, for example: --subnet-ids=subnet-1,subnet-2.Leave empty for installer provisioned subnet IDs.
         required: false
         type: str
+    wait:
+        description: Wait until cluster create/delete is finished before moving on
+        required: false
+        type: bool
+        default: false
     state:
         description: the action to take
         required: false

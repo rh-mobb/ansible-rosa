@@ -21,7 +21,8 @@ Will create/delete ROSA clusters, by default a single cluster called `my-rosa-cl
   rosa_cluster:
     name: "my-rosa-cluster"
     compute_nodes: 4
-    multi_az: yes
+    multi_az: no
+    wait: true
 ```
 
 ## Examples using ROSA Ansible Modules
@@ -33,6 +34,11 @@ Will create/delete ROSA clusters, by default a single cluster called `my-rosa-cl
 1. Download and install the [AWS cli](https://aws.amazon.com/cli/)
 
 1. Download and install the [ROSA cli](https://www.openshift.com/products/amazon-openshift/download?extIdCarryOver=true&sc_cid=701f2000001Css5AAC)
+
+1. Enable the ROSA service in AWS.
+
+    1. Sign in to your AWS account.
+    1. Go to the [ROSA service](https://console.aws.amazon.com/rosa/) and select **Enable**.
 
 ## Log in to AWS or ROSA
 
@@ -60,10 +66,6 @@ To authenticate to AWS / ROSA you can use the tools directly to auth or set ansi
 
 1. Set `cluster_name` (or leave it for a default name of `my-rosa-cluster`).
 
-1. Enable the ROSA service in the AWS Marketplace.
-
-    1. Sign in to your AWS account.
-    1. Go to the [ROSA service](https://console.aws.amazon.com/rosa/) and select **Enable**.
 
 ## Local with ansible in a virtualenv
 
