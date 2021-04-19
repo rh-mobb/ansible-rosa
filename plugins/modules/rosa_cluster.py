@@ -85,11 +85,15 @@ options:
         description: The Subnet IDs to use when installing the cluster. SubnetIDs should come in pairs; two per availability zone, one private and one public. Subnets are comma separated, for example: --subnet-ids=subnet-1,subnet-2.Leave empty for installer provisioned subnet IDs.
         required: false
         type: str
+    wait:
+        description: wait for up to an hour until operation is complete
+        required: false
+        type: bool
     state:
         description: the action to take
         required: false
         type: str
-        choices: ['present','absent', 'dry-run']
+        choices: ['present','absent', 'dry-run', 'describe']
         default: present
 
 author:
@@ -119,6 +123,7 @@ password: str
 
 from ansible.module_utils.basic import *
 import re
+import time
 
 def run_module():
     # define available arguments/parameters a user can pass to the module
@@ -140,7 +145,8 @@ def run_module():
         enable_autoscaling=dict(type='bool', required=False),
         private=dict(type='bool', required=False),
         disable_scp_checks=dict(type='bool', required=False),
-        state=dict(type='str', default='present', choices=['present','absent','dry-run'])
+        wait=dict(type='bool', required=False),
+        state=dict(type='str', default='present', choices=['present','absent','dry-run', 'describe'])
     )
 
     # seed the result dict in the object
@@ -150,14 +156,19 @@ def run_module():
     # for consumption, for example, in a subsequent task
     result = dict(
         changed=False,
-        rc=None,
-        stdout=None,
-        stderr=None,
-        command=[],
+        commands=[],
         details="",
     )
 
-    # the AnsibleModule object will be our abstraction working with Ansible
+    command_result = dict(
+            reason="",
+            command="",
+            rc=None,
+            stdout="",
+            stderr=""
+    )
+
+        # the AnsibleModule object will be our abstraction working with Ansible
     # this includes instantiation, a couple of common attr would be the
     # args/params passed to the execution, as well as if the module
     # supports check mode
@@ -180,6 +191,8 @@ def run_module():
     params = module.params
     state = params.pop('state')
     name = params.pop('name')
+    wait = params.pop('wait')
+    describe_args = [rosa, "describe", "cluster", "-c", name]
     if state == "absent":
         args = [rosa, "delete", "cluster", "-y", "-c", name]
     else:
@@ -191,32 +204,87 @@ def run_module():
             if param == "multi_az": args.append("--multi-az")
             elif param == "enable_autoscaling": args.append("--enable-autoscaling")
             elif param == "private": args.append("--private")
-            elif param == "disable_scp_checks": args.append("--dsiable_scp_checks")
+            elif param == "disable_scp_checks": args.append("--disable_scp_checks")
+            elif param == "region" or param == "profile":
+                args.extend([argify(param), value])
+                describe_args.extend([argify(param), value])
             else: args.extend([argify(param), value])
 
-    result['command'] = args
-    result['rc'], result['stdout'], result['stderr'] = module.run_command(args)
+    # command_result['command'] = " ".join(args)
+    # result['command'].append(" ".join(args))
 
-    # TODO implement idempotency for create/delete
-    if result['rc'] != 0:
-        if state == "present":
-            module.fail_json(msg="failed to create cluster\n%s" % (result['stderr']), **result)
+    rc, stdout, stderr = module.run_command(describe_args)
+
+    # save results
+    command_result['command'] = " ".join(describe_args)
+    result['details'] = cluster_details('stdout')
+    command_result['reason'] = "check to see if cluster already exists"
+    command_result['rc'], command_result['stdout'], command_result['stderr'] = rc, stdout, stderr
+    result['commands'].append(command_result.copy())
+
+    # if the cluster already exists
+    if rc == 0:
+        # delete on absent
         if state == "absent":
-            module.fail_json(msg="failed to delete cluster\n%s" % (result['stderr']), **result)
-        if state == "dry-run":
-            module.fail_json(msg="failed to dry-run create of cluster\n%s" % (result['stderr']), **result)
+            result['changed'] = True
+            command_result['rc'], command_result['stdout'], command_result['stderr'] = module.run_command(args)
+            command_result['reason'] = "delete the cluster"
+            command_result['command'] = " ".join(args)
+            result['commands'].append(command_result)
+            result['details'] = cluster_details(command_result['stdout'])
+            if command_result['rc'] != 0:
+                module.fail_json(msg="failed to delete cluster\n%s" % (command_result['stderr']), **result)
 
-    if state != "dry-run":
-        result['changed'] = True
+    if rc == 1:
+        # if the cluster doesn't exist, create it
+        if state in ['present', 'dry-run'] and "There is no cluster with identifier or name" in stderr:
+            if state == 'present':
+                result['changed'] = True
+            command_result['rc'], command_result['stdout'], command_result['stderr'] = module.run_command(args)
+            command_result['command'] = " ".join(args)
+            command_result['reason'] = "create the cluster"
+            result['details'] = cluster_details(command_result['stdout'])
+            result['commands'].append(command_result)
+            if command_result['rc'] != 0:
+                module.fail_json(msg="failed to create cluster\n%s" % (command_result['stderr']), **result)
+        else:
+            # unknown error, better fail.
+            module.fail_json(msg="failed\n%s" % (command_result['stderr']), **result)
 
-    if state == "present":
-        stdout = result['stdout'].splitlines()
-        stdout_filtered = '\n'.join(
-            list(filter(lambda line: not line.startswith('['), stdout))
-        )
-        result['details'] = stdout_filtered
+    if wait and state in ['present', 'absent']:
+        ready = re.compile(r'State:\s+ready')
+        done = None
+        counter = 1
+        while not done:
+            command_result['reason'] = "wait for the cluster to be ready (attempt %s)" % (counter)
+            command_result['rc'], command_result['stdout'], command_result['stderr'] = module.run_command(describe_args)
+            command_result['command'] = " ".join(describe_args)
+            result['commands'].append(command_result.copy())
+            if command_result['rc'] == 0 and state == 'present' and ready.search(command_result['stdout']):
+                # command_result['reason'] = command_result['reason'] + 'WE DID IT'
+                done = "success"
+            if command_result['rc'] == 1 and state == 'absent' and "There is no cluster with identifier or name" in command_result['stderr']:
+                done = "success"
+            counter += 1
+            if counter > 60:
+                done = "timeout"
+            time.sleep(60)
 
+        if done == 'timeout':
+            result['details'] = cluster_details(command_result['stdout'])
+            module.fail_json(msg="cluster did not finish provisioning within an hour\n%s" % (command_result['stderr']), **result)
+
+    result['details'] = cluster_details(command_result['stdout'])
     module.exit_json(**result)
+
+def cluster_details(stdout):
+        if stdout == None: return ""
+        ansi_escape = re.compile(r'\x1B')
+        details = []
+        for line in stdout.splitlines():
+            if not ansi_escape.match(line):
+                details.append(line)
+        return "\n".join(details)
 
 def argify(param):
     return "--" + param.replace("_", "-")
