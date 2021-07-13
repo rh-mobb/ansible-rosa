@@ -8,87 +8,46 @@
       ***************************************
     verbosity: 0
 
+- when:
+    - aws_account_id is not defined
+    - rosa_sts | bool
+  block:
+    - name: get aws caller info for accountid
+      aws_caller_info:
+      register: _aws_caller_info
+
+    - set_fact:
+        aws_account_id: "{{ _aws_caller_info.account }}"
+
+# do this better ... maybe better set during vpc creation and inherited.
+- name: figure out list of subnets
+  set_fact:
+    _private_subnet_ids: "{{ _private_subnets.results | default([]) | json_query('[*].subnet.id') }}"
+    _public_subnet_ids:  "{{ _public_subnets.results  | default([]) | json_query('[*].subnet.id') }}"
+  when:
+    - rosa_subnet_ids | length == 0
+    - _private_subnets is defined or _public_subnets is defined
+- set_fact:
+    rosa_subnet_ids: "{{ rosa_subnet_ids | default(_private_subnet_ids + _public_subnet_ids) }}"
+  when: rosa_subnet_ids | length == 0
+
+
 # - name: check if the cluster already exists
 #   command: "rosa describe cluster --cluster {{ cluster_name }}"
 #   register: _cluster_exists
 #   failed_when: false
 #   changed_when: false
 
-# - debug:
+# - fail:
 #     var: _cluster_exists
 
 - name: create cluster
   rosa_cluster:
     name: "{{ cluster_name }}"
-    # state: dry-run
-    wait: true
+    private: "{{ rosa_private }}"
+    private_link: "{{ rosa_private_link }}"
+    sts: "{{ rosa_sts }}"
+    aws_account_id: "{{ aws_account_id | default(omit) }}"
+    machine_cidr: "{{ rosa_vpc_cidr }}"
+    subnet_ids: "{{ rosa_subnet_ids | join(',') }}"
 
-# - name: wait until cluster is ready
-#   command: "rosa describe cluster --cluster={{ cluster_name }}"
-#   register: _cluster_ready
-#   until:
-#     - _cluster_ready.rc == 0
-#     - _cluster_ready.stdout is regex("State:\s+ready")
-#   retries: 20
-#   delay: 120
-#   failed_when: _cluster_ready.rc != 0
-#   changed_when: false
-
-# - name: tell user to just wait longer
-#   fail:
-#     msg: |
-#       The cluster did become ready within 40 minutes
-#       of running the create. You can run ansible again, or
-#       simply wait a while longer and check it with:
-#         $ rosa describe cluster --cluster={{ cluster_name }}
-#     verbosity: 0
-#   when:
-#     - _cluster_ready.rc == 0
-#     - _cluster_ready.stdout is not regex("State:\s+ready")
-
-# # TODO move this to own role
-# - name: check if admin user exists
-#   command: "rosa describe admin --cluster={{ cluster_name }}"
-#   changed_when: false
-#   register: _rosa_check_admin_user
-
-# - name: create admin user for cluster
-#   command: "rosa create admin -y --cluster={{ cluster_name }}"
-#   when:
-#     - _rosa_check_admin_user.stdout is search('There is no admin on cluster')
-#   register: _rosa_create_admin
-
-# - when:
-#     - _rosa_create_admin.rc is defined
-#     - _rosa_create_admin.rc == 0
-#   block:
-#     - name: find oc login command
-#       set_fact:
-#         _oc_login_command: "{{ item | trim }}"
-#       when:
-#         - item is search("oc login https:")
-#       with_items: "{{ _rosa_create_admin.stdout_lines | default([]) }}"
-
-#     - name: print out oc login command
-#       debug:
-#         msg: "To log into the cluster in future run: {{ _oc_login_command }}"
-#         verbosity: 0
-#       when: _oc_login_command is defined
-
-#     - name: log into cluster
-#       command: "{{ _oc_login_command }}"
-#       when: _oc_login_command is defined
-#       register: _oc_login_to_cluster
-#       retries: 5
-#       delay: 30
-#       until:
-#         - _oc_login_to_cluster.rc == 0
-#       failed_when: false
-#       changed_when: false
-
-#     - name: print login error
-#       fail:
-#         msg: |
-#           Could not log into ROSA Cluster.
-#           {{ _oc_login_to_cluster.stderr }}
-#       when: _oc_login_to_cluster.rc != 0

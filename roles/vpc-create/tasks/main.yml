@@ -1,0 +1,51 @@
+---
+- name: create a vpc
+  ec2_vpc_net:
+    name: "rosa-{{ cluster_name }}"
+    cidr_block: "{{ rosa_vpc_cidr }}"
+  register: _vpc
+
+- name: create private subnets
+  ec2_vpc_subnet:
+    vpc_id: "{{ _vpc.vpc.id }}"
+    cidr: "{{ item.cidr }}"
+    az: "{{ item.az }}"
+    resource_tags:
+      Name: "rosa-private-{{ cluster_name }}-{{ item.az }}"
+  with_items: "{{ rosa_vpc_private_subnets }}"
+  register: _private_subnets
+
+- name: create public subnets
+  ec2_vpc_subnet:
+    vpc_id: "{{ _vpc.vpc.id }}"
+    cidr: "{{ item.cidr }}"
+    az: "{{ item.az }}"
+    resource_tags:
+      Name: "rosa-public-{{ cluster_name }}-{{ item.az }}"
+  with_items: "{{ rosa_vpc_public_subnets }}"
+  register: _public_subnets
+
+- name: create internet gateway
+  ec2_vpc_igw:
+    vpc_id: "{{ _vpc.vpc.id }}"
+    state: present
+  register: _igw
+
+# - debug:
+#     var: _public_subnets.results
+
+- name: create public subnet route table
+  ec2_vpc_route_table:
+    vpc_id: "{{ _vpc.vpc.id }}"
+    tags:
+      Name: "public-{{ item.subnet.id }}"
+    subnets: "{{ item.subnet.id }}"
+    routes:
+      - dest: 0.0.0.0/0
+        gateway_id: "{{ _igw.gateway_id }}"
+  with_items: "{{ _public_subnets.results }}"
+
+# Private
+
+- with_items: "{{ _public_subnets.results }}"
+  include_tasks: nat_gateway_routes.yml

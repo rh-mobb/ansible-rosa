@@ -1,2 +1,9 @@
 ---
 # defaults file for roles/cluster-create
+
+rosa_private: false
+rosa_private_link: false
+rosa_sts: true
+
+rosa_subnet_ids: []
+rosa_machine_cidr: ~

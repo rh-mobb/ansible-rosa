@@ -1,0 +1,10 @@
+---
+- hosts:      "all"
+  connection: "local"
+  vars_files:
+      - vars/main.yaml
+
+  roles:
+    - name: roles/vpc-delete
+    # - name: roles/vpc-create
+

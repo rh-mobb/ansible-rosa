@@ -1,0 +1,18 @@
+---
+- set_fact:
+    _role: "role/{{item}}.json"
+    _policy: "policy/{{item}}.json"
+
+- name: create infra iam role
+  iam_role:
+    name: "ROSA-{{ cluster_name }}-{{ item }}"
+    assume_role_policy_document: "{{ lookup('file', _role) }}"
+    description: "This role is used to manage the installation and deletion of clusters that use STS"
+
+- name: create infra iam policy
+  iam_policy:
+    iam_type: role
+    iam_name: "ROSA-{{ cluster_name }}-{{ item }}"
+    policy_name: "ROSA-{{ cluster_name }}-{{ item }}"
+    state: present
+    policy_json: "{{ lookup('file', _policy) }}"

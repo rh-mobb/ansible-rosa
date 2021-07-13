@@ -1,0 +1,131 @@
+---
+- when: aws_account_id is not defined or aws_account_id != ""
+  block:
+    - name: get aws caller info for accountid
+      aws_caller_info:
+      register: _aws_caller_info
+
+    - set_fact:
+        aws_account_id: "{{ _aws_caller_info.account }}"
+
+- when: cluster_id is not defined or cluster_id != ""
+  block:
+    - name: verify the cluster exists
+      shell: |
+        rosa describe cluster -c {{ cluster_name }} | grep -E "^ID:" | awk '{ print $2 }'
+      register: _cluster
+      changed_when: false
+
+    - set_fact:
+        cluster_id: "{{ _cluster.stdout }}"
+
+- fail:
+    msg: "cluster_id not set or discovered"
+  when: cluster_id is not defined or cluster_id == ""
+
+- set_fact:
+    _oidc_arn: "arn:aws:iam::{{ aws_account_id }}:oidc-provider/rh-oidc.s3.us-east-1.amazonaws.com/{{ cluster_id }}"
+
+
+# OIDC provider
+- name: check if oidc provider exists
+  command: "aws iam get-open-id-connect-provider --open-id-connect-provider-arn {{ _oidc_arn }} --output json"
+  register: _oidc_provider_info
+  changed_when: False
+  failed_when: False
+
+- name: create oidc provider
+  shell: |
+    openssl s_client -servername \
+    rh-oidc.s3.us-east-1.amazonaws.com/{{ cluster_id }} \
+    -showcerts -connect rh-oidc.s3.us-east-1.amazonaws.com:443 \
+    </dev/null 2>&1| openssl x509 -fingerprint -noout | tail -n1 \
+    | sed 's/SHA1 Fingerprint=//' | sed 's/://g'
+  register: _thumbprint
+  when: _oidc_provider_info.rc != 0
+
+# this should be an aws module call but sadly no module for it yet
+- name: create OIDC provider
+  shell: |
+    aws iam list-open-id-connect-providers --output text | grep "{{ cluster_id }}" || \
+      aws iam create-open-id-connect-provider \
+      --url "https://rh-oidc.s3.us-east-1.amazonaws.com/{{ cluster_id }}" \
+      --client-id-list openshift sts.amazonaws.com \
+      --thumbprint-list "{{ _thumbprint.stdout }}"
+  register: _create_oidc_provider
+  when: _oidc_provider_info.rc != 0
+
+# cloud credential operator
+- name: create cloud credential operator role
+  iam_role:
+    name: "ROSA-{{cluster_name}}-cloud-credential"
+    assume_role_policy_document: "{ \"Version\": \"2012-10-17\", \"Statement\": [ { \"Effect\": \"Allow\", \"Principal\": { \"Federated\": \"arn:aws:iam::{{ aws_account_id }}:oidc-provider/rh-oidc.s3.us-east-1.amazonaws.com/{{ cluster_id }}\" }, \"Action\": \"sts:AssumeRoleWithWebIdentity\", \"Condition\": { \"StringEquals\": { \"rh-oidc.s3.us-east-1.amazonaws.com/{{ cluster_id }}:aud\": \"openshift\" } } } ] }"
+    description: "OpenShift role for openshift-cloud-credential-operator/cloud-credential-operator-iam-ro-creds"
+
+- name: create cloud credential operator policy
+  iam_policy:
+    iam_type: role
+    iam_name: "ROSA-{{cluster_name}}-cloud-credential"
+    policy_name: "ROSA-{{cluster_name}}-cloud-credential"
+    state: present
+    policy_json: "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"iam:GetUser\",\"iam:GetUserPolicy\",\"iam:ListAccessKeys\"],\"Resource\":\"*\"}]}"
+
+# CSI EBS operator
+- name: create csi ebs operator iam role
+  iam_role:
+    name: "ROSA-{{cluster_name}}-csi-ebs"
+    assume_role_policy_document: "{ \"Version\": \"2012-10-17\", \"Statement\": [ { \"Effect\": \"Allow\", \"Principal\": { \"Federated\": \"arn:aws:iam::{{ aws_account_id }}:oidc-provider/rh-oidc.s3.us-east-1.amazonaws.com/{{ cluster_id }}\" }, \"Action\": \"sts:AssumeRoleWithWebIdentity\", \"Condition\": { \"StringEquals\": { \"rh-oidc.s3.us-east-1.amazonaws.com/{{ cluster_id }}:aud\": \"openshift\" } } } ] }"
+    description: "OpenShift role for openshift-cluster-csi-drivers/ebs-cloud-credentials"
+
+- name: create csi ebs operator iam policy
+  iam_policy:
+    iam_type: role
+    iam_name: "ROSA-{{cluster_name}}-csi-ebs"
+    policy_name: "ROSA-{{cluster_name}}-csi-ebs"
+    state: present
+    policy_json: "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"ec2:AttachVolume\",\"ec2:CreateSnapshot\",\"ec2:CreateTags\",\"ec2:CreateVolume\",\"ec2:DeleteSnapshot\",\"ec2:DeleteTags\",\"ec2:DeleteVolume\",\"ec2:DescribeInstances\",\"ec2:DescribeSnapshots\",\"ec2:DescribeTags\",\"ec2:DescribeVolumes\",\"ec2:DescribeVolumesModifications\",\"ec2:DetachVolume\",\"ec2:ModifyVolume\"],\"Resource\":\"*\"}]}"
+
+# Image Registry Operator
+- name: create image registry iam role
+  iam_role:
+    name: "ROSA-{{cluster_name}}-registry"
+    assume_role_policy_document: "{ \"Version\": \"2012-10-17\", \"Statement\": [ { \"Effect\": \"Allow\", \"Principal\": { \"Federated\": \"arn:aws:iam::{{ aws_account_id }}:oidc-provider/rh-oidc.s3.us-east-1.amazonaws.com/{{ cluster_id }}\" }, \"Action\": \"sts:AssumeRoleWithWebIdentity\", \"Condition\": { \"StringEquals\": { \"rh-oidc.s3.us-east-1.amazonaws.com/{{ cluster_id }}:aud\": \"openshift\" } } } ] }"
+    description: "OpenShift role for openshift-image-registry/installer-cloud-credentials"
+
+- name: create image registry iam policy
+  iam_policy:
+    iam_type: role
+    iam_name: "ROSA-{{cluster_name}}-registry"
+    policy_name: "ROSA-{{cluster_name}}-registry"
+    state: present
+    policy_json: "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"s3:CreateBucket\",\"s3:DeleteBucket\",\"s3:PutBucketTagging\",\"s3:GetBucketTagging\",\"s3:PutBucketPublicAccessBlock\",\"s3:GetBucketPublicAccessBlock\",\"s3:PutEncryptionConfiguration\",\"s3:GetEncryptionConfiguration\",\"s3:PutLifecycleConfiguration\",\"s3:GetLifecycleConfiguration\",\"s3:GetBucketLocation\",\"s3:ListBucket\",\"s3:GetObject\",\"s3:PutObject\",\"s3:DeleteObject\",\"s3:ListBucketMultipartUploads\",\"s3:AbortMultipartUpload\",\"s3:ListMultipartUploadParts\"],\"Resource\":\"*\"}]}"
+
+# Ingress Operator
+- name: create ingress operator iam role
+  iam_role:
+    name: "ROSA-{{cluster_name}}-ingress"
+    assume_role_policy_document: "{ \"Version\": \"2012-10-17\", \"Statement\": [ { \"Effect\": \"Allow\", \"Principal\": { \"Federated\": \"arn:aws:iam::{{ aws_account_id }}:oidc-provider/rh-oidc.s3.us-east-1.amazonaws.com/{{ cluster_id }}\" }, \"Action\": \"sts:AssumeRoleWithWebIdentity\", \"Condition\": { \"StringEquals\": { \"rh-oidc.s3.us-east-1.amazonaws.com/{{ cluster_id }}:aud\": \"openshift\" } } } ] }"
+    description: "OpenShift role for openshift-ingress-operator/cloud-credentials"
+
+- name: create ingress operator iam policy
+  iam_policy:
+    iam_type: role
+    iam_name: "ROSA-{{cluster_name}}-ingress"
+    policy_name: "ROSA-{{cluster_name}}-ingress"
+    state: present
+    policy_json: "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"elasticloadbalancing:DescribeLoadBalancers\",\"route53:ListHostedZones\",\"route53:ChangeResourceRecordSets\",\"tag:GetResources\"],\"Resource\":\"*\"}]}"
+
+# Machine API Operator
+- name: create machine api operator iam role
+  iam_role:
+    name: "ROSA-{{cluster_name}}-machine-api"
+    assume_role_policy_document: "{ \"Version\": \"2012-10-17\", \"Statement\": [ { \"Effect\": \"Allow\", \"Principal\": { \"Federated\": \"arn:aws:iam::{{ aws_account_id }}:oidc-provider/rh-oidc.s3.us-east-1.amazonaws.com/{{ cluster_id }}\" }, \"Action\": \"sts:AssumeRoleWithWebIdentity\", \"Condition\": { \"StringEquals\": { \"rh-oidc.s3.us-east-1.amazonaws.com/{{ cluster_id }}:aud\": \"openshift\" } } } ] }"
+    description: "OpenShift role for openshift-machine-api/aws-cloud-credentials"
+
+- name: create machine api operator iam policy
+  iam_policy:
+    iam_type: role
+    iam_name: "ROSA-{{cluster_name}}-machine-api"
+    policy_name: "ROSA-{{cluster_name}}-machine-api"
+    state: present
+    policy_json: "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":[\"ec2:CreateTags\",\"ec2:DescribeAvailabilityZones\",\"ec2:DescribeDhcpOptions\",\"ec2:DescribeImages\",\"ec2:DescribeInstances\",\"ec2:DescribeSecurityGroups\",\"ec2:DescribeSubnets\",\"ec2:DescribeVpcs\",\"ec2:RunInstances\",\"ec2:TerminateInstances\",\"elasticloadbalancing:DescribeLoadBalancers\",\"elasticloadbalancing:DescribeTargetGroups\",\"elasticloadbalancing:RegisterInstancesWithLoadBalancer\",\"elasticloadbalancing:RegisterTargets\",\"iam:PassRole\",\"iam:CreateServiceLinkedRole\"],\"Resource\":\"*\"},{\"Effect\":\"Allow\",\"Action\":[\"kms:Decrypt\",\"kms:Encrypt\",\"kms:GenerateDataKey\",\"kms:GenerateDataKeyWithoutPlainText\",\"kms:DescribeKey\"],\"Resource\":\"*\"},{\"Effect\":\"Allow\",\"Action\":[\"kms:RevokeGrant\",\"kms:CreateGrant\",\"kms:ListGrants\"],\"Resource\":\"*\",\"Condition\":{\"Bool\":{\"kms:GrantIsForAWSResource\":true}}}]}"

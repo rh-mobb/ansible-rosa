@@ -73,6 +73,10 @@ options:
         description: Subnet prefix length to assign to each individual node. For example, if host prefix is set to "23", then each node is assigned a /23 subnet out of the given CIDR.
         required: false
         type: int
+    private-link:
+        description: Provides private connectivity between VPCs, AWS services, and your on-premises networks, without exposing your traffic to the public internet.
+        required: false
+        type: bool
     private:
         description: Restrict master API endpoint and application routes to direct, private connectivity.
         required: false
@@ -83,6 +87,14 @@ options:
         type: bool
     subnet_ids:
         description: The Subnet IDs to use when installing the cluster. SubnetIDs should come in pairs; two per availability zone, one private and one public. Subnets are comma separated, for example: --subnet-ids=subnet-1,subnet-2.Leave empty for installer provisioned subnet IDs.
+        required: false
+        type: str
+    sts:
+        description: Enable STS auth, a set of roles will be needed.
+        required: false
+        type: bool
+    aws_account_id:
+        description: AWS account ID, only required if STS is enabled.
         required: false
         type: str
     wait:
@@ -144,6 +156,9 @@ def run_module():
         multi_az=dict(type='bool', required=False),
         enable_autoscaling=dict(type='bool', required=False),
         private=dict(type='bool', required=False),
+        sts=dict(type='bool', required=False),
+        aws_account_id=dict(type='str', required=False),
+        private_link=dict(type='bool', required=False),
         disable_scp_checks=dict(type='bool', required=False),
         wait=dict(type='bool', required=False),
         state=dict(type='str', default='present', choices=['present','absent','dry-run', 'describe'])
@@ -192,6 +207,9 @@ def run_module():
     state = params.pop('state')
     name = params.pop('name')
     wait = params.pop('wait')
+    sts = params.pop('sts')
+    aws_account_id = params.pop('aws_account_id')
+
     describe_args = [rosa, "describe", "cluster", "-c", name]
     if state == "absent":
         args = [rosa, "delete", "cluster", "-y", "-c", name]
@@ -199,11 +217,27 @@ def run_module():
         args = [rosa, "create", "cluster", "-c", name]
 
         if state == "dry-run": args.append("--dry-run")
+
+    if sts:
+        if not aws_account_id:
+            module.fail_json(msg="must provide aws account id when using sts\n%s" % (command_result['stderr']), **result)
+        args.extend(["--role-arn","arn:aws:iam::{}:role/ROSA-{}-install".format(aws_account_id, name)])
+        args.extend(["--support-role-arn","arn:aws:iam::{}:role/ROSA-{}-support".format(aws_account_id, name)])
+        args.extend(["--master-iam-role","arn:aws:iam::{}:role/ROSA-{}-control".format(aws_account_id, name)])
+        args.extend(["--worker-iam-role","arn:aws:iam::{}:role/ROSA-{}-worker".format(aws_account_id, name)])
+        args.extend(["--operator-iam-roles","aws-cloud-credentials,openshift-machine-api,arn:aws:iam::{}:role/ROSA-{}-machine-api".format(aws_account_id, name)])
+        args.extend(["--operator-iam-roles","cloud-credential-operator-iam-ro-creds,openshift-cloud-credential-operator,arn:aws:iam::{}:role/ROSA-{}-cloud-credential".format(aws_account_id, name)])
+        args.extend(["--operator-iam-roles","installer-cloud-credentials,openshift-image-registry,arn:aws:iam::{}:role/ROSA-{}-registry".format(aws_account_id, name)])
+        args.extend(["--operator-iam-roles","cloud-credentials,openshift-ingress-operator,arn:aws:iam::{}:role/ROSA-{}-ingress".format(aws_account_id, name)])
+        args.extend(["--operator-iam-roles","ebs-cloud-credentials,openshift-cluster-csi-drivers,arn:aws:iam::{}:role/ROSA-{}-csi-ebs".format(aws_account_id, name)])
+
+
         for param, value in params.items():
             if not value: continue
             if param == "multi_az": args.append("--multi-az")
             elif param == "enable_autoscaling": args.append("--enable-autoscaling")
             elif param == "private": args.append("--private")
+            elif param == "private_link": args.append("--private-link")
             elif param == "disable_scp_checks": args.append("--disable_scp_checks")
             elif param == "region" or param == "profile":
                 args.extend([argify(param), value])
@@ -234,6 +268,8 @@ def run_module():
             result['details'] = cluster_details(command_result['stdout'])
             if command_result['rc'] != 0:
                 module.fail_json(msg="failed to delete cluster\n%s" % (command_result['stderr']), **result)
+            if not wait:
+                module.exit_json(**result)
 
     if rc == 1:
         # if the cluster doesn't exist, create it

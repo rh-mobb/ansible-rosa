@@ -1,0 +1,12 @@
+---
+- hosts:      "all"
+  connection: "local"
+  vars_files:
+      - vars/main.yaml
+
+  roles:
+    - name: roles/vpc-create
+    - name: roles/sts-infra-create
+    - name: roles/cluster-create
+    - name: roles/sts-operator-create
+

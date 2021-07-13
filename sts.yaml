@@ -1,0 +1,10 @@
+---
+- hosts:      "all"
+  connection: "local"
+  vars_files:
+      - vars/main.yaml
+
+  roles:
+    # - name: roles/sts-create
+    - name: roles/sts-delete
+

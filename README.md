@@ -2,7 +2,8 @@
 
 This project contains a set of modules for working with ROSA as well as some example playbooks.
 
-Will create/delete ROSA clusters, by default a single cluster called `my-rosa-cluster`, but if you know how to work ansible inventories, it can do multiple clusters.
+Will create/delete ROSA clusters, by default a single cluster called `demo`, but if you know how to work ansible inventories, it can do multiple clusters. By default the cluster will be
+a public cluster on a BYO VPC network with STS enabled.
 
 ## ROSA Ansible Modules
 
@@ -33,7 +34,7 @@ Will create/delete ROSA clusters, by default a single cluster called `my-rosa-cl
 
 1. Download and install the [AWS cli](https://aws.amazon.com/cli/)
 
-1. Download and install the [ROSA cli](https://www.openshift.com/products/amazon-openshift/download?extIdCarryOver=true&sc_cid=701f2000001Css5AAC)
+1. Download and install the [ROSA cli 1.0.9+](https://github.com/openshift/rosa/releases/tag/v1.0.9)
 
 1. Enable the ROSA service in AWS.
 
@@ -58,20 +59,11 @@ To authenticate to AWS / ROSA you can use the tools directly to auth or set ansi
     rosa login
     ```
 
-### Let Ansible do it
-
-1. Fetch a token from https://cloud.redhat.com/openshift/token/rosa and set it as an ansible variable `rosa_token`.
-
-1. Create AWS IAM credentils and save them as ansible variables `aws_access_key_id` and `aws_secret_access_key`.
-
-1. Set `cluster_name` (or leave it for a default name of `my-rosa-cluster`).
-
-
 ## Local with ansible in a virtualenv
 
 ### Prepare Ansible
 
-Create virtualenv:
+Create python virtualenv:
 
 ```bash
 make virtualenv
@@ -91,6 +83,8 @@ make delete
 
 ## Local using Docker
 
+> not tested recently
+
 1. Build the docker image
 
     ```bash
@@ -105,7 +99,7 @@ make delete
     docker run -ti \
       -v $HOME/.ocm.json:/ansible/.ocm.json:ro \
       -v $HOME/.aws:/ansible/.aws:ro paulczar/ansible-rosa \
-      ansible-playbook create.yaml
+      ansible-playbook create-sts-cluster.yaml
     ```
 
     * If you want to let ansible log you in:
@@ -114,12 +108,12 @@ make delete
     docker run -ti -e AWS_ACCESS_KEY_ID="" \
        -e AWS_SECRET_ACCESS_KEY="" -e ROSA_TOKEN="" \
        paulczar/ansible-rosa \
-       ansible-playbook create.yaml
+       ansible-playbook create-sts-cluster.yaml
     ```
 
 3. Delete the cluster
 
-    Do one of the above but change `create.yaml` to `delete.yaml`.
+    Do one of the above but change `create-sts-cluster.yaml` to `delete-sts-cluster.yaml`.
 
 
 ## ToDos

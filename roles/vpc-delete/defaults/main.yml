@@ -1,0 +1,12 @@
+---
+# defaults file for roles/vpc
+rosa_vpc_cidr: "10.0.0.0/16"
+
+rosa_vpc_public_subnets:
+  - cidr: "10.0.128.0/17"
+    az: "us-east-2a"
+    resource_tags: { "name":"{{ cluster_name }}-public" }
+rosa_vpc_private_subnets:
+  - cidr: "10.0.0.0/17"
+    az: "us-east-2a"
+    resource_tags: { "name":"{{ cluster_name }}-private" }

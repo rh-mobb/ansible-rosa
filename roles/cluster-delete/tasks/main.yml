@@ -8,8 +8,27 @@
       ***************************************
     verbosity: 0
 
-- name: delete cluster
-  rosa_cluster:
-    name: "{{ cluster_name }}"
-    state: absent
-    wait: True
+- name: verify the cluster exists before trying to delete it
+  shell: |
+    rosa describe cluster -c {{ cluster_name }}
+  register: _cluster_exists
+  changed_when: false
+  failed_when: false
+
+- when: _cluster_exists.rc == 0
+  block:
+    - name: delete cluster
+      rosa_cluster:
+        name: "{{ cluster_name }}"
+        state: absent
+      register: _delete_cluster
+
+    - name: verify the cluster is deleted
+      shell: |
+        rosa describe cluster -c {{ cluster_name }}
+      register: _cluster
+      changed_when: false
+      failed_when: false
+      until: _cluster.rc != 0
+      retries: 60
+      delay: 10

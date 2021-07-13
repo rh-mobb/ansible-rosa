@@ -1,0 +1,67 @@
+---
+
+# cloud credential operator
+- name: delete cloud credential operator policy
+  iam_policy:
+    iam_type: role
+    policy_name: "ROSA-{{cluster_name}}-cloud-credential"
+    iam_name: "ROSA-{{cluster_name}}-cloud-credential"
+    state: absent
+
+- name: delete cloud credential operator role
+  iam_role:
+    name: "ROSA-{{cluster_name}}-cloud-credential"
+    state: absent
+
+# CSI EBS operator
+- name: delete csi ebs operator iam policy
+  iam_policy:
+    iam_type: role
+    iam_name: "ROSA-{{cluster_name}}-csi-ebs"
+    policy_name: "ROSA-{{cluster_name}}-csi-ebs"
+    state: absent
+
+- name: delete csi ebs operator iam role
+  iam_role:
+    name: "ROSA-{{cluster_name}}-csi-ebs"
+    state: absent
+
+# Image Registry Operator
+- name: delete image registry iam policy
+  iam_policy:
+    iam_type: role
+    iam_name: "ROSA-{{cluster_name}}-image-registry"
+    policy_name: "ROSA-{{cluster_name}}-image-registry"
+    state: absent
+
+- name: delete image registry iam role
+  iam_role:
+    name: "ROSA-{{cluster_name}}-image-registry"
+    state: absent
+
+# Ingress Operator
+- name: delete ingress operator iam policy
+  iam_policy:
+    iam_type: role
+    iam_name: "ROSA-{{cluster_name}}-ingress"
+    policy_name: "ROSA-{{cluster_name}}-ingress"
+    state: absent
+
+- name: delete ingress operator iam role
+  iam_role:
+    name: "ROSA-{{cluster_name}}-ingress"
+    state: absent
+
+# Machine API Operator
+- name: delete machine api operator iam policy
+  iam_policy:
+    iam_type: role
+    iam_name: "ROSA-{{cluster_name}}-machine-api"
+    policy_name: "ROSA-{{cluster_name}}-machine-api"
+    state: absent
+
+- name: delete machine api operator iam role
+  iam_role:
+    name: "ROSA-{{cluster_name}}-machine-api"
+    state: absent
+

@@ -15,14 +15,14 @@ virtualenv:
 image:
 	 docker build -t paulczar/ansible-rosa .
 
-bootstrap:
-	$(ANSIBLE) bootstrap.yaml
+# bootstrap:
+# 	$(ANSIBLE) bootstrap.yaml
 
 create:
-	$(ANSIBLE) create.yaml
+	$(ANSIBLE) -v create-sts-cluster.yaml
 
 delete:
-	$(ANSIBLE) delete.yaml
+	$(ANSIBLE) -v delete-sts-cluster.yaml
 
 
 
