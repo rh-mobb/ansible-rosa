@@ -5,13 +5,17 @@
     cidr_block: "{{ rosa_vpc_cidr }}"
   register: _vpc
 
+- set_fact:
+    vpc_id: "{{ _vpc.vpc.id }}"
+    cluster_id: "{{ cluster_id | default('tbd') }}"
+
 - name: create private subnets
   ec2_vpc_subnet:
     vpc_id: "{{ _vpc.vpc.id }}"
     cidr: "{{ item.cidr }}"
     az: "{{ item.az }}"
-    resource_tags:
-      Name: "rosa-private-{{ cluster_name }}-{{ item.az }}"
+    purge_tags: false
+    resource_tags: "{{ item.resource_tags }}"
   with_items: "{{ rosa_vpc_private_subnets }}"
   register: _private_subnets
 
@@ -20,8 +24,8 @@
     vpc_id: "{{ _vpc.vpc.id }}"
     cidr: "{{ item.cidr }}"
     az: "{{ item.az }}"
-    resource_tags:
-      Name: "rosa-public-{{ cluster_name }}-{{ item.az }}"
+    purge_tags: false
+    resource_tags: "{{ item.resource_tags }}"
   with_items: "{{ rosa_vpc_public_subnets }}"
   register: _public_subnets
 
@@ -29,23 +33,28 @@
   ec2_vpc_igw:
     vpc_id: "{{ _vpc.vpc.id }}"
     state: present
+    # tags:
+    #   Name: "rosa-public-{{ cluster_name }}-igw"
   register: _igw
 
-# - debug:
-#     var: _public_subnets.results
+- name: figure out list of subnets
+  set_fact:
+    _private_subnet_ids: "{{ _private_subnets.results | default([]) | json_query('[*].subnet.id') }}"
+    _public_subnet_ids:  "{{ _public_subnets.results  | default([]) | json_query('[*].subnet.id') }}"
 
 - name: create public subnet route table
   ec2_vpc_route_table:
     vpc_id: "{{ _vpc.vpc.id }}"
     tags:
-      Name: "public-{{ item.subnet.id }}"
-    subnets: "{{ item.subnet.id }}"
+      Name: "public-route-table"
+    subnets: "{{ _public_subnet_ids }}"
     routes:
       - dest: 0.0.0.0/0
         gateway_id: "{{ _igw.gateway_id }}"
-  with_items: "{{ _public_subnets.results }}"
 
 # Private
 
 - with_items: "{{ _public_subnets.results }}"
   include_tasks: nat_gateway_routes.yml
+  loop_control:
+    loop_var: outer_item

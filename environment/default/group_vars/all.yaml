@@ -1,21 +1,22 @@
-cluster_name: demo
-rosa_private: false
+cluster_name: paul-test
+
 rosa_private_link: false
-rosa_sts: true
+# note private-link forces private to be true
+# regardless of the following value.
+rosa_private: false
+rosa_sts: false
 
 rosa_version: 4.7.11
 rosa_region: us-east-2
-rosa_azs: [us-east-2a,us-east-2b,us-east-2c]
 rosa_vpc_cidr: "10.0.0.0/16"
-
 rosa_vpc_public_subnets:
   - cidr: "10.0.128.0/17"
     az: "us-east-2a"
-    resource_tags: { "name":"{{ cluster_name }}-public" }
+    resource_tags: { "Name":"{{ cluster_name }}-public" }
 rosa_vpc_private_subnets:
   - cidr: "10.0.0.0/17"
     az: "us-east-2a"
-    resource_tags: { "name":"{{ cluster_name }}-private" }
+    resource_tags: { "Name":"{{ cluster_name }}-private" }
 
 
 # aws_access_key_id:

@@ -1,0 +1,19 @@
+---
+# tasks file for roles/jumphost-delete
+- name: delete jumphost instance
+  ec2_instance:
+    name: "ROSA-{{ cluster_name }}-jumphost"
+    filters: |
+      {"image-id": "ami-0ba62214afa52bec7"}
+    state: absent
+
+- name: delete ssh key pair
+  ec2_key:
+    name: "ROSA-{{ cluster_name }}-jumphost"
+    state: absent
+
+- name: delete ssh security group
+  ec2_group:
+    name: "ROSA-{{ cluster_name }}-jumphost-ssh"
+    state: absent
+

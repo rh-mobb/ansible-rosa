@@ -1,0 +1,38 @@
+---
+# tasks file for roles/jumphost-create
+
+- name: make sure we have a subnet to use
+  set_fact:
+    jumphost_subnet_id: "{{ _public_subnet_ids[0] }}"
+  when: jumphost_subnet_id is not defined
+
+- name: create ssh key pair
+  ec2_key:
+    name: "ROSA-{{ cluster_name }}-jumphost"
+    key_material: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+
+- name: create ssh security group
+  ec2_group:
+    name: "ROSA-{{ cluster_name }}-jumphost-ssh"
+    description: security group for SSH
+    vpc_id: "{{ vpc_id }}"
+    # region: "{{ region | default('us-east-2') }}"
+    rules:
+      - proto: tcp
+        ports:
+        - 22
+        cidr_ip: 0.0.0.0/0
+        rule_desc: allow ssh
+
+- name: start jumphost instance
+  ec2_instance:
+    name: "ROSA-{{ cluster_name }}-jumphost"
+    key_name: "ROSA-{{ cluster_name }}-jumphost"
+    vpc_subnet_id: "{{ jumphost_subnet_id }}"
+    instance_type: t2.micro
+    security_group: "ROSA-{{ cluster_name }}-jumphost-ssh"
+    network:
+      assign_public_ip: true
+    image_id: ami-0ba62214afa52bec7
+    tags:
+      Name: "ROSA-{{ cluster_name }}-jumphost"

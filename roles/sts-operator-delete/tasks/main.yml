@@ -30,13 +30,13 @@
 - name: delete image registry iam policy
   iam_policy:
     iam_type: role
-    iam_name: "ROSA-{{cluster_name}}-image-registry"
-    policy_name: "ROSA-{{cluster_name}}-image-registry"
+    iam_name: "ROSA-{{cluster_name}}-registry"
+    policy_name: "ROSA-{{cluster_name}}-registry"
     state: absent
 
 - name: delete image registry iam role
   iam_role:
-    name: "ROSA-{{cluster_name}}-image-registry"
+    name: "ROSA-{{cluster_name}}-registry"
     state: absent
 
 # Ingress Operator

@@ -15,12 +15,12 @@ RUN curl -slL https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip \
         -o awscli.zip && unzip awscli.zip && aws/install -i /opt/aws -b /opt/bin
 
 
-RUN groupadd ansible --g 1000 && useradd -s /bin/bash -g ansible -u 1000 ansible -d /ansible
+RUN groupadd ansible --g 1000 && useradd -s /bin/bash -g ansible -u 1000 ansible -d /home/ansible
 USER ansible:ansible
 
-WORKDIR /ansible
+RUN mkdir -p /ansible/virtualenv && chown -R ansible:ansible /ansible
 
-RUN mkdir -p ./virtualenv && chown -R ansible:ansible ./virtualenv
+WORKDIR /ansible
 
 COPY ./requirements.txt /ansible/requirements.txt
 

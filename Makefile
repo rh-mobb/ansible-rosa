@@ -12,17 +12,44 @@ virtualenv:
 	. $(VIRTUALENV)/bin/activate
 	./virtualenv/bin/pip3 install -r requirements.txt --use-feature=2020-resolver
 
-image:
-	 docker build -t paulczar/ansible-rosa .
+docker.image:
+	docker build -t quay.io/pczar/ansible-rosa .
 
-# bootstrap:
-# 	$(ANSIBLE) bootstrap.yaml
+docker.image.push:
+	docker push quay.io/pczar/ansible-rosa
+
+docker.image.pull:
+	docker pull quay.io/pczar/ansible-rosa
+
+# docker shortcuts
+build: docker.image
+image: docker.image
+push: docker.image.push
+pull: docker.image.pull
+
 
 create:
-	$(ANSIBLE) -v create-sts-cluster.yaml
+	$(ANSIBLE) -v create-cluster.yaml
 
 delete:
-	$(ANSIBLE) -v delete-sts-cluster.yaml
+	$(ANSIBLE) -v delete-cluster.yaml
 
+create.multiaz:
+	$(ANSIBLE) -v create-cluster.yaml -i ./environment/multi-az/hosts
 
+delete.multiaz:
+	$(ANSIBLE) -v delete-cluster.yaml -i ./environment/multi-az/hosts
 
+docker.create: image
+	docker run --rm \
+		-v $(HOME)/.ocm.json:/home/ansible/.ocm.json \
+		-v $(HOME)/.aws:/home/ansible/.aws \
+	  -ti quay.io/pczar/ansible-rosa \
+		$(ANSIBLE) -v create-cluster.yaml
+
+docker.delete: image
+	docker run --rm \
+		-v $(HOME)/.ocm.json:/home/ansible/.ocm.json \
+		-v $(HOME)/.aws:/home/ansible/.aws \
+	  -ti quay.io/pczar/ansible-rosa \
+		$(ANSIBLE) -v delete-cluster.yaml

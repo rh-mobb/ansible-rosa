@@ -20,16 +20,23 @@
         aws_account_id: "{{ _aws_caller_info.account }}"
 
 # do this better ... maybe better set during vpc creation and inherited.
-- name: figure out list of subnets
-  set_fact:
-    _private_subnet_ids: "{{ _private_subnets.results | default([]) | json_query('[*].subnet.id') }}"
-    _public_subnet_ids:  "{{ _public_subnets.results  | default([]) | json_query('[*].subnet.id') }}"
-  when:
-    - rosa_subnet_ids | length == 0
-    - _private_subnets is defined or _public_subnets is defined
-- set_fact:
-    rosa_subnet_ids: "{{ rosa_subnet_ids | default(_private_subnet_ids + _public_subnet_ids) }}"
-  when: rosa_subnet_ids | length == 0
+- when: rosa_subnet_ids | length == 0
+  block:
+    - name: figure out list of subnets
+      set_fact:
+        _private_subnet_ids: "{{ _private_subnets.results | default([]) | json_query('[*].subnet.id') }}"
+        _public_subnet_ids:  "{{ _public_subnets.results  | default([]) | json_query('[*].subnet.id') }}"
+      when:
+        - _private_subnets is defined or _public_subnets is defined
+    - name: set subnet_ids when private cluster
+      set_fact:
+        rosa_subnet_ids: "{{ _private_subnet_ids }}"
+      when: (rosa_private_link | bool) or (rosa_private | bool)
+    - name: set subnet_ids when public cluster
+      set_fact:
+        rosa_subnet_ids: "{{ _private_subnet_ids + _public_subnet_ids }}"
+      when: (not rosa_private_link | bool) and (not rosa_private | bool)
+
 
 
 # - name: check if the cluster already exists
@@ -39,15 +46,20 @@
 #   changed_when: false
 
 # - fail:
-#     var: _cluster_exists
+#     var: _cluster_exists |V0\CPcgSE(Te|
 
 - name: create cluster
   rosa_cluster:
+    # state: dry-run
     name: "{{ cluster_name }}"
     private: "{{ rosa_private }}"
     private_link: "{{ rosa_private_link }}"
     sts: "{{ rosa_sts }}"
     aws_account_id: "{{ aws_account_id | default(omit) }}"
     machine_cidr: "{{ rosa_vpc_cidr }}"
+    multi_az: "{{ rosa_multi_az | default(False) | bool }}"
     subnet_ids: "{{ rosa_subnet_ids | join(',') }}"
+  register: _rosa_cluster
 
+# - fail:
+#     msg: "{{ cluster_name }}-{{ (_rosa_cluster.details | from_yaml).DNS.split('.')[1] }}"

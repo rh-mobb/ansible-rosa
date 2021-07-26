@@ -2,8 +2,8 @@
 
 This project contains a set of modules for working with ROSA as well as some example playbooks.
 
-Will create/delete ROSA clusters, by default a single cluster called `demo`, but if you know how to work ansible inventories, it can do multiple clusters. By default the cluster will be
-a public cluster on a BYO VPC network with STS enabled.
+Will create/delete ROSA clusters, by default a single cluster called `demo`, but if you know how to work ansible inventories, it can do multiple clusters. By default the cluster will be a single-az public cluster on a BYO VPC network with STS enabled.
+
 
 ## ROSA Ansible Modules
 

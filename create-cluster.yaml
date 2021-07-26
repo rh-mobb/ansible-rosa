@@ -1,0 +1,19 @@
+---
+- hosts:      "all"
+  connection: "local"
+  vars_files:
+      - vars/main.yaml
+
+  roles:
+    - name: roles/vpc-create
+      when: rosa_subnet_ids | default([]) | length == 0
+    - name: roles/sts-infra-create
+      when: rosa_sts | bool
+    - name: roles/cluster-create
+    - name: roles/sts-operator-create
+      when: rosa_sts | bool
+    - name: roles/jumphost-create
+      when:
+        - (rosa_private or rosa_private_link) or
+          (enable_jumphost | default(False) | bool)
+

@@ -1,21 +1,29 @@
 ---
+# - debug:
+#     msg: |
+#       private: {{ _private_subnets.results }}
+#       public: {{ _public_subnets.results }}
+
+# - fail:
+
 - name: create nat gateway per public subnet (az)
   ec2_vpc_nat_gateway:
-    subnet_id: "{{ item.subnet.id }}"
+    subnet_id: "{{ outer_item.subnet.id }}"
     state: present
     if_exist_do_not_create: yes
     wait: true
+    # tags:
+    #   Name: "rosa-public-{{ cluster_name }}-natgw-{{ item.subnet.availability_zone }}"
   register: _natgw
-
-# - debug:
-#     var: _natgw
 
 - name: create private subnet route table
   ec2_vpc_route_table:
     vpc_id: "{{ _vpc.vpc.id }}"
     tags:
-      Name: "private-{{ item.subnet.id }}"
+      Name: "rosa-private-nat-{{ item.subnet.id }}"
     subnets: "{{ item.subnet.id }}"
     routes:
       - dest: 0.0.0.0/0
         gateway_id: "{{ _natgw.nat_gateway_id }}"
+  with_items: "{{ _private_subnets.results }}"
+  when: item.subnet.availability_zone == outer_item.subnet.availability_zone

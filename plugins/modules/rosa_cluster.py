@@ -156,9 +156,9 @@ def run_module():
         multi_az=dict(type='bool', required=False),
         enable_autoscaling=dict(type='bool', required=False),
         private=dict(type='bool', required=False),
+        private_link=dict(type='bool', required=False),
         sts=dict(type='bool', required=False),
         aws_account_id=dict(type='str', required=False),
-        private_link=dict(type='bool', required=False),
         disable_scp_checks=dict(type='bool', required=False),
         wait=dict(type='bool', required=False),
         state=dict(type='str', default='present', choices=['present','absent','dry-run', 'describe'])
@@ -214,7 +214,7 @@ def run_module():
     if state == "absent":
         args = [rosa, "delete", "cluster", "-y", "-c", name]
     else:
-        args = [rosa, "create", "cluster", "-c", name]
+        args = [rosa, "create", "cluster", "-y", "-c", name]
 
         if state == "dry-run": args.append("--dry-run")
 
@@ -232,17 +232,17 @@ def run_module():
         args.extend(["--operator-iam-roles","ebs-cloud-credentials,openshift-cluster-csi-drivers,arn:aws:iam::{}:role/ROSA-{}-csi-ebs".format(aws_account_id, name)])
 
 
-        for param, value in params.items():
-            if not value: continue
-            if param == "multi_az": args.append("--multi-az")
-            elif param == "enable_autoscaling": args.append("--enable-autoscaling")
-            elif param == "private": args.append("--private")
-            elif param == "private_link": args.append("--private-link")
-            elif param == "disable_scp_checks": args.append("--disable_scp_checks")
-            elif param == "region" or param == "profile":
-                args.extend([argify(param), value])
-                describe_args.extend([argify(param), value])
-            else: args.extend([argify(param), value])
+    for param, value in params.items():
+        if not value: continue
+        if param == "multi_az": args.append("--multi-az")
+        elif param == "enable_autoscaling": args.append("--enable-autoscaling")
+        elif param == "private": args.append("--private")
+        elif param == "private_link": args.append("--private-link")
+        elif param == "disable_scp_checks": args.append("--disable_scp_checks")
+        elif param == "region" or param == "profile":
+            args.extend([argify(param), value])
+            describe_args.extend([argify(param), value])
+        else: args.extend([argify(param), value])
 
     # command_result['command'] = " ".join(args)
     # result['command'].append(" ".join(args))

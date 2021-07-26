@@ -1,26 +1,32 @@
 #
 # BUILD
 #
+
 FROM fedora:33 as build
+
+ENV HOME=/home/ansible
 
 RUN dnf -y install \
     bash gcc musl-devel libffi-devel git gpgme-devel libxml2-devel \
     libxslt-devel curl cargo openssl-devel python-devel unzip
 
-RUN groupadd ansible --g 1000 && useradd -s /bin/bash -g ansible -u 1000 ansible -d /ansible
+RUN groupadd ansible --g 1000 && useradd -s /bin/bash -g ansible -u 1000 ansible -d ${HOME}
+
+RUN mkdir -p /ansible/virtualenv && chown -R ansible:ansible /ansible
+
 USER ansible:ansible
+
+RUN mkdir -p ${HOME}/.local/bin
 
 WORKDIR /ansible
 
-RUN mkdir -p ./.local/bin && mkdir -p ./virtualenv && chown -R ansible:ansible ./virtualenv
-
 # add other executables
 RUN curl -slL https://storage.googleapis.com/kubernetes-release/release/v1.18.3/bin/linux/amd64/kubectl \
-        -o kubectl && install kubectl /ansible/.local/bin/
+        -o kubectl && install kubectl ${HOME}/.local/bin/
 RUN curl -slL https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/rosa/latest/rosa-linux.tar.gz \
-        -o rosa.tgz  && tar xzvf rosa.tgz && install rosa /ansible/.local/bin/
+        -o rosa.tgz  && tar xzvf rosa.tgz && install rosa ${HOME}/.local/bin/
 RUN curl -slL https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip \
-        -o awscli.zip && unzip awscli.zip && aws/install -i /ansible/.local/aws-cli -b /ansible/.local/bin
+        -o awscli.zip && unzip awscli.zip && aws/install -i ${HOME}/.local/aws-cli -b /ansible/.local/bin
 
 COPY ./requirements.txt /ansible/requirements.txt
 
@@ -33,24 +39,26 @@ COPY . /ansible
 
 FROM fedora:33
 
+ENV HOME=/home/ansible
+
 # # update the image
 RUN dnf -y install \
     bash openssl unzip glibc groff
 
-RUN groupadd ansible --g 1000 && useradd -s /bin/bash -g ansible -u 1000 ansible -d /ansible
-RUN mkdir -p ./virtualenv && chown -R ansible:ansible ./virtualenv
+RUN groupadd ansible --g 1000 && useradd -s /bin/bash -g ansible -u 1000 ansible -d ${HOME}
+RUN mkdir -p /ansible/virtualenv && chown -R ansible:ansible /ansible
 
 # # copy executables from build image
-COPY --from=build /usr/local/bin /usr/local/bin
+# COPY --from=build /usr/local/bin /usr/local/bin
 
 COPY --chown=ansible:ansible . /ansible
-COPY --chown=ansible:ansible --from=build /ansible/.local /ansible/.local
+COPY --chown=ansible:ansible --from=build ${HOME}/.local ${HOME}/.local
 COPY --chown=ansible:ansible --from=build /ansible/virtualenv /ansible/virtualenv
 
 USER ansible:ansible
 
 # # set pathing
-ENV PATH=/ansible/.local/bin:./virtualenv/bin:/ansible/staging/bin:$PATH
+ENV PATH=${HOME}/.local/bin:./virtualenv/bin:/ansible/staging/bin:$PATH
 ENV PYTHONPATH=./virtualenv/lib/python3.8/site-packages/
 ENV ANSIBLE_PYTHON_INTERPRETER=./virtualenv/bin/python
 # # set kubeconfig and ansible options
