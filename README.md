@@ -96,24 +96,32 @@ make delete
     * If you've already logged in locally:
 
     ```bash
-    docker run -ti \
-      -v $HOME/.ocm.json:/ansible/.ocm.json:ro \
-      -v $HOME/.aws:/ansible/.aws:ro paulczar/ansible-rosa \
-      ansible-playbook create-sts-cluster.yaml
+    make docker.create
     ```
 
-    * If you want to let ansible log you in:
+    * If you want to let ansible log you in (fill out the variables):
 
     ```bash
     docker run -ti -e AWS_ACCESS_KEY_ID="" \
        -e AWS_SECRET_ACCESS_KEY="" -e ROSA_TOKEN="" \
-       paulczar/ansible-rosa \
-       ansible-playbook create-sts-cluster.yaml
+       quay.io/pczar/ansible-rosa \
+       ansible-playbook create-cluster.yaml
     ```
 
 3. Delete the cluster
 
-    Do one of the above but change `create-sts-cluster.yaml` to `delete-sts-cluster.yaml`.
+    ```bash
+    make docker.delete
+    ```
+
+    or
+
+    ```bash
+    docker run -ti -e AWS_ACCESS_KEY_ID="" \
+       -e AWS_SECRET_ACCESS_KEY="" -e ROSA_TOKEN="" \
+       quay.io/pczar/ansible-rosa \
+       ansible-playbook delete-cluster.yaml
+    ```
 
 
 ## ToDos
