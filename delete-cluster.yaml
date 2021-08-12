@@ -6,10 +6,6 @@
 
   roles:
     - name: roles/cluster-delete
-    - name: roles/sts-infra-delete
-      when: rosa_sts | bool
-    - name: roles/sts-operator-delete
-      when: rosa_sts | bool
     - name: roles/jumphost-delete
       when:
         - (rosa_private or rosa_private_link) or

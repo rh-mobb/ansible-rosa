@@ -23,16 +23,22 @@
         - 22
         cidr_ip: 0.0.0.0/0
         rule_desc: allow ssh
-
+      - proto: tcp
+        ports:
+        - 8080
+        cidr_ip: 10.0.0.0/8
+        rule_desc: allow proxy
 - name: start jumphost instance
   ec2_instance:
     name: "ROSA-{{ cluster_name }}-jumphost"
     key_name: "ROSA-{{ cluster_name }}-jumphost"
     vpc_subnet_id: "{{ jumphost_subnet_id }}"
-    instance_type: t2.micro
+    instance_type: "{{ jumphost_instance_type }}"
     security_group: "ROSA-{{ cluster_name }}-jumphost-ssh"
+    user_data: "{{ lookup('file', 'user_data.sh') }}"
     network:
       assign_public_ip: true
-    image_id: ami-0ba62214afa52bec7
+    image_id: "{{ jumphost_ami }}"
     tags:
       Name: "ROSA-{{ cluster_name }}-jumphost"
+

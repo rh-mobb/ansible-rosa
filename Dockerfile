@@ -23,8 +23,8 @@ WORKDIR /ansible
 # add other executables
 RUN curl -slL https://storage.googleapis.com/kubernetes-release/release/v1.18.3/bin/linux/amd64/kubectl \
         -o kubectl && install kubectl ${HOME}/.local/bin/
-RUN curl -slL https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/rosa/latest/rosa-linux.tar.gz \
-        -o rosa.tgz  && tar xzvf rosa.tgz && install rosa ${HOME}/.local/bin/
+RUN curl -slL https://github.com/openshift/rosa/releases/download/v1.1.0/rosa-linux-amd64 \
+        -o rosa && install rosa ${HOME}/.local/bin/
 RUN curl -slL https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip \
         -o awscli.zip && unzip awscli.zip && aws/install -i ${HOME}/.local/aws-cli -b /ansible/.local/bin
 

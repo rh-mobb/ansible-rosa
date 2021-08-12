@@ -10,10 +10,14 @@
 
 - name: verify the cluster exists before trying to delete it
   shell: |
-    rosa describe cluster -c {{ cluster_name }}
+    rosa describe cluster -c {{ cluster_name }} --output json
   register: _cluster_exists
   changed_when: false
   failed_when: false
+
+- set_fact:
+    _cluster_details: "{{ _cluster_exists.stdout | from_json }}"
+  when: _cluster_exists.stdout is defined and _cluster_exists.stdout != ''
 
 - when: _cluster_exists.rc == 0
   block:
@@ -25,10 +29,69 @@
 
     - name: verify the cluster is deleted
       shell: |
-        rosa describe cluster -c {{ cluster_name }}
+        rosa describe cluster -c {{ cluster_name }} --output json
       register: _cluster
       changed_when: false
       failed_when: false
       until: _cluster.rc != 0
       retries: 60
       delay: 10
+
+- when: _cluster_details is defined and _cluster_details.aws.sts is defined
+  block:
+    - name: get aws caller info for accountid
+      aws_caller_info:
+      register: _aws_caller_info
+
+    - set_fact:
+        aws_account_id: "{{ _aws_caller_info.account }}"
+
+    - name: figure out operator roles
+      set_fact:
+        _operator_roles: "{{ _cluster_details.aws.sts.operator_iam_roles }}"
+        _cluster_id: "{{ _cluster_details.id | default(omit) }}"
+
+    - name: delete the operator roles
+      iam_role:
+        name: "{{ item.name }}"
+        state: absent
+      with_items: "{{ _operator_roles }}"
+      when: _operator_roles | length > 0
+
+    - name: delete the oidc endpoint
+      shell: |
+        aws iam delete-open-id-connect-provider --open-id-connect-provider-arn "arn:aws:iam::{{ aws_account_id }}:oidc-provider/rh-oidc.s3.us-east-1.amazonaws.com/{{ _cluster_id }}"
+      when: _cluster_id is defined and _operator_roles | length > 0
+
+
+- when: _cluster_exists.rc != 0
+  block:
+    - name: "collect list of operator roles"
+      shell: |
+        aws iam list-roles --query 'Roles[?starts_with(RoleName, `{{ cluster_name }}-openshift`) == `true`]'.RoleName --output json
+      register: _operator_roles_txt
+      changed_when: false
+
+    - name: get oidc endpoint
+      shell: |
+        aws iam get-role --role-name "{{ (_operator_roles_txt.stdout | from_json)[0] }}" --query 'Role.AssumeRolePolicyDocument.Statement[?starts_with(Effect, `Allow`) == `true`].Principal.Federated' --output text
+      register:
+        _oidc_endpoint_txt
+      when: _operator_roles_txt.stdout | from_json | length > 0
+
+    - name: delete the operator roles
+      shell: |
+        POLICY=$(aws iam list-attached-role-policies --role-name {{ item }} --query 'AttachedPolicies[].PolicyArn' --output text)
+        if [[ -n ${POLICY} ]]; then
+          aws iam detach-role-policy --role-name {{ item }} --policy-arn ${POLICY}
+        fi
+        aws iam delete-role --role-name "{{ item }}"
+      with_items: "{{ _operator_roles_txt.stdout | from_json }}"
+      when: _operator_roles_txt.stdout | from_json | length > 0
+
+    - name: delete the oidc endpoint
+      shell: |
+        aws iam get-open-id-connect-provider --open-id-connect-provider-arn "{{ _oidc_endpoint_txt.stdout }}" && \
+          aws iam delete-open-id-connect-provider --open-id-connect-provider-arn "{{ _oidc_endpoint_txt.stdout }}"
+      when: _oidc_endpoint_txt.stdout is defined
+      failed_when: false

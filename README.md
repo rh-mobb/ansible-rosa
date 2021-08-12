@@ -2,29 +2,8 @@
 
 This project contains a set of modules for working with ROSA as well as some example playbooks.
 
-Will create/delete ROSA clusters, by default a single cluster called `demo`, but if you know how to work ansible inventories, it can do multiple clusters. By default the cluster will be a single-az public cluster on a BYO VPC network with STS enabled.
+Will create/delete ROSA clusters but if you know how to work ansible inventories, it can do multiple clusters. By default the cluster will be a single-az public cluster on a BYO VPC network with STS enabled.  modify the inventory in `environment/default` to enable private-link or modify networks.
 
-
-## ROSA Ansible Modules
-
-> See [here](docs/modules.md) for detailed documentation
-
-```yaml
-- name: authenticate rosa using token
-  rosa_auth:
-    token: "{{ rosa_token }}"
-
-- name: initialize rosa
-  rosa_init:
-    state: present
-
-- name: create cluster
-  rosa_cluster:
-    name: "my-rosa-cluster"
-    compute_nodes: 4
-    multi_az: no
-    wait: true
-```
 
 ## Examples using ROSA Ansible Modules
 
@@ -41,7 +20,7 @@ Will create/delete ROSA clusters, by default a single cluster called `demo`, but
     1. Sign in to your AWS account.
     1. Go to the [ROSA service](https://console.aws.amazon.com/rosa/) and select **Enable**.
 
-## Log in to AWS or ROSA
+## Log in to AWS and ROSA
 
 To authenticate to AWS / ROSA you can use the tools directly to auth or set ansible variables and let it do it for you.
 
@@ -59,7 +38,7 @@ To authenticate to AWS / ROSA you can use the tools directly to auth or set ansi
     rosa login
     ```
 
-## Local with ansible in a virtualenv
+## Deploy a Cluster with ansible in a virtualenv
 
 ### Prepare Ansible
 
@@ -81,9 +60,7 @@ make create
 make delete
 ```
 
-## Local using Docker
-
-> not tested recently
+## Deploy a Cluster with ansible in a docker image
 
 1. Build the docker image
 

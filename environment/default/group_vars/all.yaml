@@ -1,12 +1,12 @@
-cluster_name: paul-test
+cluster_name: ansible-demo
 
 rosa_private_link: false
 # note private-link forces private to be true
 # regardless of the following value.
 rosa_private: false
-rosa_sts: false
+rosa_sts: true
 
-rosa_version: 4.7.11
+rosa_version: 4.8.2
 rosa_region: us-east-2
 rosa_vpc_cidr: "10.0.0.0/16"
 rosa_vpc_public_subnets:
@@ -18,7 +18,11 @@ rosa_vpc_private_subnets:
     az: "us-east-2a"
     resource_tags: { "Name":"{{ cluster_name }}-private" }
 
+jumphost_ami: ami-0ba62214afa52bec7
+jumphost_instance_type: t1.micro
+# jumphost_instance_type: m4.xlarge
 
+## don't set these and let it use your already logged in accounts
 # aws_access_key_id:
 # aws_secret_access_key:
 # aws_default_region:

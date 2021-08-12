@@ -4,6 +4,7 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import (absolute_import, division, print_function)
+from sys import stdout
 __metaclass__ = type
 
 DOCUMENTATION = r'''
@@ -133,16 +134,20 @@ password: str
 # These are examples of possible return values, and in general should use other names for return values.
 '''
 
+MIN_ROSA_VERSION = "1.1.0"
+
 from ansible.module_utils.basic import *
-import re
+from packaging import version as check_version
+from semver import parse as semver_parse
 import time
+import json
 
 def run_module():
     # define available arguments/parameters a user can pass to the module
     module_args = dict(
         name=dict(type='str', required=True),
         region=dict(type='str', required=False),
-        version=dict(type='str', required=False),
+        version=dict(type='str', required=False, default="4.8.2"),
         channel_group=dict(type='str', required=False),
         compute_machine_type=dict(type='str', required=False),
         compute_nodes=dict(type='int', required=False),
@@ -172,18 +177,12 @@ def run_module():
     result = dict(
         changed=False,
         commands=[],
-        details="",
+        details=None,
     )
 
-    command_result = dict(
-            reason="",
-            command="",
-            rc=None,
-            stdout="",
-            stderr=""
-    )
 
-        # the AnsibleModule object will be our abstraction working with Ansible
+
+    # the AnsibleModule object will be our abstraction working with Ansible
     # this includes instantiation, a couple of common attr would be the
     # args/params passed to the execution, as well as if the module
     # supports check mode
@@ -201,7 +200,17 @@ def run_module():
     # check that rosa binary exists
     rosa = module.get_bin_path("rosa", required=True)
     if rosa == None:
-          module.fail_json(msg='rosa cli not found in $PATH', **result)
+        module.fail_json(msg='rosa cli not found in $PATH', **result)
+
+    # check that rosa is minimum version
+    # MIN_ROSA_VERSION
+    rosa_version_cmd = [rosa, "version"]
+    rc, stdout, stderr = module.run_command(rosa_version_cmd)
+    rosa_version = stdout.rstrip()
+    if rc != 0:
+        module.fail_json(msg='could not run rosa version', **result)
+    if check_version.parse(rosa_version) < check_version.parse(MIN_ROSA_VERSION):
+        module.fail_json(msg="rosa version %s does not meet minimum of %s" % (rosa_version, MIN_ROSA_VERSION), **result)
 
     params = module.params
     state = params.pop('state')
@@ -209,28 +218,26 @@ def run_module():
     wait = params.pop('wait')
     sts = params.pop('sts')
     aws_account_id = params.pop('aws_account_id')
+    cluster_version = params.pop('version')
+    cluster_semver = semver_parse(cluster_version)
+    sts_version = str(cluster_semver['major']) + "." + str(cluster_semver['minor'])
 
-    describe_args = [rosa, "describe", "cluster", "-c", name]
+    describe_args = [rosa, "describe", "cluster", "-c", name, "--output", "json"]
     if state == "absent":
         args = [rosa, "delete", "cluster", "-y", "-c", name]
     else:
         args = [rosa, "create", "cluster", "-y", "-c", name]
 
-        if state == "dry-run": args.append("--dry-run")
+    if state == "dry-run":
+        args.append("--dry-run")
 
     if sts:
         if not aws_account_id:
-            module.fail_json(msg="must provide aws account id when using sts\n%s" % (command_result['stderr']), **result)
-        args.extend(["--role-arn","arn:aws:iam::{}:role/ROSA-{}-install".format(aws_account_id, name)])
-        args.extend(["--support-role-arn","arn:aws:iam::{}:role/ROSA-{}-support".format(aws_account_id, name)])
-        args.extend(["--master-iam-role","arn:aws:iam::{}:role/ROSA-{}-control".format(aws_account_id, name)])
-        args.extend(["--worker-iam-role","arn:aws:iam::{}:role/ROSA-{}-worker".format(aws_account_id, name)])
-        args.extend(["--operator-iam-roles","aws-cloud-credentials,openshift-machine-api,arn:aws:iam::{}:role/ROSA-{}-machine-api".format(aws_account_id, name)])
-        args.extend(["--operator-iam-roles","cloud-credential-operator-iam-ro-creds,openshift-cloud-credential-operator,arn:aws:iam::{}:role/ROSA-{}-cloud-credential".format(aws_account_id, name)])
-        args.extend(["--operator-iam-roles","installer-cloud-credentials,openshift-image-registry,arn:aws:iam::{}:role/ROSA-{}-registry".format(aws_account_id, name)])
-        args.extend(["--operator-iam-roles","cloud-credentials,openshift-ingress-operator,arn:aws:iam::{}:role/ROSA-{}-ingress".format(aws_account_id, name)])
-        args.extend(["--operator-iam-roles","ebs-cloud-credentials,openshift-cluster-csi-drivers,arn:aws:iam::{}:role/ROSA-{}-csi-ebs".format(aws_account_id, name)])
-
+            module.fail_json(msg="must provide aws account id when using sts\n", **result)
+        args.extend(["--role-arn","arn:aws:iam::{}:role/ManagedOpenShift-Installer-Role".format(aws_account_id)])
+        args.extend(["--support-role-arn","arn:aws:iam::{}:role/ManagedOpenShift-Support-Role".format(aws_account_id)])
+        args.extend(["--master-iam-role","arn:aws:iam::{}:role/ManagedOpenShift-ControlPlane-Role".format(aws_account_id)])
+        args.extend(["--worker-iam-role","arn:aws:iam::{}:role/ManagedOpenShift-Worker-Role".format(aws_account_id)])
 
     for param, value in params.items():
         if not value: continue
@@ -244,83 +251,141 @@ def run_module():
             describe_args.extend([argify(param), value])
         else: args.extend([argify(param), value])
 
-    # command_result['command'] = " ".join(args)
-    # result['command'].append(" ".join(args))
-
-    rc, stdout, stderr = module.run_command(describe_args)
-
-    # save results
-    command_result['command'] = " ".join(describe_args)
-    result['details'] = cluster_details('stdout')
-    command_result['reason'] = "check to see if cluster already exists"
-    command_result['rc'], command_result['stdout'], command_result['stderr'] = rc, stdout, stderr
-    result['commands'].append(command_result.copy())
+    describe_rc, describe_stdout, describe_stderr = rosa_describe_cluster(module, rosa, name)
 
     # if the cluster already exists
-    if rc == 0:
+    if describe_rc == 0:
         # delete on absent
         if state == "absent":
             result['changed'] = True
-            command_result['rc'], command_result['stdout'], command_result['stderr'] = module.run_command(args)
-            command_result['reason'] = "delete the cluster"
-            command_result['command'] = " ".join(args)
-            result['commands'].append(command_result)
-            result['details'] = cluster_details(command_result['stdout'])
-            if command_result['rc'] != 0:
-                module.fail_json(msg="failed to delete cluster\n%s" % (command_result['stderr']), **result)
+            rc, stdout, stderr = module.run_command(args)
+            reason = "delete the cluster"
+            command = " ".join(args)
+            result['commands'].append(commands(rc, stdout, stderr, reason, args))
+            if rc != 0:
+                module.fail_json(msg="failed to delete cluster\n%s" % (stderr), **result)
             if not wait:
                 module.exit_json(**result)
 
-    if rc == 1:
+    if describe_rc == 1:
+        # create sts account roles
+        if sts:
+            print("Create Account Roles")
+            create_account_roles = [rosa, "create", "account-roles", "--version", sts_version, "--mode", "auto", "--yes"]
+            if state == "present":
+                rc = 1
+                while rc != 0:
+                    rc, stdout, stderr = module.run_command(create_account_roles)
+                    result['commands'].append(commands(rc, stdout, stderr, 'create sts account roles', create_account_roles))
+                    if rc != 0:
+                        if "Throttling: Rate exceeded" in stderr:
+                            time.sleep(60)
+                            continue
+                        module.fail_json(msg="failed to create account roles\n%s" % (stderr))
+            elif state == "dry-run":
+                result['commands'].append(commands(0, "skipped due to dry-run", None, 'create sts account roles', create_account_roles))
+        print ("Create Cluster")
         # if the cluster doesn't exist, create it
-        if state in ['present', 'dry-run'] and "There is no cluster with identifier or name" in stderr:
+        if state in ['present', 'dry-run'] and "There is no cluster with identifier or name" in describe_stderr:
             if state == 'present':
                 result['changed'] = True
-            command_result['rc'], command_result['stdout'], command_result['stderr'] = module.run_command(args)
-            command_result['command'] = " ".join(args)
-            command_result['reason'] = "create the cluster"
-            result['details'] = cluster_details(command_result['stdout'])
-            result['commands'].append(command_result)
-            if command_result['rc'] != 0:
-                module.fail_json(msg="failed to create cluster\n%s" % (command_result['stderr']), **result)
+            rc, stdout, stderr = module.run_command(args)
+            # result['details'] = cluster_details(stdout)
+            result['commands'].append(commands(rc, stdout, stderr, 'create cluster', args))
+            if rc != 0:
+                module.fail_json(msg="failed to create cluster\n%s" % (stderr), **result)
         else:
             # unknown error, better fail.
-            module.fail_json(msg="failed\n%s" % (command_result['stderr']), **result)
+            module.fail_json(msg="failed for unknown reason\n%s" % (describe_stderr), **result)
 
+        if sts:
+            oidc_pending = False
+            if state == 'dry-run':
+                oidc_pending = True
+            counter = 0
+            while not oidc_pending:
+                time.sleep(60)
+                rc, stdout, stderr = rosa_describe_cluster(module, rosa, name)
+                if rc == 0:
+                    if cluster_details(stdout)['state'] == "pending":
+                        oidc_pending = True
+                else:
+                    module.fail_json(msg="failed to describe cluster waiting for pending OIDC\n%s" % (stderr), **result)
+                counter += 1
+                if counter > 5:
+                    module.fail_json(msg="timed out waiting for cluster to be in pending state", **result)
+
+            # create operator roles
+            create_operator_roles = [rosa, "create", "operator-roles", "--mode", "auto", "--yes", "--cluster", name]
+            if state == "present":
+                rc = 1
+                while rc != 0:
+                    rc, stdout, stderr = module.run_command(create_operator_roles)
+                    result['commands'].append(commands(rc, stdout, stderr, 'create sts operator roles', create_operator_roles))
+                    if rc != 0:
+                        if "Throttling: Rate exceeded" in stderr:
+                            time.sleep(60)
+                            continue
+                        module.fail_json(msg="failed to create operator roles\n%s" % (stderr))
+            elif state == "dry-run":
+                result['commands'].append(commands(0, "skipped, dry-run", None, 'create sts operator roles', create_operator_roles))
+
+            # create oidc provider
+            create_oidc_provider = [rosa, "create", "oidc-provider", "--mode", "auto", "--yes", "--cluster", name]
+            if state == "present":
+                rc, stdout, stderr = module.run_command(create_oidc_provider)
+                result['commands'].append(commands(rc, stdout, stderr, 'create sts oidc provider', create_oidc_provider))
+                if rc != 0:
+                    module.fail_json(msg="failed to create oidc provider\n%s" % (stderr))
+            elif state == "dry-run":
+                result['commands'].append(commands(0, "skipped, dry-run", None, 'create sts oidc provider', create_oidc_provider))
     if wait and state in ['present', 'absent']:
-        ready = re.compile(r'State:\s+ready')
+        # ready = re.compile(r'State:\s+ready')
         done = None
         counter = 1
         while not done:
-            command_result['reason'] = "wait for the cluster to be ready (attempt %s)" % (counter)
-            command_result['rc'], command_result['stdout'], command_result['stderr'] = module.run_command(describe_args)
-            command_result['command'] = " ".join(describe_args)
-            result['commands'].append(command_result.copy())
-            if command_result['rc'] == 0 and state == 'present' and ready.search(command_result['stdout']):
-                # command_result['reason'] = command_result['reason'] + 'WE DID IT'
+            time.sleep(60)
+            rc, stdout, stderr = rosa_describe_cluster(module, rosa, name)
+            if rc == 0 and state == 'present' and cluster_details(stdout)['ready']:
                 done = "success"
-            if command_result['rc'] == 1 and state == 'absent' and "There is no cluster with identifier or name" in command_result['stderr']:
+            if rc == 1 and state == 'absent' and "There is no cluster with identifier or name" in stderr:
                 done = "success"
             counter += 1
             if counter > 60:
                 done = "timeout"
-            time.sleep(60)
 
         if done == 'timeout':
-            result['details'] = cluster_details(command_result['stdout'])
+            result['details'] = cluster_details(stdout)
             module.fail_json(msg="cluster did not finish provisioning within an hour\n%s" % (command_result['stderr']), **result)
 
-    result['details'] = cluster_details(command_result['stdout'])
+    if state == "present":
+        rc, stdout, stderr = rosa_describe_cluster(module, rosa, name)
+        result['details'] = cluster_details(stdout)
+    elif state == "dry-run":
+        result['details'] = '{"output": "successful dry-run"}'
     module.exit_json(**result)
 
+def rosa_describe_cluster(module, rosa, name):
+    args = [rosa, "describe", "cluster", "-c", name, "--output", "json"]
+    rc, stdout, stderr = module.run_command(args)
+    return rc, stdout, stderr
+
 def cluster_details(stdout):
-        if stdout == None: return ""
-        ansi_escape = re.compile(r'\x1B')
-        details = []
-        for line in stdout.splitlines():
-            if not ansi_escape.match(line):
-                details.append(line)
-        return "\n".join(details)
+    try:
+        return json.loads(stdout)
+    except:
+        return stdout
+
+def commands(rc, stdout, stderr, reason, args):
+    cr = dict(
+            reason=reason,
+            command=" ".join(args),
+            rc=rc,
+            stdout=stdout,
+            stderr=stderr
+    )
+    return cr
+
 
 def argify(param):
     return "--" + param.replace("_", "-")

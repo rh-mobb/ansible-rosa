@@ -4,7 +4,7 @@
   ec2_instance:
     name: "ROSA-{{ cluster_name }}-jumphost"
     filters: |
-      {"image-id": "ami-0ba62214afa52bec7"}
+      {"image-id": "{{ jumphost_ami }}"}
     state: absent
 
 - name: delete ssh key pair

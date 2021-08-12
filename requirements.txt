@@ -18,3 +18,9 @@ dnspython==1.16.0
 # required for linting
 yamllint==1.24.2
 ansible-lint==4.3.4
+
+# required to parse versions with rosa module
+packaging==21.0
+
+# semver processing
+semver==2.13.0
