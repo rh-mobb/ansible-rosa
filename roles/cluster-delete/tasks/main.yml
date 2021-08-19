@@ -19,6 +19,8 @@
     _cluster_details: "{{ _cluster_exists.stdout | from_json }}"
   when: _cluster_exists.stdout is defined and _cluster_exists.stdout != ''
 
+
+## Delete the cluster
 - when: _cluster_exists.rc == 0
   block:
     - name: delete cluster
@@ -37,34 +39,35 @@
       retries: 60
       delay: 10
 
-- when: _cluster_details is defined and _cluster_details.aws.sts is defined
-  block:
-    - name: get aws caller info for accountid
-      aws_caller_info:
-      register: _aws_caller_info
+## Delete the operator roles
+# - when: _cluster_details is defined and _cluster_details.aws.sts is defined
+#   block:
+#     - name: get aws caller info for accountid
+#       aws_caller_info:
+#       register: _aws_caller_info
 
-    - set_fact:
-        aws_account_id: "{{ _aws_caller_info.account }}"
+#     - set_fact:
+#         aws_account_id: "{{ _aws_caller_info.account }}"
 
-    - name: figure out operator roles
-      set_fact:
-        _operator_roles: "{{ _cluster_details.aws.sts.operator_iam_roles }}"
-        _cluster_id: "{{ _cluster_details.id | default(omit) }}"
+#     - name: figure out operator roles
+#       set_fact:
+#         _operator_roles: "{{ _cluster_details.aws.sts.operator_iam_roles }}"
+#         _cluster_id: "{{ _cluster_details.id | default(omit) }}"
 
-    - name: delete the operator roles
-      iam_role:
-        name: "{{ item.name }}"
-        state: absent
-      with_items: "{{ _operator_roles }}"
-      when: _operator_roles | length > 0
+#     - name: delete the operator roles
+#       iam_role:
+#         name: "{{ item.name }}"
+#         state: absent
+#       with_items: "{{ _operator_roles }}"
+#       when: _operator_roles | length > 0
 
-    - name: delete the oidc endpoint
-      shell: |
-        aws iam delete-open-id-connect-provider --open-id-connect-provider-arn "arn:aws:iam::{{ aws_account_id }}:oidc-provider/rh-oidc.s3.us-east-1.amazonaws.com/{{ _cluster_id }}"
-      when: _cluster_id is defined and _operator_roles | length > 0
+#     - name: delete the oidc endpoint
+#       shell: |
+#         aws iam delete-open-id-connect-provider --open-id-connect-provider-arn "arn:aws:iam::{{ aws_account_id }}:oidc-provider/rh-oidc.s3.us-east-1.amazonaws.com/{{ _cluster_id }}"
+#       when: _cluster_id is defined and _operator_roles | length > 0
 
 
-- when: _cluster_exists.rc != 0
+- when: _cluster_exists.rc != 0 or _cluster_exists.rc == 0
   block:
     - name: "collect list of operator roles"
       shell: |
