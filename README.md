@@ -1,5 +1,12 @@
 # ansible-rosa
 
+*******************************************************************
+* 							          *
+*  This project is provided as-is, and is not an official or      *
+*  Supported Red Hat project. We will happily accept issues and   *
+*  Pull Requests and provide basic OSS level community support    *
+*******************************************************************
+
 This project contains a set of modules for working with ROSA as well as some example playbooks.
 
 Will create/delete ROSA clusters but if you know how to work ansible inventories, it can do multiple clusters. By default the cluster will be a single-az public cluster on a BYO VPC network with STS enabled.  modify the inventory in `environment/default` to enable private-link or modify networks.
