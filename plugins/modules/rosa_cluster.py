@@ -134,7 +134,7 @@ password: str
 # These are examples of possible return values, and in general should use other names for return values.
 '''
 
-MIN_ROSA_VERSION = "1.1.0"
+MIN_ROSA_VERSION = "1.1.9"
 
 from ansible.module_utils.basic import *
 from packaging import version as check_version
@@ -234,10 +234,12 @@ def run_module():
     if sts:
         if not aws_account_id:
             module.fail_json(msg="must provide aws account id when using sts\n", **result)
-        args.extend(["--role-arn","arn:aws:iam::{}:role/ManagedOpenShift-Installer-Role".format(aws_account_id)])
-        args.extend(["--support-role-arn","arn:aws:iam::{}:role/ManagedOpenShift-Support-Role".format(aws_account_id)])
-        args.extend(["--master-iam-role","arn:aws:iam::{}:role/ManagedOpenShift-ControlPlane-Role".format(aws_account_id)])
-        args.extend(["--worker-iam-role","arn:aws:iam::{}:role/ManagedOpenShift-Worker-Role".format(aws_account_id)])
+        args.append("--sts")
+        args.extend(['--mode', 'auto'])
+        # args.extend(["--role-arn","arn:aws:iam::{}:role/ManagedOpenShift-Installer-Role".format(aws_account_id)])
+        # args.extend(["--support-role-arn","arn:aws:iam::{}:role/ManagedOpenShift-Support-Role".format(aws_account_id)])
+        # args.extend(["--controlplane-iam-role","arn:aws:iam::{}:role/ManagedOpenShift-ControlPlane-Role".format(aws_account_id)])
+        # args.extend(["--worker-iam-role","arn:aws:iam::{}:role/ManagedOpenShift-Worker-Role".format(aws_account_id)])
 
     for param, value in params.items():
         if not value: continue
@@ -245,7 +247,7 @@ def run_module():
         elif param == "enable_autoscaling": args.append("--enable-autoscaling")
         elif param == "private": args.append("--private")
         elif param == "private_link": args.append("--private-link")
-        elif param == "disable_scp_checks": args.append("--disable_scp_checks")
+        elif param == "disable_scp_checks": args.append("--disable-scp-checks")
         elif param == "region" or param == "profile":
             args.extend([argify(param), value])
             describe_args.extend([argify(param), value])
@@ -271,7 +273,7 @@ def run_module():
         # create sts account roles
         if sts:
             print("Create Account Roles")
-            create_account_roles = [rosa, "create", "account-roles", "--version", sts_version, "--mode", "auto", "--yes"]
+            create_account_roles = [rosa, "create", "account-roles", "--mode", "auto", "--yes"]
             if state == "present":
                 rc = 1
                 while rc != 0:
@@ -298,47 +300,33 @@ def run_module():
             # unknown error, better fail.
             module.fail_json(msg="failed for unknown reason\n%s" % (describe_stderr), **result)
 
-        if sts:
-            oidc_pending = False
-            if state == 'dry-run':
-                oidc_pending = True
-            counter = 0
-            while not oidc_pending:
-                time.sleep(60)
-                rc, stdout, stderr = rosa_describe_cluster(module, rosa, name)
-                if rc == 0:
-                    if cluster_details(stdout)['state'] == "pending":
-                        oidc_pending = True
-                else:
-                    module.fail_json(msg="failed to describe cluster waiting for pending OIDC\n%s" % (stderr), **result)
-                counter += 1
-                if counter > 5:
-                    module.fail_json(msg="timed out waiting for cluster to be in pending state", **result)
+    #     if sts:
+    #         time.sleep(10)
 
-            # create operator roles
-            create_operator_roles = [rosa, "create", "operator-roles", "--mode", "auto", "--yes", "--cluster", name]
-            if state == "present":
-                rc = 1
-                while rc != 0:
-                    rc, stdout, stderr = module.run_command(create_operator_roles)
-                    result['commands'].append(commands(rc, stdout, stderr, 'create sts operator roles', create_operator_roles))
-                    if rc != 0:
-                        if "Throttling: Rate exceeded" in stderr:
-                            time.sleep(60)
-                            continue
-                        module.fail_json(msg="failed to create operator roles\n%s" % (stderr))
-            elif state == "dry-run":
-                result['commands'].append(commands(0, "skipped, dry-run", None, 'create sts operator roles', create_operator_roles))
+    #         # create operator roles
+    #         create_operator_roles = [rosa, "create", "operator-roles", "--mode", "auto", "--yes", "--cluster", name]
+    #         if state == "present":
+    #             rc = 1
+    #             while rc != 0:
+    #                 rc, stdout, stderr = module.run_command(create_operator_roles)
+    #                 result['commands'].append(commands(rc, stdout, stderr, 'create sts operator roles', create_operator_roles))
+    #                 if rc != 0:
+    #                     if "Throttling: Rate exceeded" in stderr:
+    #                         time.sleep(60)
+    #                         continue
+    #                     module.fail_json(msg="failed to create operator roles\n%s" % (stderr))
+    #         elif state == "dry-run":
+    #             result['commands'].append(commands(0, "skipped, dry-run", None, 'create sts operator roles', create_operator_roles))
 
-            # create oidc provider
-            create_oidc_provider = [rosa, "create", "oidc-provider", "--mode", "auto", "--yes", "--cluster", name]
-            if state == "present":
-                rc, stdout, stderr = module.run_command(create_oidc_provider)
-                result['commands'].append(commands(rc, stdout, stderr, 'create sts oidc provider', create_oidc_provider))
-                if rc != 0:
-                    module.fail_json(msg="failed to create oidc provider\n%s" % (stderr))
-            elif state == "dry-run":
-                result['commands'].append(commands(0, "skipped, dry-run", None, 'create sts oidc provider', create_oidc_provider))
+    #         # create oidc provider
+    #         create_oidc_provider = [rosa, "create", "oidc-provider", "--mode", "auto", "--yes", "--cluster", name]
+    #         if state == "present":
+    #             rc, stdout, stderr = module.run_command(create_oidc_provider)
+    #             result['commands'].append(commands(rc, stdout, stderr, 'create sts oidc provider', create_oidc_provider))
+    #             if rc != 0:
+    #                 module.fail_json(msg="failed to create oidc provider\n%s" % (stderr))
+    #         elif state == "dry-run":
+    #             result['commands'].append(commands(0, "skipped, dry-run", None, 'create sts oidc provider', create_oidc_provider))
     if wait and state in ['present', 'absent']:
         # ready = re.compile(r'State:\s+ready')
         done = None

@@ -28,14 +28,14 @@
         _public_subnet_ids:  "{{ _public_subnets.results  | default([]) | json_query('[*].subnet.id') }}"
       when:
         - _private_subnets is defined or _public_subnets is defined
-    - name: set subnet_ids when private cluster
+    - name: set subnet_ids when private-link cluster
       set_fact:
         rosa_subnet_ids: "{{ _private_subnet_ids }}"
-      when: (rosa_private_link | bool) or (rosa_private | bool)
-    - name: set subnet_ids when public cluster
+      when: (rosa_private_link | bool)
+    - name: set subnet_ids when public or private cluster
       set_fact:
         rosa_subnet_ids: "{{ _private_subnet_ids + _public_subnet_ids }}"
-      when: (not rosa_private_link | bool) and (not rosa_private | bool)
+      when: (not rosa_private_link | bool)
 
 
 

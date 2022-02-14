@@ -8,9 +8,10 @@ help:
 	@echo GLHF
 
 virtualenv:
-	python3 -m venv $(VIRTUALENV)
-	. $(VIRTUALENV)/bin/activate
-	./virtualenv/bin/pip3 install -r requirements.txt --use-feature=2020-resolver
+		LC_ALL=en_US.UTF-8 python3 -m venv $(VIRTUALENV)
+		. $(VIRTUALENV)/bin/activate
+		pip install pip --upgrade
+		LC_ALL=en_US.UTF-8 $(VIRTUALENV)/bin/pip3 install -r requirements.txt
 
 docker.image:
 	docker build -t quay.io/pczar/ansible-rosa .

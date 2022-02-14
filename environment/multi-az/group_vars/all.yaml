@@ -1,38 +1,37 @@
 cluster_name: multi-az-test
 
-rosa_private_link: false
+rosa_private_link: true
 # note private-link forces private to be true
 # regardless of the following value.
-rosa_private: false
-rosa_sts: false
+rosa_private: true
+rosa_sts: true
 rosa_multi_az: true
-rosa_version: 4.7.11
+rosa_version: 4.8.29
 rosa_region: us-east-2
-rosa_vpc_cidr: "10.0.0.0/16"
+rosa_vpc_cidr: "172.28.80.0/20"
+# rosa_service_cidr: "172.16.0.0/20"
+# rosa_pod_cidr: "10.255.0.0/17"
+# rosa_host_prefix: "23"
 rosa_vpc_public_subnets:
-  - cidr: "10.0.192.0/20"
+  - cidr: "172.28.81.0/24"
     az: "us-east-2a"
     resource_tags: { "Name":"{{ cluster_name }}-public" }
-  - cidr: "10.0.208.0/20"
+  - cidr: "172.28.82.0/24"
     az: "us-east-2b"
     resource_tags: { "Name":"{{ cluster_name }}-public" }
-  - cidr: "10.0.224.0/20"
+  - cidr: "172.28.83.0/24"
     az: "us-east-2c"
     resource_tags: { "Name":"{{ cluster_name }}-public" }
 
 rosa_vpc_private_subnets:
-  - cidr: "10.0.0.0/18"
+  - cidr: "172.28.86.0/24"
     az: "us-east-2a"
     resource_tags: { "Name":"{{ cluster_name }}-private" }
-  - cidr: "10.0.64.0/18"
+  - cidr: "172.28.87.0/24"
     az: "us-east-2b"
     resource_tags: { "Name":"{{ cluster_name }}-private" }
-  - cidr: "10.0.128.0/18"
+  - cidr: "172.28.88.0/24"
     az: "us-east-2c"
     resource_tags: { "Name":"{{ cluster_name }}-private" }
-
-
-# aws_access_key_id:
-# aws_secret_access_key:
-# aws_default_region:
-# rosa_token:
+jumphost_ami: ami-0ba62214afa52bec7
+jumphost_instance_type: m4.large
