@@ -1,12 +1,12 @@
-cluster_name: multi-az-test
+cluster_name: multi-az-demo
 
-rosa_private_link: true
+rosa_private_link: false
 # note private-link forces private to be true
 # regardless of the following value.
-rosa_private: true
+rosa_private: false
 rosa_sts: true
 rosa_multi_az: true
-rosa_version: 4.8.29
+rosa_version: 4.9.5
 rosa_region: us-east-2
 rosa_vpc_cidr: "172.28.80.0/20"
 # rosa_service_cidr: "172.16.0.0/20"
@@ -35,3 +35,16 @@ rosa_vpc_private_subnets:
     resource_tags: { "Name":"{{ cluster_name }}-private" }
 jumphost_ami: ami-0ba62214afa52bec7
 jumphost_instance_type: m4.large
+
+rosa_tgw_enabled: false
+# defaults file for roles/vpc
+rosa_tgw_vpc_cidr: "10.10.0.0/24"
+
+rosa_tgw_vpc_public_subnets:
+  - cidr: "10.10.0.0/28"
+    az: "us-east-2a"
+    resource_tags: { "Name":"{{ cluster_name }}-tgw-public" }
+rosa_tgw_vpc_private_subnets:
+  - cidr: "10.10.0.16/28"
+    az: "us-east-2a"
+    resource_tags: { "Name":"{{ cluster_name }}-tgw-private" }

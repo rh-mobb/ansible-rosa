@@ -1,6 +1,6 @@
 cluster_name: cz-demo
 
-rosa_private_link: false
+rosa_private_link: true
 # note private-link forces private to be true
 # regardless of the following value.
 rosa_private: false
@@ -9,16 +9,27 @@ rosa_sts: true
 rosa_version: 4.9.5
 rosa_region: us-east-2
 rosa_vpc_cidr: "10.0.0.0/16"
-rosa_vpc_public_subnets:
-  - cidr: "10.0.2.0/24"
-    az: "us-east-2a"
-    resource_tags: { "Name":"{{ cluster_name }}-public" }
+# rosa_vpc_public_subnets: []
+#   - cidr: "10.0.2.0/24"
+#     az: "us-east-2a"
+#     resource_tags: { "Name":"{{ cluster_name }}-public" }
 rosa_vpc_private_subnets:
   - cidr: "10.0.3.0/24"
     az: "us-east-2a"
     resource_tags: { "Name":"{{ cluster_name }}-private" }
 
-rosa_tgw_enabled: false
+rosa_tgw_enabled: true
+# defaults file for roles/vpc
+rosa_tgw_vpc_cidr: "10.10.0.0/16"
+rosa_tgw_cidr: "10.0.0.0/8"
+rosa_tgw_vpc_public_subnets:
+  - cidr: "10.10.0.0/24"
+    az: "us-east-2a"
+    resource_tags: { "Name":"{{ cluster_name }}-egress-public" }
+rosa_tgw_vpc_private_subnets:
+  - cidr: "10.10.1.0/24"
+    az: "us-east-2a"
+    resource_tags: { "Name":"{{ cluster_name }}-egress-private" }
 
 # jumphost_ami: ami-0ba62214afa52bec7
 jumphost_ami: ami-07b1d7739c91ed3fc

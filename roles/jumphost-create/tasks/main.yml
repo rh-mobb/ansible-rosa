@@ -3,7 +3,8 @@
 
 - name: make sure we have a subnet to use
   set_fact:
-    jumphost_subnet_id: "{{ _public_subnet_ids[0] }}"
+    jumphost_subnet_id: "{{ _tgw_public_subnet_ids[0] | default(_public_subnet_ids[0]) }}"
+    jumphost_vpc_id: "{{ tgw_vpc_id | default(vpc_id) }}"
   when: jumphost_subnet_id is not defined
 
 - name: create ssh key pair
@@ -15,19 +16,17 @@
   ec2_group:
     name: "ROSA-{{ cluster_name }}-jumphost-ssh"
     description: security group for SSH
-    vpc_id: "{{ vpc_id }}"
+    vpc_id: "{{ jumphost_vpc_id }}"
     # region: "{{ region | default('us-east-2') }}"
     rules:
       - proto: tcp
-        ports:
-        - 22
+        ports: [22]
         cidr_ip: 0.0.0.0/0
         rule_desc: allow ssh
-      - proto: tcp
-        ports:
-        - 8080
-        cidr_ip: 10.0.0.0/8
-        rule_desc: allow proxy
+      - proto: all
+        cidr_ip: "{{ rosa_tgw_cidr | default(rosa_vpc_cidr) }}"
+        rule_desc: allow all local
+
 - name: start jumphost instance
   ec2_instance:
     name: "ROSA-{{ cluster_name }}-jumphost"
@@ -41,4 +40,32 @@
     image_id: "{{ jumphost_ami }}"
     tags:
       Name: "ROSA-{{ cluster_name }}-jumphost"
+
+- block:
+    - name: create private jumphost security group
+      ec2_group:
+        name: "ROSA-{{ cluster_name }}-private-jumphost"
+        description: security group for ALL
+        vpc_id: "{{ vpc_id }}"
+        # region: "{{ region | default('us-east-2') }}"
+        rules:
+          - proto: all
+            cidr_ip: "{{ rosa_tgw_cidr }}"
+            rule_desc: allow all local
+
+    - name: start private jumphost instance
+      ec2_instance:
+        name: "ROSA-{{ cluster_name }}-private-jumphost"
+        key_name: "ROSA-{{ cluster_name }}-jumphost"
+        vpc_subnet_id: "{{ _private_subnet_ids[0] }}"
+        instance_type: "{{ jumphost_instance_type }}"
+        security_group: "ROSA-{{ cluster_name }}-private-jumphost"
+        user_data: "{{ lookup('file', 'user_data.sh') }}"
+        network:
+          assign_public_ip: no
+        image_id: "{{ jumphost_ami }}"
+        tags:
+          Name: "ROSA-{{ cluster_name }}-private-jumphost"
+  when: jumphost_private_instance | bool
+
 

@@ -12,6 +12,7 @@ virtualenv:
 		. $(VIRTUALENV)/bin/activate
 		pip install pip --upgrade
 		LC_ALL=en_US.UTF-8 $(VIRTUALENV)/bin/pip3 install -r requirements.txt
+		$(VIRTUALENV)/bin/ansible-galaxy collection install -r requirements.yml
 
 docker.image:
 	docker build -t quay.io/pczar/ansible-rosa .
@@ -40,6 +41,13 @@ create.multiaz:
 
 delete.multiaz:
 	$(ANSIBLE) -v delete-cluster.yaml -i ./environment/multi-az/hosts
+
+create.tgw:
+	$(ANSIBLE) -v create-cluster.yaml -i ./environment/transit-gateway-egress/hosts
+
+delete.tgw:
+	$(ANSIBLE) -v delete-cluster.yaml -i ./environment/transit-gateway-egress/hosts
+
 
 docker.create: image
 	docker run --rm \

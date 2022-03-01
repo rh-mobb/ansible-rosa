@@ -10,8 +10,11 @@
       when:
         - (rosa_private or rosa_private_link) or
           (enable_jumphost | default(False) | bool)
+    - name: roles/tgw-delete
+      when: rosa_tgw_enabled | bool
     - name: roles/vpc-delete
       when: rosa_subnet_ids | default([]) | length == 0
+
 
 
 

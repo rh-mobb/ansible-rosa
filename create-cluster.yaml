@@ -5,6 +5,8 @@
       - vars/main.yaml
 
   roles:
+    - name: roles/tgw-create
+      when: rosa_tgw_enabled | bool
     - name: roles/vpc-create
       when: rosa_subnet_ids | default([]) | length == 0
     - name: roles/cluster-create

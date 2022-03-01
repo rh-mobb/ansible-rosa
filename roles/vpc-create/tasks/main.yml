@@ -29,32 +29,73 @@
   with_items: "{{ rosa_vpc_public_subnets }}"
   register: _public_subnets
 
-- name: create internet gateway
-  ec2_vpc_igw:
-    vpc_id: "{{ _vpc.vpc.id }}"
-    state: present
-    # tags:
-    #   Name: "rosa-public-{{ cluster_name }}-igw"
-  register: _igw
-
 - name: figure out list of subnets
   set_fact:
     _private_subnet_ids: "{{ _private_subnets.results | default([]) | json_query('[*].subnet.id') }}"
     _public_subnet_ids:  "{{ _public_subnets.results  | default([]) | json_query('[*].subnet.id') }}"
 
-- name: create public subnet route table
+- name: attach VPC to transit gateway
+  shell: |
+    aws ec2 create-transit-gateway-vpc-attachment \
+      --transit-gateway-id {{ tgw_id }} \
+      --vpc-id {{ vpc_id }} \
+      --subnet-ids {{ _private_subnet_ids | join(" ") }} \
+      || aws ec2 describe-transit-gateway-vpc-attachments \
+          --filters Name=vpc-id,Values={{ vpc_id }}
+
+    while [ "$(aws ec2 describe-transit-gateway-vpc-attachments \
+        --filters Name=vpc-id,Values={{ vpc_id }} \
+        --query 'TransitGatewayVpcAttachments[0].State' \
+        --output text)" != "available" ]; do
+      echo "Waiting for transit gateway attachment to become available..."
+      sleep 5
+    done
+  register: _tgw_attachment_cmd
+  changed_when: _tgw_attachment_cmd.stderr == ""
+  when: rosa_tgw_enabled | bool
+      # ec2_transit_gateway_attachment:
+      #   vpc_id: "{{ tgw_vpc_id }}"
+      #   transit_gateway_id: "{{ tgw_id }}"
+      #   tags: { "Name": "rosa-{{ cluster_name }}-tgw-attachment" }
+
+# skip if using tgw
+- block:
+    - name: create internet gateway
+      ec2_vpc_igw:
+        vpc_id: "{{ _vpc.vpc.id }}"
+        state: present
+        # tags:
+        #   Name: "rosa-public-{{ cluster_name }}-igw"
+      register: _igw
+
+    - name: create public subnet route table
+      ec2_vpc_route_table:
+        vpc_id: "{{ _vpc.vpc.id }}"
+        tags:
+          Name: "public-route-table"
+        subnets: "{{ _public_subnet_ids }}"
+        routes:
+          - dest: 0.0.0.0/0
+            gateway_id: "{{ _igw.gateway_id }}"
+
+    # routes for private subnets
+    - with_items: "{{ _public_subnets.results }}"
+      include_tasks: nat_gateway_routes.yml
+      loop_control:
+        loop_var: outer_item
+
+  when: (not rosa_tgw_enabled | bool) or
+        (rosa_vpc_public_subnets | length > 0)
+
+# when TGW enabled, we need to create the default route to use it
+- name: create private subnet route table
   ec2_vpc_route_table:
     vpc_id: "{{ _vpc.vpc.id }}"
     tags:
-      Name: "public-route-table"
-    subnets: "{{ _public_subnet_ids }}"
+      Name: "rosa-private-nat-{{ item.subnet.id }}"
+    subnets: "{{ item.subnet.id }}"
     routes:
       - dest: 0.0.0.0/0
-        gateway_id: "{{ _igw.gateway_id }}"
-
-# Private
-
-- with_items: "{{ _public_subnets.results }}"
-  include_tasks: nat_gateway_routes.yml
-  loop_control:
-    loop_var: outer_item
+        gateway_id: "{{ tgw_id }}"
+  with_items: "{{ _private_subnets.results }}"
+  when: rosa_tgw_enabled | bool
