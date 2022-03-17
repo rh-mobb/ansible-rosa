@@ -31,13 +31,13 @@ rosa_tgw_vpc_private_subnets:
     az: "us-east-2a"
     resource_tags: { "Name":"{{ cluster_name }}-egress-private" }
 
-# jumphost_ami: ami-0ba62214afa52bec7
-jumphost_ami: ami-07b1d7739c91ed3fc
-# jumphost_instance_type: t1.micro
-jumphost_instance_type: t2.nano
+jumphost_ami: ami-0ba62214afa52bec7
+# jumphost_ami: ami-07b1d7739c91ed3fc
+jumphost_instance_type: t2.micro
+# jumphost_instance_type: t2.nano
 # jumphost_instance_type: m4.large
 
-aws_firewall: false
+proxy_enabled: true
 
 ## don't set these and let it use your already logged in accounts
 # aws_access_key_id:

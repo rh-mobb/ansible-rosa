@@ -74,6 +74,18 @@ options:
         description: Subnet prefix length to assign to each individual node. For example, if host prefix is set to "23", then each node is assigned a /23 subnet out of the given CIDR.
         required: false
         type: int
+    http_proxy:
+        description: HTTP proxy to use for OpenShift.
+        required: false
+        type: str
+    https_proxy:
+        description: HTTPS proxy to use for OpenShift.
+        required: false
+        type: str
+    additional_trust_bundle_file:
+        description: Path to a file containing additional trust bundle for proxy.
+        required: false
+        type: str
     private-link:
         description: Provides private connectivity between VPCs, AWS services, and your on-premises networks, without exposing your traffic to the public internet.
         required: false
@@ -123,8 +135,6 @@ EXAMPLES = r'''
   rosa_cluster:
     name: my-rosa-cluster
     state: absent
-
-
 '''
 
 RETURN = r'''
@@ -134,7 +144,7 @@ password: str
 # These are examples of possible return values, and in general should use other names for return values.
 '''
 
-MIN_ROSA_VERSION = "1.1.9"
+MIN_ROSA_VERSION = "1.1.11"
 
 from ansible.module_utils.basic import *
 from packaging import version as check_version
@@ -157,6 +167,9 @@ def run_module():
         service_cidr=dict(type='str', required=False),
         pod_cidr=dict(type='str', required=False),
         host_prefix=dict(type='int', required=False),
+        http_proxy=dict(type='str', required=False),
+        https_proxy=dict(type='str', required=False),
+        additional_trust_bundle_file=dict(type='str', required=False),
         subnet_ids=dict(type='str', required=False),
         multi_az=dict(type='bool', required=False),
         enable_autoscaling=dict(type='bool', required=False),
@@ -179,8 +192,6 @@ def run_module():
         commands=[],
         details=None,
     )
-
-
 
     # the AnsibleModule object will be our abstraction working with Ansible
     # this includes instantiation, a couple of common attr would be the
@@ -218,7 +229,7 @@ def run_module():
     wait = params.pop('wait')
     sts = params.pop('sts')
     aws_account_id = params.pop('aws_account_id')
-    cluster_version = params.pop('version')
+    cluster_version = params['version']
     cluster_semver = semver_parse(cluster_version)
     sts_version = str(cluster_semver['major']) + "." + str(cluster_semver['minor'])
 
@@ -228,30 +239,26 @@ def run_module():
     else:
         args = [rosa, "create", "cluster", "-y", "-c", name]
 
-    if state == "dry-run":
-        args.append("--dry-run")
+        if state == "dry-run":
+            args.append("--dry-run")
 
-    if sts:
-        if not aws_account_id:
-            module.fail_json(msg="must provide aws account id when using sts\n", **result)
-        args.append("--sts")
-        args.extend(['--mode', 'auto'])
-        # args.extend(["--role-arn","arn:aws:iam::{}:role/ManagedOpenShift-Installer-Role".format(aws_account_id)])
-        # args.extend(["--support-role-arn","arn:aws:iam::{}:role/ManagedOpenShift-Support-Role".format(aws_account_id)])
-        # args.extend(["--controlplane-iam-role","arn:aws:iam::{}:role/ManagedOpenShift-ControlPlane-Role".format(aws_account_id)])
-        # args.extend(["--worker-iam-role","arn:aws:iam::{}:role/ManagedOpenShift-Worker-Role".format(aws_account_id)])
+        if sts:
+            if not aws_account_id:
+                module.fail_json(msg="must provide aws account id when using sts\n", **result)
+            args.append("--sts")
+            args.extend(['--mode', 'auto'])
 
-    for param, value in params.items():
-        if not value: continue
-        if param == "multi_az": args.append("--multi-az")
-        elif param == "enable_autoscaling": args.append("--enable-autoscaling")
-        elif param == "private": args.append("--private")
-        elif param == "private_link": args.append("--private-link")
-        elif param == "disable_scp_checks": args.append("--disable-scp-checks")
-        elif param == "region" or param == "profile":
-            args.extend([argify(param), value])
-            describe_args.extend([argify(param), value])
-        else: args.extend([argify(param), value])
+        for param, value in params.items():
+            if not value: continue
+            if param == "multi_az": args.append("--multi-az")
+            elif param == "enable_autoscaling": args.append("--enable-autoscaling")
+            elif param == "private": args.append("--private")
+            elif param == "private_link": args.append("--private-link")
+            elif param == "disable_scp_checks": args.append("--disable-scp-checks")
+            elif param == "region" or param == "profile":
+                args.extend([argify(param), value])
+                describe_args.extend([argify(param), value])
+            else: args.extend([argify(param), value])
 
     describe_rc, describe_stdout, describe_stderr = rosa_describe_cluster(module, rosa, name)
 

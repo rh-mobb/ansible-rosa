@@ -10,6 +10,10 @@
       when:
         - (rosa_private or rosa_private_link) or
           (enable_jumphost | default(False) | bool)
+    - name: roles/proxy-delete
+      when:
+        - (rosa_private_link | bool) and
+          (proxy_enabled | default(False) | bool)
     - name: roles/tgw-delete
       when: rosa_tgw_enabled | bool
     - name: roles/vpc-delete

@@ -1,12 +1,9 @@
-cluster_name: ansible-rosa
+cluster_name: ansible-rosa-pl
 
-rosa_private_link: false
-# note private-link forces private to be true
-# regardless of the following value.
-rosa_private: false
+rosa_private_link: true
 rosa_sts: true
 
-rosa_version: 4.10.3
+rosa_version: 4.9.5
 rosa_region: us-east-2
 rosa_vpc_cidr: "10.0.0.0/16"
 rosa_vpc_public_subnets:
@@ -18,3 +15,8 @@ rosa_vpc_private_subnets:
     az: "us-east-2a"
     resource_tags: { "Name":"{{ cluster_name }}-private" }
 
+# jumphost_ami: ami-0ba62214afa52bec7
+jumphost_ami: ami-07b1d7739c91ed3fc
+# jumphost_instance_type: t1.micro
+jumphost_instance_type: t2.nano
+# jumphost_instance_type: m4.large

@@ -5,23 +5,32 @@ rosa_private: false
 rosa_private_link: false
 rosa_sts: true
 
+# wait for rosa to finish installing
+rosa_wait: true
+
 rosa_subnet_ids: []
 rosa_machine_cidr: ~
 
 # defaults for roles/juphost-create
 
-# jumphost_ami: ami-0ba62214afa52bec7
-jumphost_ami: ami-07b1d7739c91ed3fc
-# jumphost_instance_type: t1.micro
-jumphost_instance_type: t2.nano
+jumphost_ami: ami-0ba62214afa52bec7
+# jumphost_ami: ami-07b1d7739c91ed3fc
+jumphost_instance_type: t1.micro
+# jumphost_instance_type: t2.nano
 # jumphost_instance_type: m4.large
 
 # enable this if you want a second jumphost in the
 # rosa private subnet, useful for testing TGW connectivity
-jumphost_private_instance: true
+jumphost_private_instance: false
+
+proxy_enabled: false
+proxy_ami: ami-0ba62214afa52bec7
+proxy_instance_type: m4.large
 
 # defaults for roles/vpc-create
 rosa_vpc_cidr: "10.0.0.0/16"
+
+rosa_region: "us-east-2"
 
 rosa_vpc_public_subnets:
   - cidr: "10.0.128.0/17"

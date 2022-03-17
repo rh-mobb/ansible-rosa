@@ -1,0 +1,37 @@
+- name: get rosa cluster
+  rosa_cluster_info:
+    name: "{{ cluster_name }}"
+  register: _cluster_info
+
+- set_fact:
+    route53_zone: "{{ _cluster_info.cluster.name }}.{{ _cluster_info.cluster.dns.base_domain }}."
+
+- name: list all hosted zones
+  community.aws.route53_info:
+    query: hosted_zone
+  register: hosted_zones
+
+- set_fact:
+    _route53_zone: "{{ (hosted_zones | json_query(jmesquery))[0] }}"
+  vars:
+    jmesquery: "HostedZones[?Name == '{{ route53_zone }}']"
+
+- name: check route53 vpc associations
+  shell: |
+    aws route53 list-hosted-zones-by-vpc --vpc-id {{ tgw_vpc_id }} \
+    --vpc-region {{ rosa_region }} \
+    --query 'HostedZoneSummaries[*].Name' --output text
+  register: _vpc_assoc
+  changed_when: false
+  failed_when: false
+
+- name: create route53 vpc association
+  shell: |
+    aws route53 associate-vpc-with-hosted-zone \
+      --hosted-zone-id {{ _route53_zone.Id }} \
+      --vpc VPCId={{ tgw_vpc_id }},VPCRegion={{ rosa_region }} \
+      --output text
+  when: route53_zone not in _vpc_assoc.stdout
+
+# todo - create inbound resolver endpoint
+# https://docs.aws.amazon.com/cli/latest/reference/route53resolver/create-resolver-endpoint.html

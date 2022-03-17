@@ -7,25 +7,30 @@
       {"image-id": "{{ jumphost_ami }}"}
     state: absent
 
-- name: delete jumphost instance
-  ec2_instance:
-    name: "ROSA-{{ cluster_name }}-private-jumphost"
-    filters: |
-      {"image-id": "{{ jumphost_ami }}"}
+- name: delete jumphost security group
+  ec2_group:
+    name: "ROSA-{{ cluster_name }}-jumphost-ssh"
     state: absent
+
+- block:
+    - name: delete private jumphost instance
+      ec2_instance:
+        name: "ROSA-{{ cluster_name }}-private-jumphost"
+        filters: |
+          {"image-id": "{{ jumphost_ami }}"}
+        state: absent
+
+    - name: delete rosa private jumphost security group
+      ec2_group:
+        name: "ROSA-{{ cluster_name }}-private-jumphost"
+        state: absent
+
+  when: jumphost_private_instance | bool
 
 - name: delete ssh key pair
   ec2_key:
     name: "ROSA-{{ cluster_name }}-jumphost"
     state: absent
 
-- name: delete jumphost security group
-  ec2_group:
-    name: "ROSA-{{ cluster_name }}-jumphost-ssh"
-    state: absent
 
-- name: delete rosa private jumphost security group
-  ec2_group:
-    name: "ROSA-{{ cluster_name }}-private-jumphost"
-    state: absent
 

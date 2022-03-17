@@ -60,6 +60,7 @@
         --query 'TransitGatewayVpcAttachments[0].TransitGatewayAttachmentId' \
         --output text
   register: _tgw_attachment_describe
+  changed_when: false
 
 - set_fact:
     _tgw_attachment_id: "{{ _tgw_attachment_describe.stdout }}"
