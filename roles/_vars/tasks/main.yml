@@ -1,0 +1,6 @@
+---
+- fail:
+    msg: "proxy_enabled can only be enabled if rosa_private_link is enabled"
+  when:
+    - (not rosa_private_link | bool) and
+      (proxy_enabled | default(False) | bool)

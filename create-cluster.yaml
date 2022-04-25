@@ -5,11 +5,18 @@
       - vars/main.yaml
 
   roles:
+    - name: roles/tgw-create
+      when: rosa_tgw_enabled | bool
     - name: roles/vpc-create
       when: rosa_subnet_ids | default([]) | length == 0
-    - name: roles/cluster-create
     - name: roles/jumphost-create
       when:
         - (rosa_private or rosa_private_link) or
           (enable_jumphost | default(False) | bool)
-
+    - name: roles/proxy-create
+      when:
+        - (rosa_private_link | bool) and
+          (proxy_enabled | default(False) | bool)
+    - name: roles/cluster-create
+    - name: roles/dns-resolver-create
+      when: rosa_tgw_enabled | bool

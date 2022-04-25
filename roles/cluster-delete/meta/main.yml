@@ -1,2 +1,2 @@
-# dependencies:
-#   - aws-rosa-auth
+dependencies:
+  - _vars

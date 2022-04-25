@@ -57,15 +57,32 @@ make virtualenv
 
 ### Deploy a cluster
 
+* Create:
+
 ```bash
 make create
 ```
 
-### Delete a cluster
+* Delete:
 
 ```bash
 make delete
 ```
+
+### PrivateLink Cluster with Transit Gateway
+
+* Create:
+
+```bash
+make create.tgw
+```
+
+* Delete:
+
+```bash
+make delete.tgw
+```
+
 
 ## Deploy a Cluster with ansible in a docker image
 
