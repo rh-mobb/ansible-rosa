@@ -16,6 +16,8 @@
           (proxy_enabled | default(False) | bool)
     - name: roles/tgw-delete
       when: rosa_tgw_enabled | bool
+    - name: roles/egress-vpc-delete
+      when: rosa_egress_vpc_enabled | bool
     - name: roles/vpc-delete
       when: rosa_subnet_ids | default([]) | length == 0
 

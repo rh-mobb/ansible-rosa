@@ -1,10 +1,10 @@
 ---
-# tasks file for roles/jumphost-create
+# tasks file for roles/proxy-create
 
 - name: make sure we have a subnet to use
   set_fact:
-    _subnet_id: "{{ _tgw_private_subnet_ids[0] }}"
-    _vpc_id: "{{ tgw_vpc_id | default(vpc_id) }}"
+    _subnet_id: "{{ _egress_vpc_private_subnet_ids[0] }}"
+    _vpc_id: "{{ egress_vpc_id }}"
     _ca_key: "{{ lookup('file', 'squid-ca-key.pem') }}"
     _ca_cert: "{{ lookup('file', 'squid-ca-cert.pem') }}"
   no_log: true
@@ -19,7 +19,7 @@
   ec2_group:
     name: "ROSA-{{ cluster_name }}-proxy"
     description: security group for proxy
-    vpc_id: "{{ _vpc_id }}"
+    vpc_id: "{{ egress_vpc_id }}"
     # region: "{{ region | default('us-east-2') }}"
     rules:
       - proto: tcp

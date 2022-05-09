@@ -18,7 +18,7 @@
 
 - name: check route53 vpc associations
   shell: |
-    aws route53 list-hosted-zones-by-vpc --vpc-id {{ tgw_vpc_id }} \
+    aws route53 list-hosted-zones-by-vpc --vpc-id {{ egress_vpc_id }} \
     --vpc-region {{ rosa_region }} \
     --query 'HostedZoneSummaries[*].Name' --output text
   register: _vpc_assoc
@@ -29,7 +29,7 @@
   shell: |
     aws route53 associate-vpc-with-hosted-zone \
       --hosted-zone-id {{ _route53_zone.Id }} \
-      --vpc VPCId={{ tgw_vpc_id }},VPCRegion={{ rosa_region }} \
+      --vpc VPCId={{ egress_vpc_id }},VPCRegion={{ rosa_region }} \
       --output text
   when: route53_zone not in _vpc_assoc.stdout
 

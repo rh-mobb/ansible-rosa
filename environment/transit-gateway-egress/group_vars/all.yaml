@@ -1,4 +1,4 @@
-cluster_name: cz-demo
+cluster_name: ansible-tgw
 
 rosa_private_link: true
 # note private-link forces private to be true
@@ -19,14 +19,18 @@ rosa_vpc_private_subnets:
     resource_tags: { "Name":"{{ cluster_name }}-private" }
 
 rosa_tgw_enabled: true
-# defaults file for roles/vpc
-rosa_tgw_vpc_cidr: "10.10.0.0/16"
+# The full cidr that encompasses all VPCs the TGW will be
+# attached to.
 rosa_tgw_cidr: "10.0.0.0/8"
-rosa_tgw_vpc_public_subnets:
+
+rosa_egress_vpc_enabled: true
+# defaults file for roles/vpc
+rosa_egress_vpc_cidr: "10.10.0.0/16"
+rosa_egress_vpc_public_subnets:
   - cidr: "10.10.0.0/24"
     az: "us-east-2a"
     resource_tags: { "Name":"{{ cluster_name }}-egress-public" }
-rosa_tgw_vpc_private_subnets:
+rosa_egress_vpc_private_subnets:
   - cidr: "10.10.1.0/24"
     az: "us-east-2a"
     resource_tags: { "Name":"{{ cluster_name }}-egress-private" }

@@ -45,14 +45,15 @@ rosa_vpc_private_subnets:
 rosa_tgw_enabled: false
 
 # the full CIDR that TGW should route for
+rosa_egress_vpc_enabled: false
 rosa_tgw_cidr: "10.0.0.0/8"
-rosa_tgw_vpc_cidr: "10.10.0.0/24"
+rosa_egress_vpc_cidr: "10.10.0.0/24"
 
-rosa_tgw_vpc_public_subnets:
+rosa_egress_vpc_public_subnets:
   - cidr: "10.10.0.0/28"
     az: "us-east-2a"
     resource_tags: { "Name":"{{ cluster_name }}-egress-public" }
-rosa_tgw_vpc_private_subnets:
+rosa_egress_vpc_private_subnets:
   - cidr: "10.10.0.16/28"
     az: "us-east-2a"
     resource_tags: { "Name":"{{ cluster_name }}-egress-private" }

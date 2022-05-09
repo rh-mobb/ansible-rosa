@@ -1,11 +1,21 @@
 ---
 # tasks file for roles/jumphost-create
 
-- name: make sure we have a subnet to use
+- name: make sure we have a subnet to use egress vpc
   set_fact:
-    jumphost_subnet_id: "{{ _tgw_public_subnet_ids[0] | default(_public_subnet_ids[0]) }}"
-    jumphost_vpc_id: "{{ tgw_vpc_id | default(vpc_id) }}"
-  when: jumphost_subnet_id is not defined
+    jumphost_subnet_id: "{{ _egress_vpc_public_subnet_ids[0] }}"
+    jumphost_vpc_id: "{{ egress_vpc_id }}"
+  when:
+    - jumphost_subnet_id is not defined
+    - rosa_egress_vpc_enabled | bool
+
+- name: make sure we have a subnet to use no egress vpc
+  set_fact:
+    jumphost_subnet_id: "{{ _public_subnet_ids[0] }}"
+    jumphost_vpc_id: "{{ vpc_id }}"
+  when:
+    - jumphost_subnet_id is not defined
+    - not rosa_egress_vpc_enabled | bool
 
 - name: create ssh key pair
   ec2_key:

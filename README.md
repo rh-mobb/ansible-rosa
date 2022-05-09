@@ -45,17 +45,28 @@ To authenticate to AWS / ROSA you can use the tools directly to auth or set ansi
     rosa login
     ```
 
-## Deploy a Cluster with ansible in a virtualenv
+## Prepare Ansible
 
-### Prepare Ansible
+* Clone down the repo:
 
-Create python virtualenv:
+```bash
+git clone https://github.com/rh-mobb/ansible-rosa.git
+cd ansible-rosa
+```
+
+* Create python virtualenv:
 
 ```bash
 make virtualenv
 ```
 
-### Deploy a cluster
+## Deploy a Cluster
+
+### Basic STS single AZ cluster
+
+This will deploy a single-az cluster with STS enabled.
+
+> See `./environment/default/group_vars/all.yaml` for the example inventory used. You can modify this file to change the cluster configuration.
 
 * Create:
 
@@ -71,6 +82,12 @@ make delete
 
 ### PrivateLink Cluster with Transit Gateway
 
+> See `./environment/transit-gatewa-egress/group_vars/all.yaml` for the example inventory used. You can modify this file to change the cluster configuration.
+
+This will deploy a **fairly** complex cluster with STS enabled, Transit Gateway, and PrivateLink. Along with the ROSA VPC it will create an Egress VPC with a NAT Gateway and a Squid based proxy (configured to restrict cluster egress to just the allowed endpoints). It places a SSH Bastion in the Egress VPC in order to provide easy access to the cluster (sshuttle ftw). It also creates an infrastructure VPC which is where you might connect your Datacenter or VPN connections too, this has a DNS forwarder to help with DNS resolution.
+
+![image showing private-link architecture](docs/images/rosa-pl-tgw.png)
+
 * Create:
 
 ```bash
@@ -83,8 +100,9 @@ make create.tgw
 make delete.tgw
 ```
 
+## Other
 
-## Deploy a Cluster with ansible in a docker image
+### Deploy a Cluster with ansible in a docker image
 
 1. Build the docker image
 
@@ -125,9 +143,9 @@ make delete.tgw
     ```
 
 
-## ToDos
+### ToDos
 
-### Add custom domain support
+#### Add custom domain support
 
 * https://access.redhat.com/articles/5599621
 * https://github.com/openshift/custom-domains-operator/blob/master/TESTING.md
