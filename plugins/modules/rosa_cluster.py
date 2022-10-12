@@ -98,6 +98,11 @@ options:
         description: Indicates if cloud permission checks are disabled when attempting installation of the cluster.
         required: false
         type: bool
+    disable_workload_monitoring:
+        description: disable user workload monitoring for the cluster.
+        required: false
+        default: false
+        type: bool
     subnet_ids:
         description: The Subnet IDs to use when installing the cluster. SubnetIDs should come in pairs; two per availability zone, one private and one public. Subnets are comma separated, for example: --subnet-ids=subnet-1,subnet-2.Leave empty for installer provisioned subnet IDs.
         required: false
@@ -160,9 +165,9 @@ def run_module():
         version=dict(type='str', required=False, default="4.8.2"),
         channel_group=dict(type='str', required=False),
         compute_machine_type=dict(type='str', required=False),
-        compute_nodes=dict(type='int', required=False),
-        min_replicas=dict(type='int', required=False),
-        max_replicas=dict(type='int', required=False),
+        compute_nodes=dict(type='str', required=False),
+        min_replicas=dict(type='str', required=False),
+        max_replicas=dict(type='str', required=False),
         machine_cidr=dict(type='str', required=False),
         service_cidr=dict(type='str', required=False),
         pod_cidr=dict(type='str', required=False),
@@ -178,8 +183,13 @@ def run_module():
         sts=dict(type='bool', required=False),
         aws_account_id=dict(type='str', required=False),
         disable_scp_checks=dict(type='bool', required=False),
+        disable_workload_monitoring=dict(type='bool', required=False, default=False),
         wait=dict(type='bool', required=False),
-        state=dict(type='str', default='present', choices=['present','absent','dry-run', 'describe'])
+        state=dict(type='str', default='present', choices=['present','absent','dry-run', 'describe']),
+        role_arn=dict(type='str', required=False),
+        support_role_arn=dict(type='str', required=False),
+        controlplane_iam_role=dict(type='str', required=False),
+        worker_iam_role=dict(type='str', required=False)
     )
 
     # seed the result dict in the object
@@ -255,6 +265,7 @@ def run_module():
             elif param == "private": args.append("--private")
             elif param == "private_link": args.append("--private-link")
             elif param == "disable_scp_checks": args.append("--disable-scp-checks")
+            elif param == "disable_workload_monitoring": args.append("--disable-workload-monitoring")
             elif param == "region" or param == "profile":
                 args.extend([argify(param), value])
                 describe_args.extend([argify(param), value])
