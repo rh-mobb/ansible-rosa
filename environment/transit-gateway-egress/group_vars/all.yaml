@@ -6,7 +6,7 @@ rosa_private_link: true
 rosa_private: false
 rosa_sts: true
 
-rosa_version: 4.9.5
+rosa_version: 4.11.6
 rosa_region: us-east-2
 rosa_vpc_cidr: "10.0.0.0/16"
 # rosa_vpc_public_subnets: []
@@ -41,7 +41,7 @@ jumphost_instance_type: t2.micro
 # jumphost_instance_type: t2.nano
 # jumphost_instance_type: m4.large
 
-proxy_enabled: true
+# proxy_enabled: true
 
 ## don't set these and let it use your already logged in accounts
 # aws_access_key_id:

@@ -1,10 +1,13 @@
 cluster_name: ansible-rosa
-
+# rosa_disable_workload_monitoring: true
 rosa_private_link: false
 # note private-link forces private to be true
 # regardless of the following value.
 rosa_private: false
 rosa_sts: true
+rosa_enable_autoscaling: true
+rosa_min_replicas: 2
+rosa_max_replicas: 4
 
 rosa_version: 4.10.3
 rosa_region: us-east-2

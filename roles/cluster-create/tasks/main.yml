@@ -60,6 +60,12 @@
     rosa_additional_trust_bundle_file: "roles/proxy-create/files/squid-ca-cert.pem"
   when: proxy_enabled | bool
 
+- fail:
+    msg: "cluster autoscaling must be enabled to set min/max replicas"
+  when:
+    - not rosa_enable_autoscaling | bool
+    - rosa_min_replicas is defined or rosa_max_replicas is defined
+
 - block:
     - name: create cluster
       rosa_cluster:
@@ -76,6 +82,14 @@
         http_proxy: "{{ rosa_http_proxy | default(omit) }}"
         https_proxy: "{{ rosa_https_proxy | default(omit) }}"
         additional_trust_bundle_file: "{{ rosa_additional_trust_bundle_file | default(omit) }}"
+        enable_autoscaling: "{{ rosa_enable_autoscaling | bool }}"
+        disable_workload_monitoring: "{{ rosa_disable_workload_monitoring | bool }}"
+        min_replicas: "{{ rosa_min_replicas | default(omit) }}"
+        max_replicas: "{{ rosa_max_replicas | default(omit) }}"
+        role_arn: "arn:aws:iam::{{ aws_account_id }}:role/ManagedOpenShift-Installer-Role"
+        support_role_arn: "arn:aws:iam::{{ aws_account_id }}:role/ManagedOpenShift-Support-Role"
+        controlplane_iam_role: "arn:aws:iam::{{ aws_account_id }}:role/ManagedOpenShift-ControlPlane-Role"
+        worker_iam_role: "arn:aws:iam::{{ aws_account_id }}:role/ManagedOpenShift-Worker-Role"
       register: _rosa_cluster
 
     - name: wait for cluster to be ready

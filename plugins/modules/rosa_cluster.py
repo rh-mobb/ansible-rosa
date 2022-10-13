@@ -289,22 +289,22 @@ def run_module():
 
     if describe_rc == 1:
         # create sts account roles
-        if sts:
-            print("Create Account Roles")
-            create_account_roles = [rosa, "create", "account-roles", "--mode", "auto", "--yes"]
-            if state == "present":
-                rc = 1
-                while rc != 0:
-                    rc, stdout, stderr = module.run_command(create_account_roles)
-                    result['commands'].append(commands(rc, stdout, stderr, 'create sts account roles', create_account_roles))
-                    if rc != 0:
-                        if "Throttling: Rate exceeded" in stderr:
-                            time.sleep(60)
-                            continue
-                        module.fail_json(msg="failed to create account roles\n%s" % (stderr))
-            elif state == "dry-run":
-                result['commands'].append(commands(0, "skipped due to dry-run", None, 'create sts account roles', create_account_roles))
-        print ("Create Cluster")
+        # if sts:
+        #     print("Create Account Roles")
+        #     create_account_roles = [rosa, "create", "account-roles", "--mode", "auto", "--yes"]
+        #     if state == "present":
+        #         rc = 1
+        #         while rc != 0:
+        #             rc, stdout, stderr = module.run_command(create_account_roles)
+        #             result['commands'].append(commands(rc, stdout, stderr, 'create sts account roles', create_account_roles))
+        #             if rc != 0:
+        #                 if "Throttling: Rate exceeded" in stderr:
+        #                     time.sleep(60)
+        #                     continue
+        #                 module.fail_json(msg="failed to create account roles\n%s" % (stderr))
+        #     elif state == "dry-run":
+        #         result['commands'].append(commands(0, "skipped due to dry-run", None, 'create sts account roles', create_account_roles))
+        # print ("Create Cluster")
         # if the cluster doesn't exist, create it
         if state in ['present', 'dry-run'] and "There is no cluster with identifier or name" in describe_stderr:
             if state == 'present':
@@ -318,33 +318,6 @@ def run_module():
             # unknown error, better fail.
             module.fail_json(msg="failed for unknown reason\n%s" % (describe_stderr), **result)
 
-    #     if sts:
-    #         time.sleep(10)
-
-    #         # create operator roles
-    #         create_operator_roles = [rosa, "create", "operator-roles", "--mode", "auto", "--yes", "--cluster", name]
-    #         if state == "present":
-    #             rc = 1
-    #             while rc != 0:
-    #                 rc, stdout, stderr = module.run_command(create_operator_roles)
-    #                 result['commands'].append(commands(rc, stdout, stderr, 'create sts operator roles', create_operator_roles))
-    #                 if rc != 0:
-    #                     if "Throttling: Rate exceeded" in stderr:
-    #                         time.sleep(60)
-    #                         continue
-    #                     module.fail_json(msg="failed to create operator roles\n%s" % (stderr))
-    #         elif state == "dry-run":
-    #             result['commands'].append(commands(0, "skipped, dry-run", None, 'create sts operator roles', create_operator_roles))
-
-    #         # create oidc provider
-    #         create_oidc_provider = [rosa, "create", "oidc-provider", "--mode", "auto", "--yes", "--cluster", name]
-    #         if state == "present":
-    #             rc, stdout, stderr = module.run_command(create_oidc_provider)
-    #             result['commands'].append(commands(rc, stdout, stderr, 'create sts oidc provider', create_oidc_provider))
-    #             if rc != 0:
-    #                 module.fail_json(msg="failed to create oidc provider\n%s" % (stderr))
-    #         elif state == "dry-run":
-    #             result['commands'].append(commands(0, "skipped, dry-run", None, 'create sts oidc provider', create_oidc_provider))
     if wait and state in ['present', 'absent']:
         # ready = re.compile(r'State:\s+ready')
         done = None

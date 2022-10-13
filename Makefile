@@ -39,6 +39,12 @@ delete:
 create.multiaz:
 	$(ANSIBLE) -v create-cluster.yaml -i ./environment/multi-az/hosts
 
+create.private:
+	$(ANSIBLE) -v create-cluster.yaml -i ./environment/private-link/hosts
+
+delete.private:
+	$(ANSIBLE) -v delete-cluster.yaml -i ./environment/private-link/hosts
+
 delete.multiaz:
 	$(ANSIBLE) -v delete-cluster.yaml -i ./environment/multi-az/hosts
 
