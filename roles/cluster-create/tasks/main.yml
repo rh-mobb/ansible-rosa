@@ -71,6 +71,7 @@
       rosa_cluster:
         # state: dry-run
         name: "{{ cluster_name }}"
+        region: "{{ rosa_region }}"
         private: "{{ rosa_private }}"
         private_link: "{{ rosa_private_link }}"
         sts: "{{ rosa_sts }}"
@@ -81,6 +82,7 @@
         version: "{{ rosa_version }}"
         http_proxy: "{{ rosa_http_proxy | default(omit) }}"
         https_proxy: "{{ rosa_https_proxy | default(omit) }}"
+        # no_proxy: "{{ rosa_https_proxy | ternary('sts.' + rosa_region + '.amazonaws.com', omit, omit)"
         additional_trust_bundle_file: "{{ rosa_additional_trust_bundle_file | default(omit) }}"
         enable_autoscaling: "{{ rosa_enable_autoscaling | bool }}"
         disable_workload_monitoring: "{{ rosa_disable_workload_monitoring | bool }}"
@@ -96,10 +98,19 @@
       rosa_cluster_info:
         name: "{{ cluster_name }}"
       register: _cluster_ready
-      until: _cluster_ready.cluster.state == "ready"
+      until: _cluster_ready.cluster.state in ["ready","error"]
       retries: 120
       delay: 60
       when:
         - _rosa_cluster.changed | bool
         - rosa_wait | bool
+
+    - fail:
+        msg: |
+          *****************************************
+          Cluster Install Failed
+          {{ _cluster_ready.cluster | to_nice_yaml }}
+          *****************************************
+      when: _cluster_ready.cluster.state == 'error'
+
   when: _cluster_exists.cluster == {}

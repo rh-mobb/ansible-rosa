@@ -4,15 +4,15 @@ rosa_private_link: true
 rosa_sts: true
 
 rosa_version: 4.11.6
-rosa_region: us-east-2
+rosa_region: us-west-2
 rosa_vpc_cidr: "10.0.0.0/16"
 rosa_vpc_public_subnets:
   - cidr: "10.0.2.0/24"
-    az: "us-east-2a"
+    az: "us-west-2a"
     resource_tags: { "Name":"{{ cluster_name }}-public" }
 rosa_vpc_private_subnets:
   - cidr: "10.0.3.0/24"
-    az: "us-east-2a"
+    az: "us-west-2a"
     resource_tags: { "Name":"{{ cluster_name }}-private" }
 
 # jumphost_ami: ami-0ba62214afa52bec7

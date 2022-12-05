@@ -22,3 +22,17 @@
     - name: roles/cluster-create
     - name: roles/dns-resolver-create
       when: rosa_tgw_enabled | bool
+    - name: roles/create-admin
+    - name: roles/finish
+
+
+- hosts:      "jumphost"
+  connection: "ssh"
+  remote_user: ec2-user
+  vars:
+    cluster_api: "{{ hostvars.localhost._cluster_info.cluster.api.url }}"
+  roles:
+    - name: roles/post-install
+      when:
+        - (rosa_private or rosa_private_link) or
+          (enable_jumphost | default(False) | bool)

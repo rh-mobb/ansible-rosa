@@ -1,0 +1,23 @@
+---
+# tasks file for roles/post-install
+
+
+- command: oc login "{{ cluster_api }}" --username cluster-admin --password "{{ rosa_admin_password }}"
+
+- name: Get access token
+  k8s_auth:
+    username: "cluster-admin"
+    password: "{{ rosa_admin_password }}"
+    host: "{{ cluster_api }}"
+    validate_certs: true
+  retries: 10
+  delay: 60
+  register: k8s_auth_results
+
+# - name: Create a namespace with token
+#   k8s:
+#     api_key: "{{ k8s_auth_results.k8s_auth.api_key }}"
+#     name: testnamespace
+#     kind: Namespace
+#     state: present
+#   delegate_to: "{{ jumphost_dns | default(omit) }}"

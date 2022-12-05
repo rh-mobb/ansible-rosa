@@ -11,7 +11,7 @@ virtualenv:
 		LC_ALL=en_US.UTF-8 python3 -m venv $(VIRTUALENV)
 		. $(VIRTUALENV)/bin/activate
 		pip install pip --upgrade
-		LC_ALL=en_US.UTF-8 $(VIRTUALENV)/bin/pip3 install -r requirements.txt
+		LC_ALL=en_US.UTF-8 $(VIRTUALENV)/bin/pip3 install -r requirements.txt #--use-feature=2020-resolver
 		$(VIRTUALENV)/bin/ansible-galaxy collection install -r requirements.yml
 
 docker.image:

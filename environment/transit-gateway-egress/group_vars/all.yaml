@@ -5,17 +5,29 @@ rosa_private_link: true
 # regardless of the following value.
 rosa_private: false
 rosa_sts: true
+rosa_multi_az: true
 
 rosa_version: 4.11.6
 rosa_region: us-east-2
 rosa_vpc_cidr: "10.0.0.0/16"
-# rosa_vpc_public_subnets: []
+rosa_vpc_public_subnets: []
 #   - cidr: "10.0.2.0/24"
 #     az: "us-east-2a"
 #     resource_tags: { "Name":"{{ cluster_name }}-public" }
+# rosa_vpc_private_subnets:
+#   - cidr: "10.0.3.0/24"
+#     az: "us-east-2a"
+#     resource_tags: { "Name":"{{ cluster_name }}-private" }
+
 rosa_vpc_private_subnets:
   - cidr: "10.0.3.0/24"
     az: "us-east-2a"
+    resource_tags: { "Name":"{{ cluster_name }}-private" }
+  - cidr: "10.0.4.0/24"
+    az: "us-east-2b"
+    resource_tags: { "Name":"{{ cluster_name }}-private" }
+  - cidr: "10.0.5.0/24"
+    az: "us-east-2c"
     resource_tags: { "Name":"{{ cluster_name }}-private" }
 
 rosa_tgw_enabled: true
@@ -41,7 +53,7 @@ jumphost_instance_type: t2.micro
 # jumphost_instance_type: t2.nano
 # jumphost_instance_type: m4.large
 
-# proxy_enabled: true
+proxy_enabled: true
 
 ## don't set these and let it use your already logged in accounts
 # aws_access_key_id:

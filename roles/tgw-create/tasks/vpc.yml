@@ -3,6 +3,7 @@
   ec2_vpc_net:
     name: "rosa-{{ cluster_name }}-egress"
     cidr_block: "{{ rosa_tgw_vpc_cidr }}"
+    region: "{{ rosa_region }}"
   register: _vpc
 
 - set_fact:
@@ -33,37 +34,46 @@
     _tgw_private_subnet_ids: "{{ _private_subnets.results | default([]) | json_query('[*].subnet.id') }}"
     _tgw_public_subnet_ids:  "{{ _public_subnets.results  | default([]) | json_query('[*].subnet.id') }}"
 
-
 - name: attach VPC to transit gateway
-  shell: |
-    aws ec2 create-transit-gateway-vpc-attachment \
-      --transit-gateway-id {{ tgw_id }} \
-      --vpc-id {{ tgw_vpc_id }} \
-      --subnet-ids {{ _tgw_private_subnet_ids | join(" ") }} \
-      || aws ec2 describe-transit-gateway-vpc-attachments \
-          --filters Name=vpc-id,Values={{ tgw_vpc_id }}
+  community.aws.ec2_transit_gateway_vpc_attachment:
+    transit_gateway: "{{ tgw_id }}"
+    name: "rosa-{{ cluster_name }}-egress-tgw-attach"
+    subnets: "{{ _tgw_private_subnet_ids }}"
+    ipv6_support: False
+    purge_subnets: False
+    dns_support: True
+  register: _tgw_attach
 
-  register: _tgw_attachment_cmd
-  changed_when: _tgw_attachment_cmd.stderr == ""
+# - name: attach VPC to transit gateway
+#   shell: |
+#     aws ec2 create-transit-gateway-vpc-attachment \
+#       --transit-gateway-id {{ tgw_id }} \
+#       --vpc-id {{ tgw_vpc_id }} \
+#       --subnet-ids {{ _tgw_private_subnet_ids | join(" ") }} \
+#       || aws ec2 describe-transit-gateway-vpc-attachments \
+#           --filters Name=vpc-id,Values={{ tgw_vpc_id }}
 
-- name: wait for transit gateway attachment to become available
-  shell: |
-    while [ "$(aws ec2 describe-transit-gateway-vpc-attachments \
-        --filters Name=vpc-id,Values={{ tgw_vpc_id }} \
-        --query 'TransitGatewayVpcAttachments[0].State' \
-        --output text)" != "available" ]; do
-      sleep 5
-    done
+#   register: _tgw_attachment_cmd
+#   changed_when: _tgw_attachment_cmd.stderr == ""
 
-    aws ec2 describe-transit-gateway-vpc-attachments \
-        --filters Name=vpc-id,Values={{ tgw_vpc_id }} \
-        --query 'TransitGatewayVpcAttachments[0].TransitGatewayAttachmentId' \
-        --output text
-  register: _tgw_attachment_describe
-  changed_when: false
+# - name: wait for transit gateway attachment to become available
+#   shell: |
+#     while [ "$(aws ec2 describe-transit-gateway-vpc-attachments \
+#         --filters Name=vpc-id,Values={{ tgw_vpc_id }} \
+#         --query 'TransitGatewayVpcAttachments[0].State' \
+#         --output text)" != "available" ]; do
+#       sleep 5
+#     done
+
+#     aws ec2 describe-transit-gateway-vpc-attachments \
+#         --filters Name=vpc-id,Values={{ tgw_vpc_id }} \
+#         --query 'TransitGatewayVpcAttachments[0].TransitGatewayAttachmentId' \
+#         --output text
+#   register: _tgw_attachment_describe
+#   changed_when: false
 
 - set_fact:
-    _tgw_attachment_id: "{{ _tgw_attachment_describe.stdout }}"
+    _tgw_attachment_id: "{{ _tgw_attach.attachments[0].transit_gateway_attachment_id }}"
 
 
 

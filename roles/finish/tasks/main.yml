@@ -1,0 +1,46 @@
+---
+# tasks file for roles/finish
+
+- name: fetch cluster details
+  rosa_cluster_info:
+    name: "{{ cluster_name }}"
+  register: _cluster_info
+  no_log: true
+
+# - name: fetch jumphost details
+#   ec2_instance_info:
+#     filters:
+#       "tag:Name": "ROSA-{{ cluster_name }}-jumphost"
+#   register: _jumphost_info
+#   when:
+#     - (rosa_private or rosa_private_link) or
+#       (enable_jumphost | default(False) | bool)
+#   no_log: true
+
+# - set_fact:
+#     jumphost_dns: "{{ _jumphost_info.instances[0].public_dns_name }}"
+#   when:
+#     - (rosa_private or rosa_private_link) or
+#       (enable_jumphost | default(False) | bool)
+
+- debug:
+    msg: |
+      Cluster API: {{ _cluster_info.cluster.api.url }}
+      Cluster Console: {{ _cluster_info.cluster.console.url }}
+
+      Authenticate to cluster:
+        oc login {{ _cluster_info.cluster.api.url }} \
+          --username cluster-admin --password {{ rosa_admin_password }}
+  delegate_to: localhost
+
+- debug:
+    msg: |
+      SSH to Jumphost:
+        ssh ec2-user@{{ jumphost_dns }}
+
+      SSH VPN via Jumphost:
+        sshuttle --dns -NHr ec2-user@{{ jumphost_dns }} {{ rosa_tgw_cidr }}
+  when:
+    - (rosa_private or rosa_private_link) or
+      (enable_jumphost | default(False) | bool)
+

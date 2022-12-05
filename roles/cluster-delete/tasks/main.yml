@@ -32,8 +32,12 @@
       retries: 60
       delay: 10
 
-- debug:
-    var: _cluster_exists
+    - fail:
+        msg: "Cluster took too long to delete"
+      when: _cluster_deleted.cluster != {}
+
+# - debug:
+#     var: _cluster_exists
 
 - when: (_cluster_exists.cluster == {}) or
         ((_cluster_deleted.cluster is defined) and (_cluster_deleted.cluster == {}))

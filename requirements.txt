@@ -1,9 +1,12 @@
 # base version of ansible
-ansible==2.9
+ansible~=2.10
+
+# https://github.com/readthedocs/readthedocs.org/issues/9038
+Jinja2<3.1
 
 # required for k8s ansible module
-openshift==0.11.1
-kubernetes >= 12.0.0
+openshift>=0.13.1
+# kubernetes >= 12.0.0
 
 # required for vmware automation
 pyvim==3.0.2
@@ -17,8 +20,8 @@ boto3==1.14.5
 dnspython==1.16.0
 
 # required for linting
-yamllint==1.24.2
-ansible-lint==4.3.4
+yamllint==1.28.0
+ansible-lint==6.8.7
 
 # required to parse versions with rosa module
 packaging==21.0

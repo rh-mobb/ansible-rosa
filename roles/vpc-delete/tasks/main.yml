@@ -38,11 +38,47 @@
         vpc_id: "{{ vpc_id }}"
         state: absent
 
-    ## Subnets
+    # vpc endpoints
+    - name: fetch vpc endpoints
+      amazon.aws.ec2_vpc_endpoint_info:
+        query: endpoints
+        filters:
+          vpc-id: "{{ vpc_id }}"
+      register: _sts_vpc_endpoint
+
+    - name: delete vpc endpoints
+      amazon.aws.ec2_vpc_endpoint:
+        state: absent
+        vpc_endpoint_id: "{{ item.vpc_endpoint_id }}"
+      with_items: "{{ _sts_vpc_endpoint.vpc_endpoints }}"
+        ## Subnets
     - ec2_vpc_subnet_info:
         filters:
           vpc-id: "{{ vpc_id }}"
       register: subnet_info
+
+    - name: wait for vpc endpoints to be deleted
+      amazon.aws.ec2_vpc_endpoint_info:
+        query: endpoints
+        filters:
+          vpc-id: "{{ vpc_id }}"
+      register: _sts_vpc_endpoint
+      until: "{{ _sts_vpc_endpoint.vpc_endpoints == [] }}"
+      retries: 60
+      delay: 10
+
+    - name: get vpc endpoint security group
+      amazon.aws.ec2_security_group_info:
+        filters:
+          vpc-id: "{{ vpc_id }}"
+          group-name: "rosa-{{ cluster_name }}-sts-endpoint"
+      register: _sts_endpoint_sg
+
+    - name: delete security group for vpc endpoint for sts
+      amazon.aws.ec2_security_group:
+        group_id: "{{ item.group_id }}"
+        state: absent
+      with_items: "{{ _sts_endpoint_sg.security_groups }}"
 
     - name: delete private subnets
       ec2_vpc_subnet:

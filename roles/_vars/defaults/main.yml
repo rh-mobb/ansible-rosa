@@ -11,6 +11,8 @@ rosa_enable_autoscaling: false
 # wait for rosa to finish installing
 rosa_wait: true
 
+rosa_admin_password: "Rosa1234password67890"
+
 rosa_subnet_ids: []
 rosa_machine_cidr: ~
 
