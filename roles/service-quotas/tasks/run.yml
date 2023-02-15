@@ -1,0 +1,69 @@
+---
+#ROSA-required service quota
+- name: Service quota for On-Demand Standard (A, C, D, H, I, M, R, T, Z) instances(L-1216C47A)
+  ansible.builtin.shell:
+    cmd: aws service-quotas get-service-quota --region {{ rosa_region }} --service-code ec2 --quota-code L-1216C47A --query 'Quota.Value'
+  register: __EC2_L1216C47A
+  changed_when: false
+
+- name: Request quota increase for ec2 L-1216C47A
+  when: __EC2_L1216C47A.stdout|int < 100
+  block:
+    - name: Execute the increase command
+      ansible.builtin.shell:
+        cmd: aws service-quotas request-service-quota-increase --service-code ec2 --quota-code L-1216C47A --region {{ rosa_region }} --desired-value 100
+      register: __result_EC2_L1216C47A
+      changed_when: __result_EC2_L1216C47A.rc == 0
+    - ansible.builtin.debug:
+        msg: "Request quota increase for ec2 L-1216C47A has been requested"
+
+- name: Service quota storage for General Purpose SSD (gp2) volume storage in TiB(L-D18FCD1D)
+  ansible.builtin.shell:
+    cmd:  aws service-quotas get-service-quota --region {{ rosa_region }} --service-code ebs --quota-code L-D18FCD1D --query 'Quota.Value'
+  register: __EBS_LD18FCD1D
+  changed_when: false
+
+- name: Request quota increase for ebs L-D18FCD1D
+  when: __EBS_LD18FCD1D.stdout|int < 300
+  block:
+    - name: Execute the increase command
+      ansible.builtin.shell:
+        cmd: aws service-quotas request-service-quota-increase --service-code ebs --quota-code L-D18FCD1D --region {{ rosa_region }} --desired-value 300
+      register: __result__EBS_LD18FCD1D
+      changed_when: __result__EBS_LD18FCD1D.rc == 0
+    - ansible.builtin.debug:
+        msg: "Request quota increase for ebs L-D18FCD1D has been requested"
+
+- name: Service quota storage for General Purpose SSD (gp3) volume storage in TiB(L-7A658B76)
+  ansible.builtin.shell:
+    cmd:  aws service-quotas get-service-quota --region {{ rosa_region }} --service-code ebs --quota-code L-7A658B76 --query 'Quota.Value'
+  register: __EBS_L7A658B76
+  changed_when: false
+
+- name: Request quota increase for ebs L-7A658B76
+  when: __EBS_L7A658B76.stdout|int < 300
+  block:
+    - name: Execute the increase command
+      ansible.builtin.shell:
+        cmd: aws service-quotas request-service-quota-increase --service-code ebs --quota-code L-7A658B76 --region {{ rosa_region }} --desired-value 300
+      register: __result__EBS_L7A658B76
+      changed_when: __result__EBS_L7A658B76.rc == 0
+    - ansible.builtin.debug:
+        msg: "Request quota increase for ebs L-7A658B76 has been requested"
+
+- name: Service quota storage for Provisioned IOPS SSD (io1) volumes in TiB(L-FD252861)
+  ansible.builtin.shell:
+    cmd:  aws service-quotas get-service-quota --region {{ rosa_region }} --service-code ebs --quota-code L-FD252861 --query 'Quota.Value'
+  register: __EBS_L7A658B76
+  changed_when: false
+
+- name: Request quota increase for ebs L-FD252861
+  when: __EBS_L7A658B76.stdout|int < 300
+  block:
+    - name: Execute the increase command
+      ansible.builtin.shell:
+        cmd: aws service-quotas request-service-quota-increase --service-code ebs --quota-code L-FD252861 --region {{ rosa_region }} --desired-value 300
+      register: __result__EBS_L7A658B76
+      changed_when: __result__EBS_L7A658B76.rc == 0
+    - ansible.builtin.debug:
+        msg: "Request quota increase for ebs L-FD252861 has been requested"
