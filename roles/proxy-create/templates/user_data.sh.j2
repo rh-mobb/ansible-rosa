@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e -x
 
-sudo dnf install -y wget curl python36 python36-devel net-tools gcc libffi-devel openssl-devel jq bind-utils podman squid
+sudo dnf install -y wget tmux curl python36 python36-devel net-tools gcc libffi-devel openssl-devel jq bind-utils podman squid
 
 mkdir -p /etc/squid/certs
 
@@ -42,6 +42,7 @@ tagging.us-east-1.amazonaws.com
 ec2.{{ rosa_region }}.amazonaws.com
 elasticloadbalancing.{{ rosa_region }}.amazonaws.com
 *.s3.dualstack.{{ rosa_region }}.amazonaws.com
+*.s3.{{ rosa_region }}.amazonaws.com
 # openshift
 mirror.openshift.com
 storage.googleapis.com/openshift-release
@@ -93,10 +94,12 @@ http_port 3128 \
 
 sslproxy_cert_error allow all
 
-ssl_bump stare all
+# ugh details on why these ssl_bump settings
+# https://www.spinics.net/lists/squid/msg95116.html
+# ssl_bump stare all
 acl step1 at_step SslBump1
 ssl_bump peek step1
-ssl_bump bump all
+# ssl_bump bump all
 ssl_bump splice all
 coredump_dir /var/spool/squid
 refresh_pattern ^ftp:		1440	20%	10080

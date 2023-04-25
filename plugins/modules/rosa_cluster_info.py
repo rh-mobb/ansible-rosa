@@ -41,7 +41,7 @@ password: str
 # These are examples of possible return values, and in general should use other names for return values.
 '''
 
-MIN_ROSA_VERSION = "1.1.11"
+MIN_ROSA_VERSION = "1.2.16"
 
 from ansible.module_utils.basic import *
 from packaging import version as check_version

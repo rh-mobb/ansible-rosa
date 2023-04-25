@@ -58,6 +58,7 @@
     rosa_http_proxy: "http://{{ proxy_private_ip }}:3128"
     rosa_https_proxy: "http://{{ proxy_private_ip }}:3128"
     rosa_additional_trust_bundle_file: "roles/proxy-create/files/squid-ca-cert.pem"
+    rosa_no_proxy: ".s3.{{ rosa_region }}.amazonaws.com"
   when: proxy_enabled | bool
 
 - fail:
@@ -67,6 +68,17 @@
     - rosa_min_replicas is defined or rosa_max_replicas is defined
 
 - block:
+    - name: create oidc config
+      shell: |
+        rosa create oidc-config --mode auto --managed --yes > /dev/null && \
+        rosa list oidc-config -o json | jq -r '.[] | select(.last_used_timestamp == null).id'
+      register: _oidc_config
+      when: rosa_hosted_cp | default(False) | bool
+
+    - set_fact:
+        _oidc_id: "{{ _oidc_config.stdout }}"
+      when: rosa_hosted_cp | default(False) | bool
+
     - name: create cluster
       rosa_cluster:
         # state: dry-run
@@ -79,10 +91,12 @@
         machine_cidr: "{{ rosa_vpc_cidr }}"
         multi_az: "{{ rosa_multi_az | default(False) | bool }}"
         subnet_ids: "{{ rosa_subnet_ids | join(',') }}"
-        version: "{{ rosa_version }}"
+        version: "{{ rosa_version | default(omit) }}"
+        hosted_cp: "{{ rosa_hosted_cp | default(omit) }}"
+        oidc_config_id: "{{ _oidc_id | default(omit) }}"
         http_proxy: "{{ rosa_http_proxy | default(omit) }}"
         https_proxy: "{{ rosa_https_proxy | default(omit) }}"
-        # no_proxy: "{{ rosa_https_proxy | ternary('sts.' + rosa_region + '.amazonaws.com', omit, omit)"
+        no_proxy: "{{ rosa_no_proxy | default(omit) }}"
         additional_trust_bundle_file: "{{ rosa_additional_trust_bundle_file | default(omit) }}"
         enable_autoscaling: "{{ rosa_enable_autoscaling | bool }}"
         disable_workload_monitoring: "{{ rosa_disable_workload_monitoring | bool }}"

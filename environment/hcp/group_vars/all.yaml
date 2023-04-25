@@ -1,0 +1,23 @@
+cluster_name: ans-rosa-hcp
+# rosa_disable_workload_monitoring: true
+rosa_private_link: false
+# note private-link forces private to be true
+# regardless of the following value.
+rosa_private: false
+rosa_sts: true
+rosa_enable_autoscaling: true
+rosa_min_replicas: 2
+rosa_max_replicas: 4
+rosa_hosted_cp: true
+rosa_version: 4.12.13
+rosa_region: us-east-2
+rosa_vpc_cidr: "10.0.0.0/16"
+rosa_vpc_public_subnets:
+  - cidr: "10.0.2.0/24"
+    az: "us-east-2a"
+    resource_tags: { "Name":"{{ cluster_name }}-public" }
+rosa_vpc_private_subnets:
+  - cidr: "10.0.3.0/24"
+    az: "us-east-2a"
+    resource_tags: { "Name":"{{ cluster_name }}-private" }
+
