@@ -1,0 +1,22 @@
+namespace: mobb
+name: rosa
+version: 1.0.0
+readme: README.md
+authors:
+  - Paul Czarkowski <pczarkow@redhat.com>
+  - Connor Wooley <cwooley@redhat.com>
+  - Dustin Scott <dscott@redhat.com>
+description: Collection of various Ansible roles to manage ROSA infrastructure.
+license_file: LICENSE
+tags:
+  - ROSA
+  - MOBB
+  - OpenShift
+  - AWS
+  - Red Hat
+dependencies: {}
+repository: https://github.com/rh-mobb/ansible-rosa
+documentation: https://github.com/rh-mobb/ansible-rosa
+homepage: https://github.com/rh-mobb/ansible-rosa
+issues: https://github.com/rh-mobb/ansible-rosa/issues
+build_ignore: []
