@@ -4,6 +4,8 @@
     name: "rosa-{{ cluster_name }}"
     cidr_block: "{{ rosa_vpc_cidr }}"
     region: "{{ rosa_region }}"
+    dns_support: true
+    dns_hostnames: true
   register: _vpc
 
 - set_fact:
