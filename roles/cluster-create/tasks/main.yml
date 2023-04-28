@@ -68,16 +68,50 @@
     - rosa_min_replicas is defined or rosa_max_replicas is defined
 
 - block:
+    # TODO: this is only because we cannot create a new oidc config when there is an unused one.  at some
+    #       point in the future, this logic will be removed, and thus this block may be removed.
+    - name: get used oidc managed configs
+      shell: |
+        rosa list clusters -o json | jq -r '.[] | select(.hypershift.enabled).aws.sts.oidc_endpoint_url | split("/")[-1]'
+      register: _oidc_configs_used
+      when: rosa_hosted_cp | default(False) | bool
+
+    - name: get all oidc managed configs
+      shell: |
+        rosa list oidc-config -o json | jq -r '.[] | select(.managed).id'
+      register: _oidc_configs_all
+      when: rosa_hosted_cp | default(False) | bool
+
+    - name: get unused oidc managed configs
+      set_fact:
+        _oidc_configs_unused: "{{ _oidc_configs_all.stdout_lines | difference(_oidc_configs_used.stdout_lines) }}"
+      when: rosa_hosted_cp | default(False) | bool
+
+    - name: get a random unused config
+      set_fact:
+        _oidc_id: "{{ _oidc_configs_unused | random }}"
+      when: 
+        - rosa_hosted_cp | default(False) | bool
+        - _oidc_configs_unused | length > 0
+    #
+    # end TODO
+
     - name: create oidc config
       shell: |
         rosa create oidc-config --mode auto --managed --yes > /dev/null && \
         rosa list oidc-config -o json | jq -r '.[] | select(.last_used_timestamp == null).id'
       register: _oidc_config
-      when: rosa_hosted_cp | default(False) | bool
+      when: 
+        - rosa_hosted_cp | default(False) | bool
+        - _oidc_id is undefined
+
+#https://dvbwgdztaeq9o.cloudfront.net/233hjj27fm4lorv4ho739c90gdserel7
 
     - set_fact:
         _oidc_id: "{{ _oidc_config.stdout }}"
-      when: rosa_hosted_cp | default(False) | bool
+      when: 
+        - rosa_hosted_cp | default(False) | bool
+        - _oidc_id is undefined
 
     - name: create cluster
       rosa_cluster:
