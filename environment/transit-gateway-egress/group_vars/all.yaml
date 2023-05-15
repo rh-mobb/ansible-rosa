@@ -1,4 +1,4 @@
-cluster_name: ansible-tgw
+cluster_name: pczarkow
 
 rosa_private_link: true
 # note private-link forces private to be true
@@ -7,7 +7,7 @@ rosa_private: false
 rosa_sts: true
 rosa_multi_az: true
 
-rosa_version: 4.11.6
+rosa_version: 4.12.9
 rosa_region: us-east-2
 rosa_vpc_cidr: "10.0.0.0/16"
 rosa_vpc_public_subnets: []

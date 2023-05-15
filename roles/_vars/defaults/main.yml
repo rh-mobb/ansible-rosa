@@ -6,6 +6,7 @@ rosa_private_link: false
 rosa_sts: true
 rosa_disable_workload_monitoring: false
 rosa_enable_autoscaling: false
+rosa_hcp: false
 # rosa_min_replicas: 3
 # rosa_max_replicas: 6
 # wait for rosa to finish installing

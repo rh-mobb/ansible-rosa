@@ -54,6 +54,12 @@ create.tgw:
 delete.tgw:
 	$(ANSIBLE) -v delete-cluster.yaml -i ./environment/transit-gateway-egress/hosts
 
+create.hcp:
+	$(ANSIBLE) -v create-cluster.yaml -i ./environment/hcp/hosts
+
+delete.hcp:
+	$(ANSIBLE) -v delete-cluster.yaml -i ./environment/hcp/hosts
+
 
 docker.create: image
 	docker run --rm \

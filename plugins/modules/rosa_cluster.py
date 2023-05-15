@@ -149,7 +149,7 @@ password: str
 # These are examples of possible return values, and in general should use other names for return values.
 '''
 
-MIN_ROSA_VERSION = "1.2.2"
+MIN_ROSA_VERSION = "1.2.16"
 
 from ansible.module_utils.basic import *
 from packaging import version as check_version
@@ -174,6 +174,7 @@ def run_module():
         host_prefix=dict(type='int', required=False),
         http_proxy=dict(type='str', required=False),
         https_proxy=dict(type='str', required=False),
+        no_proxy=dict(type='str', required=False),
         additional_trust_bundle_file=dict(type='str', required=False),
         subnet_ids=dict(type='str', required=False),
         multi_az=dict(type='bool', required=False),
@@ -189,7 +190,9 @@ def run_module():
         role_arn=dict(type='str', required=False),
         support_role_arn=dict(type='str', required=False),
         controlplane_iam_role=dict(type='str', required=False),
-        worker_iam_role=dict(type='str', required=False)
+        worker_iam_role=dict(type='str', required=False),
+        hosted_cp=dict(type=bool, required=False),
+        oidc_config_id=dict(type=str, required=False)
     )
 
     # seed the result dict in the object
@@ -261,6 +264,7 @@ def run_module():
         for param, value in params.items():
             if not value: continue
             if param == "multi_az": args.append("--multi-az")
+            elif param == "hosted_cp": args.append("--hosted-cp")
             elif param == "enable_autoscaling": args.append("--enable-autoscaling")
             elif param == "private": args.append("--private")
             elif param == "private_link": args.append("--private-link")
