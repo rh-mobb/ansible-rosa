@@ -1,3 +1,5 @@
 virtualenv/*
 tmp/*
 bin/*
+*.tgz
+*.gz
