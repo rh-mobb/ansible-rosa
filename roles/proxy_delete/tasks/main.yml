@@ -1,0 +1,13 @@
+---
+# tasks file for roles/proxy_delete
+- name: delete proxy instance
+  ec2_instance:
+    name: "ROSA-{{ cluster_name }}-proxy"
+    filters: |
+      {"image-id": "{{ proxy_ami }}"}
+    state: absent
+
+- name: delete proxy security group
+  ec2_group:
+    name: "ROSA-{{ cluster_name }}-proxy"
+    state: absent

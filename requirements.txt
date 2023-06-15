@@ -1,5 +1,6 @@
 # base version of ansible
-ansible~=2.10
+# ansible~=2.10
+ansible-core~=2.15
 
 # https://github.com/readthedocs/readthedocs.org/issues/9038
 Jinja2<3.1
@@ -14,7 +15,7 @@ pyvmomi==7.0
 
 # required for aws automation
 boto==2.49.0
-boto3==1.14.5
+boto3~=1.26
 
 # required for dns lookups
 dnspython==1.16.0

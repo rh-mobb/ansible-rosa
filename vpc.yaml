@@ -5,6 +5,6 @@
       - vars/main.yaml
 
   roles:
-    - name: roles/vpc-delete
-    # - name: roles/vpc-create
+    - name: roles/vpc_delete
+    # - name: roles/vpc_create
 

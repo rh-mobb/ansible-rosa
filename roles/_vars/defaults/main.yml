@@ -1,5 +1,5 @@
 ---
-# defaults for roles/cluster-create
+# defaults for roles/cluster_create
 
 rosa_private: false
 rosa_private_link: false
@@ -33,7 +33,7 @@ proxy_enabled: false
 proxy_ami: ami-0ba62214afa52bec7
 proxy_instance_type: m4.large
 
-# defaults for roles/vpc-create
+# defaults for roles/vpc_create
 rosa_vpc_cidr: "10.0.0.0/16"
 
 rosa_region: "us-east-2"
@@ -47,7 +47,7 @@ rosa_vpc_private_subnets:
     az: "us-east-2a"
     resource_tags: { "name":"{{ cluster_name }}-private" }
 
-# defaults file for roles/tgw-create
+# defaults file for roles/tgw_create
 rosa_tgw_enabled: false
 
 # the full CIDR that TGW should route for
