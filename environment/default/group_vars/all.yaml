@@ -14,10 +14,10 @@ rosa_region: us-east-1
 rosa_vpc_cidr: "10.0.0.0/16"
 rosa_vpc_public_subnets:
   - cidr: "10.0.2.0/24"
-    az: "us-east-2a"
+    az: "us-east-1a"
     resource_tags: { "Name":"{{ cluster_name }}-public" }
 rosa_vpc_private_subnets:
   - cidr: "10.0.3.0/24"
-    az: "us-east-2a"
+    az: "us-east-1a"
     resource_tags: { "Name":"{{ cluster_name }}-private" }
 
