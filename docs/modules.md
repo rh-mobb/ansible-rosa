@@ -1,59 +1,5 @@
 ## Ansible ROSA Modules
 
-### rosa_auth
-
-```
-module: rosa_auth
-
-short_description: authenticate with rosa
-
-version_added: "1.0.0"
-
-description: This module assists you with authenticating with ROSA
-
-options:
-    token:
-        description: The token provided by https://cloud.redhat.com/openshift/token/rosa
-        required: true
-        type: str
-    state:
-        description: the action to take
-        required: false
-        type: str
-        choices: ['login','logout']
-        default: login
-
-author:
-    - Paul Czarkowski (@paulczar)
-```
-
-### rosa_init
-
-```
-module: rosa_init
-
-short_description: Applies templates to support Red Hat OpenShift Service on AWS.
-
-version_added: "1.0.0"
-
-description: Applies templates to support Red Hat OpenShift Service on AWS.
-
-options:
-    token:
-        description: The token provided by https://cloud.redhat.com/openshift/token/rosa
-        required: false
-        type: str
-    state:
-        description: the action to take
-        required: false
-        type: str
-        choices: ['present','absent']
-        default: present
-
-author:
-    - Paul Czarkowski (@paulczar)
-```
-
 ### rosa_cluster
 
 ```

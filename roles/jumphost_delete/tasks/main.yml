@@ -1,8 +1,22 @@
 ---
+- block:
+    - name: determine ami image for jumphost_ami_name
+      ec2_ami_info:
+        owners: 309956199498 # redhat
+        region: "{{ rosa_region }}"
+        filters:
+          name: "{{ jumphost_ami_name }}"
+      register: _jumphost_ami_facts
+
+    - set_fact:
+        jumphost_ami: "{{ _jumphost_ami_facts.images[0].image_id }}"
+  when: jumphost_ami == ""
+
 # tasks file for roles/jumphost_delete
 - name: delete jumphost instance
   ec2_instance:
     name: "ROSA-{{ cluster_name }}-jumphost"
+    region: "{{ rosa_region }}"
     filters: |
       {"image-id": "{{ jumphost_ami }}"}
     state: absent
@@ -10,11 +24,13 @@
 - name: delete jumphost security group
   ec2_group:
     name: "ROSA-{{ cluster_name }}-jumphost-ssh"
+    region: "{{ rosa_region }}"
     state: absent
 
 - block:
     - name: delete private jumphost instance
       ec2_instance:
+        region: "{{ rosa_region }}"
         name: "ROSA-{{ cluster_name }}-private-jumphost"
         filters: |
           {"image-id": "{{ jumphost_ami }}"}
@@ -23,6 +39,7 @@
     - name: delete rosa private jumphost security group
       ec2_group:
         name: "ROSA-{{ cluster_name }}-private-jumphost"
+        region: "{{ rosa_region }}"
         state: absent
 
   when: jumphost_private_instance | bool
@@ -30,6 +47,7 @@
 - name: delete ssh key pair
   ec2_key:
     name: "ROSA-{{ cluster_name }}-jumphost"
+    region: "{{ rosa_region }}"
     state: absent
 
 

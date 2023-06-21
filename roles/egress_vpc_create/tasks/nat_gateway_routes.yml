@@ -2,6 +2,7 @@
 - name: create nat gateway per public subnet (az)
   ec2_vpc_nat_gateway:
     subnet_id: "{{ outer_item.subnet.id }}"
+    region: "{{ rosa_region }}"
     state: present
     if_exist_do_not_create: yes
     wait: true
@@ -10,6 +11,7 @@
 - name: create private subnet route table
   ec2_vpc_route_table:
     vpc_id: "{{ egress_vpc_id }}"
+    region: "{{ rosa_region }}"
     tags:
       Name: "rosa-private-egress-nat-{{ item.subnet.id }}"
     subnets: "{{ item.subnet.id }}"

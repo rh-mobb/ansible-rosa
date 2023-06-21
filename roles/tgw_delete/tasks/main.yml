@@ -1,6 +1,7 @@
 ---
 - name: fetch transit gateway
   ec2_transit_gateway_info:
+    region: "{{ rosa_region }}"
     filters:
       state: "available"
       "tag:Name": "rosa-{{ cluster_name }}-tgw"
@@ -10,12 +11,14 @@
 - block:
     - name: fetch TGW attachments
       community.aws.ec2_transit_gateway_vpc_attachment_info:
+        region: "{{ rosa_region }}"
         filters:
           transit-gateway-id: "{{ _tgw.transit_gateways[0].transit_gateway_id }}"
       register: _tgw_attach_info
 
     - name: detach VPCs frpm transit gateway
       community.aws.ec2_transit_gateway_vpc_attachment:
+        region: "{{ rosa_region }}"
         state: absent
         id: "{{ item.transit_gateway_attachment_id }}"
       with_items: "{{ _tgw_attach_info.attachments }}"

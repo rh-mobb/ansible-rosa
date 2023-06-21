@@ -1,8 +1,22 @@
 ---
 # tasks file for roles/proxy_delete
+- block:
+    - name: determine ami image for proxy ami image
+      ec2_ami_info:
+        owners: 309956199498 # redhat
+        region: "{{ rosa_region }}"
+        filters:
+          name: "{{ proxy_ami_name }}"
+      register: _proxy_ami_facts
+
+    - set_fact:
+        proxy_ami: "{{ _proxy_ami_facts.images[0].image_id }}"
+  when: proxy_ami == ""
+
 - name: delete proxy instance
   ec2_instance:
     name: "ROSA-{{ cluster_name }}-proxy"
+    region: "{{ rosa_region }}"
     filters: |
       {"image-id": "{{ proxy_ami }}"}
     state: absent
@@ -10,4 +24,5 @@
 - name: delete proxy security group
   ec2_group:
     name: "ROSA-{{ cluster_name }}-proxy"
+    region: "{{ rosa_region }}"
     state: absent

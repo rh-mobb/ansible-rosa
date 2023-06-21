@@ -2,6 +2,7 @@
 - ec2_vpc_net_info:
     filters:
       "tag:Name": "rosa-{{ cluster_name }}"
+    region: "{{ rosa_region }}"
   register: vpc_info
 
 - when: vpc_info.vpcs | length > 0
@@ -16,10 +17,12 @@
     - ec2_vpc_nat_gateway_info:
         filters:
           vpc-id: "{{ vpc_id }}"
+        region: "{{ rosa_region }}"
       register: _nat_gw_info
 
     - name: delete nat gateways
       ec2_vpc_nat_gateway:
+        region: "{{ rosa_region }}"
         state: absent
         nat_gateway_id: "{{ item.nat_gateway_id }}"
         release_eip: yes
@@ -29,46 +32,53 @@
 
     # Internet Gateway
     - ec2_vpc_igw_info:
+        region: "{{ rosa_region }}"
         filters:
           attachment.vpc-id: "{{ vpc_id }}"
       register: igw_info
 
     - name: delete internet gateway
       ec2_vpc_igw:
+        region: "{{ rosa_region }}"
         vpc_id: "{{ vpc_id }}"
         state: absent
 
     # vpc endpoints
     - name: fetch vpc endpoints
       amazon.aws.ec2_vpc_endpoint_info:
+        region: "{{ rosa_region }}"
         query: endpoints
         filters:
           vpc-id: "{{ vpc_id }}"
       register: _sts_vpc_endpoint
 
-    - name: delete vpc endpoints
-      amazon.aws.ec2_vpc_endpoint:
-        state: absent
-        vpc_endpoint_id: "{{ item.vpc_endpoint_id }}"
-      with_items: "{{ _sts_vpc_endpoint.vpc_endpoints }}"
-        ## Subnets
-    - ec2_vpc_subnet_info:
-        filters:
-          vpc-id: "{{ vpc_id }}"
-      register: subnet_info
+    - debug:
+        msg: |
+          VPC Endpoints: {{ _sts_vpc_endpoint.vpc_endpoints }}"
 
-    - name: wait for vpc endpoints to be deleted
-      amazon.aws.ec2_vpc_endpoint_info:
-        query: endpoints
-        filters:
-          vpc-id: "{{ vpc_id }}"
-      register: _sts_vpc_endpoint
-      until: "{{ _sts_vpc_endpoint.vpc_endpoints == [] }}"
-      retries: 60
-      delay: 10
+    - block:
+        - name: delete vpc endpoints
+          amazon.aws.ec2_vpc_endpoint:
+            region: "{{ rosa_region }}"
+            state: absent
+            vpc_endpoint_id: "{{ item.vpc_endpoint_id }}"
+          with_items: "{{ _sts_vpc_endpoint.vpc_endpoints }}"
+
+        - name: wait for vpc endpoints to be deleted
+          amazon.aws.ec2_vpc_endpoint_info:
+            region: "{{ rosa_region }}"
+            query: endpoints
+            filters:
+              vpc-id: "{{ vpc_id }}"
+          register: _check_sts_vpc_endpoint
+          until: _check_sts_vpc_endpoint.vpc_endpoints | length == 0
+          retries: 60
+          delay: 10
+      when: _sts_vpc_endpoint.vpc_endpoints | length > 0
 
     - name: get vpc endpoint security group
       amazon.aws.ec2_security_group_info:
+        region: "{{ rosa_region }}"
         filters:
           vpc-id: "{{ vpc_id }}"
           group-name: "rosa-{{ cluster_name }}-sts-endpoint"
@@ -76,12 +86,20 @@
 
     - name: delete security group for vpc endpoint for sts
       amazon.aws.ec2_security_group:
+        region: "{{ rosa_region }}"
         group_id: "{{ item.group_id }}"
         state: absent
       with_items: "{{ _sts_endpoint_sg.security_groups }}"
 
+    - ec2_vpc_subnet_info:
+        region: "{{ rosa_region }}"
+        filters:
+          vpc-id: "{{ vpc_id }}"
+      register: subnet_info
+
     - name: delete private subnets
       ec2_vpc_subnet:
+        region: "{{ rosa_region }}"
         state: absent
         vpc_id: "{{ vpc_id }}"
         cidr: "{{ item.cidr_block }}"
@@ -90,13 +108,14 @@
 
     ## Route Tables
     - ec2_vpc_route_table_info:
+        region: "{{ rosa_region }}"
         filters:
           vpc-id: "{{ vpc_id }}"
-        region: "{{ region | default('us-east-2') }}"
       register: route_table_info
 
     - name: delete public subnet route table
       ec2_vpc_route_table:
+        region: "{{ rosa_region }}"
         state: absent
         vpc_id: "{{ vpc_id }}"
         route_table_id: "{{ item.id }}"
@@ -108,6 +127,8 @@
     - name: delete the vpc
       ec2_vpc_net:
         state: absent
-        name: "rosa-{{ cluster_name }}"
-        cidr_block: "{{ rosa_vpc_cidr }}"
+        # name: "rosa-{{ cluster_name }}"
+        # cidr_block: "{{ rosa_vpc_cidr }}"
+        vpc_id: "{{ vpc_id }}"
+        region: "{{ rosa_region }}"
 

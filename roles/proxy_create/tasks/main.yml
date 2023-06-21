@@ -12,6 +12,7 @@
 - name: create ssh key pair
   ec2_key:
     name: "ROSA-{{ cluster_name }}-proxy"
+    region: "{{ rosa_region }}"
     key_material: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
 
 
@@ -20,7 +21,7 @@
     name: "ROSA-{{ cluster_name }}-proxy"
     description: security group for proxy
     vpc_id: "{{ egress_vpc_id }}"
-    # region: "{{ region | default('us-east-2') }}"
+    region: "{{ rosa_region }}"
     rules:
       - proto: tcp
         ports: [22]
@@ -30,9 +31,23 @@
         cidr_ip: "{{ rosa_tgw_cidr | default(rosa_vpc_cidr) }}"
         rule_desc: allow all local
 
+- block:
+    - name: determine ami image for proxy ami image
+      ec2_ami_info:
+        owners: 309956199498 # redhat
+        region: "{{ rosa_region }}"
+        filters:
+          name: "{{ proxy_ami_name }}"
+      register: _proxy_ami_facts
+
+    - set_fact:
+        proxy_ami: "{{ _proxy_ami_facts.images[0].image_id }}"
+  when: proxy_ami == ""
+
 - name: start proxy instance
   ec2_instance:
     name: "ROSA-{{ cluster_name }}-proxy"
+    region: "{{ rosa_region }}"
     key_name: "ROSA-{{ cluster_name }}-proxy"
     vpc_subnet_id: "{{ _subnet_id }}"
     instance_type: "{{ proxy_instance_type }}"

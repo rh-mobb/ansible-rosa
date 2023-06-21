@@ -20,6 +20,7 @@
 - name: create ssh key pair
   ec2_key:
     name: "ROSA-{{ cluster_name }}-jumphost"
+    region: "{{ rosa_region }}"
     key_material: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
 
 - name: create ssh security group
@@ -27,7 +28,7 @@
     name: "ROSA-{{ cluster_name }}-jumphost-ssh"
     description: security group for SSH
     vpc_id: "{{ jumphost_vpc_id }}"
-    # region: "{{ region | default('us-east-2') }}"
+    region: "{{ rosa_region }}"
     rules:
       - proto: tcp
         ports: [22]
@@ -37,9 +38,26 @@
         cidr_ip: "{{ rosa_tgw_cidr | default(rosa_vpc_cidr) }}"
         rule_desc: allow all local
 
+# jumphost_ami: ami-07b1d7739c91ed3fc
+# jumphost_ami_name: "RHEL-8.3.0_HVM-*-x86_64-*Hourly*"
+
+- block:
+    - name: determine ami image for jumphost_ami_name
+      ec2_ami_info:
+        owners: 309956199498 # redhat
+        region: "{{ rosa_region }}"
+        filters:
+          name: "{{ jumphost_ami_name }}"
+      register: _jumphost_ami_facts
+
+    - set_fact:
+        jumphost_ami: "{{ _jumphost_ami_facts.images[0].image_id }}"
+  when: jumphost_ami == ""
+
 - name: start jumphost instance
   ec2_instance:
     name: "ROSA-{{ cluster_name }}-jumphost"
+    region: "{{ rosa_region }}"
     key_name: "ROSA-{{ cluster_name }}-jumphost"
     vpc_subnet_id: "{{ jumphost_subnet_id }}"
     instance_type: "{{ jumphost_instance_type }}"
@@ -55,24 +73,30 @@
 
 - name: fetch jumphost details
   ec2_instance_info:
+    region: "{{ rosa_region }}"
     filters:
       "tag:Name": "ROSA-{{ cluster_name }}-jumphost"
   register: _jumphost_info
+  until: _jumphost_info.instances[0].public_dns_name != ""
+  retries: 10
+  delay: 30
+  no_log: true
 
 - set_fact:
     jumphost_dns: "{{ _jumphost_info.instances[0].public_dns_name }}"
 
-- name: Add jumphost to Ansible inventory
-  ansible.builtin.add_host:
-    name: "{{ jumphost_dns }}"
-    groups: jumphost
-  changed_when: false
+# - name: Add jumphost to Ansible inventory
+#   ansible.builtin.add_host:
+#     name: "{{ jumphost_dns }}"
+#     groups: jumphost
+#   changed_when: false
 
 - block:
     - name: create private jumphost security group
       ec2_group:
         name: "ROSA-{{ cluster_name }}-private-jumphost"
         description: security group for ALL
+        region: "{{ rosa_region }}"
         vpc_id: "{{ vpc_id }}"
         # region: "{{ region | default('us-east-2') }}"
         rules:
@@ -83,6 +107,7 @@
     - name: start private jumphost instance
       ec2_instance:
         name: "ROSA-{{ cluster_name }}-private-jumphost"
+        region: "{{ rosa_region }}"
         key_name: "ROSA-{{ cluster_name }}-jumphost"
         vpc_subnet_id: "{{ _private_subnet_ids[0] }}"
         instance_type: "{{ jumphost_instance_type }}"

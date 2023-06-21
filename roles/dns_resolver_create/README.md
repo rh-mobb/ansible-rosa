@@ -1,7 +1,7 @@
-cluster_create Role
+dns_resolver_create Role
 =========
 
-This role creates a ROSA cluster
+This role creates a dns resolver for a ROSA cluster
 
 License
 -------

@@ -10,7 +10,7 @@ rosa_min_replicas: 2
 rosa_max_replicas: 4
 rosa_hosted_cp: true
 rosa_version: 4.12.13
-rosa_region: us-east-2
+rosa_region: us-east-1
 rosa_vpc_cidr: "10.0.0.0/16"
 rosa_vpc_public_subnets:
   - cidr: "10.0.2.0/24"

@@ -7,27 +7,27 @@ rosa_private: false
 rosa_sts: true
 rosa_multi_az: true
 
-rosa_version: 4.12.9
-rosa_region: us-east-2
+rosa_version: 4.12.12
+rosa_region: us-east-1
 rosa_vpc_cidr: "10.0.0.0/16"
 rosa_vpc_public_subnets: []
 #   - cidr: "10.0.2.0/24"
-#     az: "us-east-2a"
+#     az: "us-east-1a"
 #     resource_tags: { "Name":"{{ cluster_name }}-public" }
 # rosa_vpc_private_subnets:
 #   - cidr: "10.0.3.0/24"
-#     az: "us-east-2a"
+#     az: "us-east-1a"
 #     resource_tags: { "Name":"{{ cluster_name }}-private" }
 
 rosa_vpc_private_subnets:
   - cidr: "10.0.3.0/24"
-    az: "us-east-2a"
+    az: "us-east-1a"
     resource_tags: { "Name":"{{ cluster_name }}-private" }
   - cidr: "10.0.4.0/24"
-    az: "us-east-2b"
+    az: "us-east-1b"
     resource_tags: { "Name":"{{ cluster_name }}-private" }
   - cidr: "10.0.5.0/24"
-    az: "us-east-2c"
+    az: "us-east-1c"
     resource_tags: { "Name":"{{ cluster_name }}-private" }
 
 rosa_tgw_enabled: true
@@ -40,14 +40,14 @@ rosa_egress_vpc_enabled: true
 rosa_egress_vpc_cidr: "10.10.0.0/16"
 rosa_egress_vpc_public_subnets:
   - cidr: "10.10.0.0/24"
-    az: "us-east-2a"
+    az: "us-east-1a"
     resource_tags: { "Name":"{{ cluster_name }}-egress-public" }
 rosa_egress_vpc_private_subnets:
   - cidr: "10.10.1.0/24"
-    az: "us-east-2a"
+    az: "us-east-1a"
     resource_tags: { "Name":"{{ cluster_name }}-egress-private" }
 
-jumphost_ami: ami-0ba62214afa52bec7
+# jumphost_ami: ami-0ba62214afa52bec7
 # jumphost_ami: ami-07b1d7739c91ed3fc
 jumphost_instance_type: t2.micro
 # jumphost_instance_type: t2.nano

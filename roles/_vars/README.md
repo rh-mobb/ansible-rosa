@@ -1,7 +1,7 @@
-cluster_create Role
+_vars Role
 =========
 
-This role creates a ROSA cluster
+This role is used to set default variables that span across the MOBB ROSA Roles.
 
 License
 -------

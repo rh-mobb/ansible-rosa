@@ -11,6 +11,7 @@
 
 - name: create private subnets
   ec2_vpc_subnet:
+    region: "{{ rosa_region }}"
     vpc_id: "{{ egress_vpc_id }}"
     cidr: "{{ item.cidr }}"
     az: "{{ item.az }}"
@@ -21,6 +22,7 @@
 
 - name: create public subnets
   ec2_vpc_subnet:
+    region: "{{ rosa_region }}"
     vpc_id: "{{ egress_vpc_id }}"
     cidr: "{{ item.cidr }}"
     az: "{{ item.az }}"
@@ -55,6 +57,7 @@
     ipv6_support: False
     purge_subnets: False
     dns_support: True
+    region: "{{ rosa_region }}"
   register: _egress_vpc_tgw_attach
 
 # - name: attach VPC to transit gateway
@@ -92,10 +95,12 @@
   ec2_vpc_igw:
     vpc_id: "{{ egress_vpc_id }}"
     state: present
+    region: "{{ rosa_region }}"
   register: _igw
 
 - name: create public subnet route table
   ec2_vpc_route_table:
+    region: "{{ rosa_region }}"
     vpc_id: "{{ egress_vpc_id }}"
     tags:
       Name: "public-route-table"
