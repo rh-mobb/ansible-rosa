@@ -1,8 +1,13 @@
 .DEFAULT_GOAL := help
 .PHONY: help virtualenv kind image deploy
 
+
+CLUSTER_NAME ?= ans-$(shell whoami)
+EXTRA_VARS ?= --extra-vars "cluster_name=$(CLUSTER_NAME)"
+
 VIRTUALENV ?= "./virtualenv/"
-ANSIBLE = $(VIRTUALENV)/bin/ansible-playbook
+ANSIBLE = $(VIRTUALENV)/bin/ansible-playbook $(EXTRA_VARS)
+
 
 help:
 	@echo GLHF
