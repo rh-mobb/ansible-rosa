@@ -47,7 +47,7 @@
     - name: fetch vpc endpoints
       amazon.aws.ec2_vpc_endpoint_info:
         region: "{{ rosa_region }}"
-        query: endpoints
+        # query: endpoints
         filters:
           vpc-id: "{{ vpc_id }}"
       register: _sts_vpc_endpoint
@@ -67,7 +67,7 @@
         - name: wait for vpc endpoints to be deleted
           amazon.aws.ec2_vpc_endpoint_info:
             region: "{{ rosa_region }}"
-            query: endpoints
+            # query: endpoints
             filters:
               vpc-id: "{{ vpc_id }}"
           register: _check_sts_vpc_endpoint
