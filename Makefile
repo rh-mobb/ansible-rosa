@@ -79,3 +79,11 @@ docker.delete: image
 		-v $(HOME)/.aws:/home/ansible/.aws \
 	  -ti quay.io/pczar/ansible-rosa \
 		$(ANSIBLE) -v delete-cluster.yaml
+
+
+galaxy.build:
+	ansible-galaxy collection build --force .
+
+galaxy.publish:
+	VERSION=$$(yq e '.version' galaxy.yml); \
+	ansible-galaxy collection publish rh_mobb-rosa-$$VERSION.tar.gz --api-key=$$ANSIBLE_GALAXY_API_KEY
