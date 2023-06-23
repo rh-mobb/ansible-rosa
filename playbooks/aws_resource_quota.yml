@@ -1,0 +1,8 @@
+---
+- name: Check resource
+  hosts: "{{ jumphost }}"
+  gather_facts: false
+  tasks:
+    - name: Import service-quotas role
+      ansible.builtin.include_role:
+        name: service-quotas
