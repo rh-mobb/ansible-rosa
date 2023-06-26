@@ -5,3 +5,4 @@ collections:
   - name: community.aws
   - name: kubernetes.core
   - name: community.okd
+  - name: ansible.utils

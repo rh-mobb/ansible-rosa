@@ -11,9 +11,9 @@ rosa_hcp: false
 # rosa_max_replicas: 6
 # wait for rosa to finish installing
 rosa_wait: true
-
+rosa_multi_az: false
 rosa_admin_password: "Rosa1234password67890"
-
+rosa_vpc_endpoints_enabled: false
 rosa_subnet_ids: []
 rosa_machine_cidr: ~
 
@@ -45,28 +45,32 @@ rosa_vpc_cidr: "10.0.0.0/16"
 
 rosa_region: "us-east-2"
 
-rosa_vpc_public_subnets:
-  - cidr: "10.0.128.0/17"
-    az: "us-east-2a"
-    resource_tags: { "name":"{{ cluster_name }}-public" }
-rosa_vpc_private_subnets:
-  - cidr: "10.0.0.0/17"
-    az: "us-east-2a"
-    resource_tags: { "name":"{{ cluster_name }}-private" }
+## when not set the role `network_math` will attempt to figure it out
+## using subnet math
+# rosa_vpc_public_subnets:
+#   - cidr: "10.0.128.0/17"
+#     az: "us-east-2a"
+#     resource_tags: { "name":"{{ cluster_name }}-public" }
+# rosa_vpc_private_subnets:
+#   - cidr: "10.0.0.0/17"
+#     az: "us-east-2a"
+#     resource_tags: { "name":"{{ cluster_name }}-private" }
 
 # defaults file for roles/tgw_create
 rosa_tgw_enabled: false
 
 # the full CIDR that TGW should route for
 rosa_egress_vpc_enabled: false
+rosa_egress_vpc_multi_az: false
 rosa_tgw_cidr: "10.0.0.0/8"
 rosa_egress_vpc_cidr: "10.10.0.0/24"
 
-rosa_egress_vpc_public_subnets:
-  - cidr: "10.10.0.0/28"
-    az: "us-east-2a"
-    resource_tags: { "Name":"{{ cluster_name }}-egress-public" }
-rosa_egress_vpc_private_subnets:
-  - cidr: "10.10.0.16/28"
-    az: "us-east-2a"
-    resource_tags: { "Name":"{{ cluster_name }}-egress-private" }
+## will be calculated if not set
+# rosa_egress_vpc_public_subnets:
+#   - cidr: "10.10.0.0/28"
+#     az: "us-east-2a"
+#     resource_tags: { "Name":"{{ cluster_name }}-egress-public" }
+# rosa_egress_vpc_private_subnets:
+#   - cidr: "10.10.0.16/28"
+#     az: "us-east-2a"
+#     resource_tags: { "Name":"{{ cluster_name }}-egress-private" }

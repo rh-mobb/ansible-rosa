@@ -5,6 +5,7 @@
       - vars/main.yaml
 
   roles:
+    - name: roles/network_math
     - name: roles/tgw_create
       when: rosa_tgw_enabled | bool
     - name: roles/egress_vpc_create

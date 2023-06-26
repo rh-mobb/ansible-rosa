@@ -71,20 +71,6 @@
     wait: true
   register: _jumphost
 
-- name: fetch jumphost details
-  ec2_instance_info:
-    region: "{{ rosa_region }}"
-    filters:
-      "tag:Name": "ROSA-{{ cluster_name }}-jumphost"
-  register: _jumphost_info
-  until: _jumphost_info.instances[0].public_dns_name != ""
-  retries: 10
-  delay: 30
-  no_log: true
-
-- set_fact:
-    jumphost_dns: "{{ _jumphost_info.instances[0].public_dns_name }}"
-
 # - name: Add jumphost to Ansible inventory
 #   ansible.builtin.add_host:
 #     name: "{{ jumphost_dns }}"
@@ -98,7 +84,6 @@
         description: security group for ALL
         region: "{{ rosa_region }}"
         vpc_id: "{{ vpc_id }}"
-        # region: "{{ region | default('us-east-2') }}"
         rules:
           - proto: all
             cidr_ip: "{{ rosa_tgw_cidr }}"

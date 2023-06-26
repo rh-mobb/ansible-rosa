@@ -5,32 +5,7 @@ rosa_private_link: false
 # regardless of the following value.
 rosa_private: false
 rosa_sts: false
-rosa_multi_az: false
+rosa_multi_az: true
 rosa_version: 4.11.6
 rosa_region: us-east-1
 rosa_vpc_cidr: "172.28.80.0/20"
-# rosa_service_cidr: "172.16.0.0/20"
-# rosa_pod_cidr: "10.255.0.0/17"
-# rosa_host_prefix: "23"
-rosa_vpc_public_subnets:
-  - cidr: "172.28.81.0/24"
-    az: "us-east-1a"
-    resource_tags: { "Name":"{{ cluster_name }}-public" }
-  - cidr: "172.28.82.0/24"
-    az: "us-east-1b"
-    resource_tags: { "Name":"{{ cluster_name }}-public" }
-  - cidr: "172.28.83.0/24"
-    az: "us-east-1c"
-    resource_tags: { "Name":"{{ cluster_name }}-public" }
-
-rosa_vpc_private_subnets:
-  - cidr: "172.28.86.0/24"
-    az: "us-east-1a"
-    resource_tags: { "Name":"{{ cluster_name }}-private" }
-  - cidr: "172.28.87.0/24"
-    az: "us-east-1b"
-    resource_tags: { "Name":"{{ cluster_name }}-private" }
-  - cidr: "172.28.88.0/24"
-    az: "us-east-1c"
-    resource_tags: { "Name":"{{ cluster_name }}-private" }
-

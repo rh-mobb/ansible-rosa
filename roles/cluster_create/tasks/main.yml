@@ -123,7 +123,7 @@
         sts: "{{ rosa_sts }}"
         aws_account_id: "{{ aws_account_id | default(omit) }}"
         machine_cidr: "{{ rosa_vpc_cidr }}"
-        multi_az: "{{ rosa_multi_az | default(False) | bool }}"
+        multi_az: "{{ rosa_multi_az | bool }}"
         subnet_ids: "{{ rosa_subnet_ids | join(',') }}"
         version: "{{ rosa_version | default(omit) }}"
         hosted_cp: "{{ rosa_hosted_cp | default(omit) }}"

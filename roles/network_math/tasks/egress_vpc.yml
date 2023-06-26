@@ -1,0 +1,68 @@
+# rosa_egress_vpc_public_subnets:
+#   - cidr: "10.10.0.0/24"
+#     az: "us-east-1a"
+#     resource_tags: { "Name":"{{ cluster_name }}-egress-public" }
+# rosa_egress_vpc_private_subnets:
+#   - cidr: "10.10.1.0/24"
+#     az: "us-east-1a"
+#     resource_tags: { "Name":"{{ cluster_name }}-egress-private" }
+
+# calculate network CIDRs for multi AZ clusters
+- block:
+    - set_fact:
+        _cidr: "{{ (rosa_egress_vpc_cidr | ansible.utils.ipaddr('prefix')) + 6 }}"
+    - set_fact:
+        rosa_egress_vpc_public_subnets:
+          - cidr: "{{ rosa_egress_vpc_cidr | ansible.utils.ipsubnet(_cidr, 0) }}"
+            az: "{{ rosa_region }}a"
+            resource_tags: { "Name":"{{ cluster_name }}-egress-public" }
+          - cidr: "{{ rosa_egress_vpc_cidr | ansible.utils.ipsubnet(_cidr, 1) }}"
+            az: "{{ rosa_region }}b"
+            resource_tags: { "Name":"{{ cluster_name }}-egress-public" }
+          - cidr: "{{ rosa_egress_vpc_cidr | ansible.utils.ipsubnet(_cidr, 2) }}"
+            az: "{{ rosa_region }}c"
+            resource_tags: { "Name":"{{ cluster_name }}-egress-public" }
+      when: rosa_egress_vpc_public_subnets is not defined
+    - set_fact:
+        rosa_egress_vpc_private_subnets:
+          - cidr: "{{ rosa_egress_vpc_cidr | ansible.utils.ipsubnet(_cidr, 3) }}"
+            az: "{{ rosa_region }}a"
+            resource_tags: { "Name":"{{ cluster_name }}-egress-private" }
+          - cidr: "{{ rosa_egress_vpc_cidr | ansible.utils.ipsubnet(_cidr, 4) }}"
+            az: "{{ rosa_region }}b"
+            resource_tags: { "Name":"{{ cluster_name }}-egress-private" }
+          - cidr: "{{ rosa_egress_vpc_cidr | ansible.utils.ipsubnet(_cidr, 5) }}"
+            az: "{{ rosa_region }}c"
+            resource_tags: { "Name":"{{ cluster_name }}-egress-private" }
+      when: rosa_egress_vpc_private_subnets is not defined
+  when:
+    - rosa_egress_vpc_multi_az | bool
+
+# calculate network CIDRs for single AZ clusters
+- block:
+    - set_fact:
+        _cidr: "{{ (rosa_egress_vpc_cidr | ansible.utils.ipaddr('prefix')) + 2 }}"
+    - set_fact:
+        rosa_egress_vpc_public_subnets:
+          - cidr: "{{ rosa_egress_vpc_cidr | ansible.utils.ipsubnet(_cidr, 0) }}"
+            az: "{{ rosa_region }}a"
+            resource_tags: { "Name":"{{ cluster_name }}-egress-public" }
+      when: rosa_egress_vpc_public_subnets is not defined
+    - set_fact:
+        rosa_egress_vpc_private_subnets:
+          - cidr: "{{ rosa_egress_vpc_cidr | ansible.utils.ipsubnet(_cidr, 1) }}"
+            az: "{{ rosa_region }}a"
+            resource_tags: { "Name":"{{ cluster_name }}-egress-private" }
+      when: rosa_egress_vpc_private_subnets is not defined
+  when:
+    - not (rosa_egress_vpc_multi_az | bool)
+
+# - debug:
+#     msg: |
+#       ---
+#       # rosa_egress_vpc_public_subnets
+#       {{ rosa_egress_vpc_public_subnets | to_yaml }}
+#       ---
+#       # rosa_egress_vpc_private_subnets
+#       {{ rosa_egress_vpc_private_subnets | to_yaml }}
+
