@@ -51,26 +51,26 @@
   register: _vpc_endpoints_elb
 
 
-# - name: Create vpc endpoint for s3
-#   amazon.aws.ec2_vpc_endpoint:
-#     state: present
-#     region: "{{ rosa_region }}"
-#     vpc_id: "{{ vpc_id }}"
-#     vpc_endpoint_type: Gateway
-#     service: "com.amazonaws.{{ rosa_region }}.s3"
-#     route_table_ids: "{{ _route_table_ids }}"
-#     tags:
-#       Name: "rosa-{{ cluster_name }}-s3"
-#   register: _vpc_endpoint_s3
-
 - name: Create vpc endpoint for s3
   amazon.aws.ec2_vpc_endpoint:
     state: present
     region: "{{ rosa_region }}"
     vpc_id: "{{ vpc_id }}"
-    vpc_endpoint_type: Interface
+    vpc_endpoint_type: Gateway     
     service: "com.amazonaws.{{ rosa_region }}.s3"
     route_table_ids: "{{ _route_table_ids }}"
     tags:
       Name: "rosa-{{ cluster_name }}-s3"
   register: _vpc_endpoint_s3
+
+# - name: Create vpc endpoint for s3
+#  amazon.aws.ec2_vpc_endpoint:
+#    state: present
+#    region: "{{ rosa_region }}"
+#    vpc_id: "{{ vpc_id }}"
+#    vpc_endpoint_type: Interface
+#    service: "com.amazonaws.{{ rosa_region }}.s3"
+#    route_table_ids: "{{ _route_table_ids }}"
+#    tags:
+#      Name: "rosa-{{ cluster_name }}-s3"
+#  register: _vpc_endpoint_s3
