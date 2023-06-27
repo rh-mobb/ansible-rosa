@@ -1,8 +1,13 @@
 .DEFAULT_GOAL := help
 .PHONY: help virtualenv kind image deploy
 
+
+CLUSTER_NAME ?= ans-$(shell whoami)
+EXTRA_VARS ?= --extra-vars "cluster_name=$(CLUSTER_NAME)"
+
 VIRTUALENV ?= "./virtualenv/"
-ANSIBLE = $(VIRTUALENV)/bin/ansible-playbook
+ANSIBLE = $(VIRTUALENV)/bin/ansible-playbook $(EXTRA_VARS)
+
 
 help:
 	@echo GLHF
@@ -74,3 +79,11 @@ docker.delete: image
 		-v $(HOME)/.aws:/home/ansible/.aws \
 	  -ti quay.io/pczar/ansible-rosa \
 		$(ANSIBLE) -v delete-cluster.yaml
+
+
+galaxy.build:
+	ansible-galaxy collection build --force .
+
+galaxy.publish:
+	VERSION=$$(yq e '.version' galaxy.yml); \
+	ansible-galaxy collection publish rh_mobb-rosa-$$VERSION.tar.gz --api-key=$$ANSIBLE_GALAXY_API_KEY

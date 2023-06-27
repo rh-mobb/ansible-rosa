@@ -1,0 +1,164 @@
+---
+- name: what cluster am i creating?
+  debug:
+    msg: |
+      ***************************************
+      Preparing to create {{ cluster_name }}.
+      This task may take up to an hour.
+      ***************************************
+    verbosity: 0
+
+- when:
+    - aws_account_id is not defined
+    - rosa_sts | bool
+  block:
+    - name: get aws caller info for accountid
+      aws_caller_info:
+      register: _aws_caller_info
+
+    - set_fact:
+        aws_account_id: "{{ _aws_caller_info.account }}"
+
+# do this better ... maybe better set during vpc creation and inherited.
+- when: rosa_subnet_ids | length == 0
+  block:
+    - name: figure out list of subnets
+      set_fact:
+        _private_subnet_ids: "{{ _private_subnets.results | default([]) | json_query('[*].subnet.id') }}"
+        _public_subnet_ids:  "{{ _public_subnets.results  | default([]) | json_query('[*].subnet.id') }}"
+      when:
+        - _private_subnets is defined or _public_subnets is defined
+    - name: set subnet_ids when private-link cluster
+      set_fact:
+        rosa_subnet_ids: "{{ _private_subnet_ids }}"
+      when: (rosa_private_link | bool)
+    - name: set subnet_ids when public or private cluster
+      set_fact:
+        rosa_subnet_ids: "{{ _private_subnet_ids + _public_subnet_ids }}"
+      when: (not rosa_private_link | bool)
+
+
+
+# - name: check if the cluster already exists
+#   command: "rosa describe cluster --cluster {{ cluster_name }}"
+#   register: _cluster_exists
+#   failed_when: false
+#   changed_when: false
+
+# - fail:
+#     var: _cluster_exists |V0\CPcgSE(Te|
+
+- name: check if cluster exists
+  rosa_cluster_info:
+    name: "{{ cluster_name }}"
+  register: _cluster_exists
+
+- name: configure proxy settings
+  set_fact:
+    rosa_http_proxy: "http://{{ proxy_private_ip }}:3128"
+    rosa_https_proxy: "http://{{ proxy_private_ip }}:3128"
+    rosa_additional_trust_bundle_file: "roles/proxy_create/files/squid-ca-cert.pem"
+    rosa_no_proxy: ".s3.{{ rosa_region }}.amazonaws.com"
+  when: proxy_enabled | bool
+
+- fail:
+    msg: "cluster autoscaling must be enabled to set min/max replicas"
+  when:
+    - not rosa_enable_autoscaling | bool
+    - rosa_min_replicas is defined or rosa_max_replicas is defined
+
+- block:
+    # TODO: this is only because we cannot create a new oidc config when there is an unused one.  at some
+    #       point in the future, this logic will be removed, and thus this block may be removed.
+    - name: get used oidc managed configs
+      shell: |
+        rosa list clusters -o json | jq -r '.[] | select(.hypershift.enabled).aws.sts.oidc_endpoint_url | split("/")[-1]'
+      register: _oidc_configs_used
+      when: rosa_hosted_cp | default(False) | bool
+
+    - name: get all oidc managed configs
+      shell: |
+        rosa list oidc-config -o json | jq -r '.[] | select(.managed).id'
+      register: _oidc_configs_all
+      when: rosa_hosted_cp | default(False) | bool
+
+    - name: get unused oidc managed configs
+      set_fact:
+        _oidc_configs_unused: "{{ _oidc_configs_all.stdout_lines | difference(_oidc_configs_used.stdout_lines) }}"
+      when: rosa_hosted_cp | default(False) | bool
+
+    - name: get a random unused config
+      set_fact:
+        _oidc_id: "{{ _oidc_configs_unused | random }}"
+      when:
+        - rosa_hosted_cp | default(False) | bool
+        - _oidc_configs_unused | length > 0
+    #
+    # end TODO
+
+    - name: create oidc config
+      shell: |
+        rosa create oidc-config --mode auto --managed --yes > /dev/null && \
+        rosa list oidc-config -o json | jq -r '.[] | select(.last_used_timestamp == null).id'
+      register: _oidc_config
+      when:
+        - rosa_hosted_cp | default(False) | bool
+        - _oidc_id is undefined
+
+#https://dvbwgdztaeq9o.cloudfront.net/233hjj27fm4lorv4ho739c90gdserel7
+
+    - set_fact:
+        _oidc_id: "{{ _oidc_config.stdout }}"
+      when:
+        - rosa_hosted_cp | default(False) | bool
+        - _oidc_id is undefined
+
+    - name: create cluster
+      rosa_cluster:
+        # state: dry-run
+        name: "{{ cluster_name }}"
+        region: "{{ rosa_region }}"
+        private: "{{ rosa_private }}"
+        private_link: "{{ rosa_private_link }}"
+        sts: "{{ rosa_sts }}"
+        aws_account_id: "{{ aws_account_id | default(omit) }}"
+        machine_cidr: "{{ rosa_vpc_cidr }}"
+        multi_az: "{{ rosa_multi_az | bool }}"
+        subnet_ids: "{{ rosa_subnet_ids | join(',') }}"
+        version: "{{ rosa_version | default(omit) }}"
+        hosted_cp: "{{ rosa_hosted_cp | default(omit) }}"
+        oidc_config_id: "{{ _oidc_id | default(omit) }}"
+        http_proxy: "{{ rosa_http_proxy | default(omit) }}"
+        https_proxy: "{{ rosa_https_proxy | default(omit) }}"
+        no_proxy: "{{ rosa_no_proxy | default(omit) }}"
+        additional_trust_bundle_file: "{{ rosa_additional_trust_bundle_file | default(omit) }}"
+        enable_autoscaling: "{{ rosa_enable_autoscaling | bool }}"
+        disable_workload_monitoring: "{{ rosa_disable_workload_monitoring | bool }}"
+        min_replicas: "{{ rosa_min_replicas | default(omit) }}"
+        max_replicas: "{{ rosa_max_replicas | default(omit) }}"
+        role_arn: "arn:aws:iam::{{ aws_account_id }}:role/ManagedOpenShift-Installer-Role"
+        support_role_arn: "arn:aws:iam::{{ aws_account_id }}:role/ManagedOpenShift-Support-Role"
+        controlplane_iam_role: "arn:aws:iam::{{ aws_account_id }}:role/ManagedOpenShift-ControlPlane-Role"
+        worker_iam_role: "arn:aws:iam::{{ aws_account_id }}:role/ManagedOpenShift-Worker-Role"
+      register: _rosa_cluster
+
+    - name: wait for cluster to be ready
+      rosa_cluster_info:
+        name: "{{ cluster_name }}"
+      register: _cluster_ready
+      until: _cluster_ready.cluster.state in ["ready","error"]
+      retries: 120
+      delay: 60
+      when:
+        - _rosa_cluster.changed | bool
+        - rosa_wait | bool
+
+    - fail:
+        msg: |
+          *****************************************
+          Cluster Install Failed
+          {{ _cluster_ready.cluster | to_nice_yaml }}
+          *****************************************
+      when: _cluster_ready.cluster.state == 'error'
+
+  when: _cluster_exists.cluster == {}

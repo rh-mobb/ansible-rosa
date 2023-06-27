@@ -1,0 +1,62 @@
+---
+# tasks file for roles/proxy_create
+
+- name: make sure we have a subnet to use
+  set_fact:
+    _subnet_id: "{{ _egress_vpc_private_subnet_ids[0] }}"
+    _vpc_id: "{{ egress_vpc_id }}"
+    _ca_key: "{{ lookup('file', 'squid-ca-key.pem') }}"
+    _ca_cert: "{{ lookup('file', 'squid-ca-cert.pem') }}"
+  no_log: true
+
+- name: create ssh key pair
+  ec2_key:
+    name: "ROSA-{{ cluster_name }}-proxy"
+    region: "{{ rosa_region }}"
+    key_material: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+
+
+- name: create ssh security group
+  ec2_group:
+    name: "ROSA-{{ cluster_name }}-proxy"
+    description: security group for proxy
+    vpc_id: "{{ egress_vpc_id }}"
+    region: "{{ rosa_region }}"
+    rules:
+      - proto: tcp
+        ports: [22]
+        cidr_ip: 0.0.0.0/0
+        rule_desc: allow ssh
+      - proto: all
+        cidr_ip: "{{ rosa_tgw_cidr | default(rosa_vpc_cidr) }}"
+        rule_desc: allow all local
+
+- block:
+    - name: determine ami image for proxy ami image
+      ec2_ami_info:
+        owners: 309956199498 # redhat
+        region: "{{ rosa_region }}"
+        filters:
+          name: "{{ proxy_ami_name }}"
+      register: _proxy_ami_facts
+
+    - set_fact:
+        proxy_ami: "{{ _proxy_ami_facts.images[0].image_id }}"
+  when: proxy_ami == ""
+
+- name: start proxy instance
+  ec2_instance:
+    name: "ROSA-{{ cluster_name }}-proxy"
+    region: "{{ rosa_region }}"
+    key_name: "ROSA-{{ cluster_name }}-proxy"
+    vpc_subnet_id: "{{ _subnet_id }}"
+    instance_type: "{{ proxy_instance_type }}"
+    security_group: "ROSA-{{ cluster_name }}-proxy"
+    user_data: "{{ lookup('template', 'user_data.sh.j2') }}"
+    image_id: "{{ proxy_ami }}"
+    tags:
+      Name: "ROSA-{{ cluster_name }}-proxy"
+  register: proxy_instance
+
+- set_fact:
+    proxy_private_ip: "{{ proxy_instance.instances[0].private_ip_address }}"

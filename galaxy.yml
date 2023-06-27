@@ -1,6 +1,6 @@
-namespace: rhmobb
+namespace: rh_mobb
 name: rosa
-version: 1.0.0
+version: 1.2.0
 readme: README.md
 authors:
   - Paul Czarkowski <pczarkow@redhat.com>
@@ -9,11 +9,11 @@ authors:
 description: Collection of various Ansible roles to manage ROSA (Red Hat OpenShift on AWS) infrastructure.
 license_file: LICENSE
 tags:
-  - ROSA
-  - MOBB
-  - OpenShift
-  - AWS
-  - Red Hat
+  - rosa
+  - mobb
+  - openshift
+  - aws
+  - redhat
 dependencies: {}
 repository: https://github.com/rh-mobb/ansible-rosa
 documentation: https://github.com/rh-mobb/ansible-rosa
