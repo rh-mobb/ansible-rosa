@@ -3,3 +3,4 @@ tmp/*
 bin/*
 *.tgz
 *.gz
+*.swp
