@@ -117,6 +117,63 @@ def ocm_authenticate():
     configuration.access_token = access_token
     return configuration
 
+# def check_for_existing_htpasswd(api_instance,):
+
+def get_cluster_idps(api_instance, cluster_id):
+    try:
+        api_request = api_instance.api_clusters_mgmt_v1_clusters_cluster_id_identity_providers_get(cluster_id,page=1,size=-1)
+    except ApiException as e:
+        return None, "Exception when calling DefaultApi->api_clusters_mgmt_v1_clusters_cluster_id_identity_providers_get: %s\n" % e
+        # module.fail_json("Exception when calling DefaultApi->api_clusters_mgmt_v1_clusters_cluster_id_identity_providers_get: %s\n" % e)
+    return api_request.items, None
+
+def get_cluster_id(api_instance, cluster_name):
+    search = "name = '{}'".format(cluster_name)
+    try:
+        api_response = api_instance.api_clusters_mgmt_v1_clusters_get(search=search, size="1")
+    except ApiException as e:
+        return None, "Exception when calling DefaultApi->api_clusters_mgmt_v1_clusters_cluster_id_get: {}\n".format(e)
+    return api_response.items[0].id, None
+        # module.fail_json("Exception when calling DefaultApi->api_clusters_mgmt_v1_clusters_cluster_id_get: %s\n" % e)
+
+def get_existing_htpasswd_idps(existing_idps):
+    for idp in existing_idps:
+        if idp.type == 'HTPasswdIdentityProvider':
+            return idp
+
+def htpasswd_idp_builder(username, password, name):
+    idp = ocm_client.IdentityProvider(
+        kind = 'IdentityProvider',
+        mapping_method = 'claim',
+        name = name,
+        type = 'HTPasswdIdentityProvider',
+        htpasswd = ocm_client.HTPasswdIdentityProvider(
+            username = username,
+            password = password,
+        )
+    )
+    return idp
+
+def create_htpasswd_idp(api_instance, cluster_id, identity_provider):
+    try:
+        api_response = api_instance.api_clusters_mgmt_v1_clusters_cluster_id_identity_providers_post(cluster_id, identity_provider=identity_provider)
+    except ApiException as e:
+        return None, "Exception when calling DefaultApi->api_clusters_mgmt_v1_clusters_cluster_id_identity_providers_post: {}}\n".format(e)
+    return api_response, None
+
+def create_cluster_role(api_instance, cluster_id, role, username):
+    group_id = role
+    user = ocm_client.User(
+        kind = 'User',
+        id = username
+    )
+    try:
+        create_role = api_instance.api_clusters_mgmt_v1_clusters_cluster_id_groups_group_id_users_post(cluster_id, group_id, user=user)
+    except ApiException as e:
+        if e.body.id not in ["400"]:
+            return None, "Exception when calling DefaultApi->api_clusters_mgmt_v1_clusters_cluster_id_groups_group_id_users_post: {}\n".format(e)
+    return create_role, None
+
 def run_module():
     # define available arguments/parameters a user can pass to the module
     module_args = dict(
@@ -176,31 +233,23 @@ def run_module():
 
         # First, fetch the cluster_id if we don't already have it
         if not cluster_id:
-            search = "name = '{}'".format(module.params['cluster_name'])
-            try:
-                api_response = api_instance.api_clusters_mgmt_v1_clusters_get(search=search, size="1")
-            except ApiException as e:
-                module.fail_json("Exception when calling DefaultApi->api_clusters_mgmt_v1_clusters_cluster_id_get: %s\n" % e)
-            cluster_id = api_response.items[0].id
-            # result['cluster_id'] = api_response.items[0].id
-
+            cluster_id, err = get_cluster_id(api_instance, module.params['cluster_name'])
+            if err:
+                module.fail_json(err)
+            if not cluster_id:
+                module.fail_json("Unable to determin cluster_id from cluster_name: {}".module_params['cluster_name'])
         # Fetch identity providers
-        try:
-            api_request = api_instance.api_clusters_mgmt_v1_clusters_cluster_id_identity_providers_get(cluster_id,page=1,size=-1)
-            existing_idps = api_request.items
-        except ApiException as e:
-            module.fail_json("Exception when calling DefaultApi->api_clusters_mgmt_v1_clusters_cluster_id_identity_providers_get: %s\n" % e)
+        existing_idps, err = get_cluster_idps(api_instance, cluster_id)
+        if err:
+            module.fail_json(err)
 
+        # process request, if its a htpasswd
         if module.params['type'] == 'htpasswd':
             # find existing idp
             if existing_idps:
-                for idp in existing_idps:
-                    if idp.type == 'HTPasswdIdentityProvider':
-                        existing_htpasswd = idp
-                        break
-                # if pre-existing htpasswd idp we must error
+                existing_htpasswd = get_existing_htpasswd_idps(existing_idps)
                 if existing_htpasswd:
-                    if existing_htpasswd.name == "admin":
+                    if existing_htpasswd.name == module.params['name']:
                         result['name'] = existing_htpasswd.name
                         result['type'] = existing_htpasswd.type
                         result['username'] = existing_htpasswd.htpasswd.username
@@ -209,29 +258,27 @@ def run_module():
                     else:
                         module.fail_json("an htpasswd IDP called {} already exists. OCM only supports a single IDP.".format(existing_htpasswd.name))
             # construct the htpasswd object
-            ht_passwd_idp = ocm_client.HTPasswdIdentityProvider(
-                username = module.params['username'],
-                password = module.params['password'],
-            )
-            identity_provider = ocm_client.IdentityProvider(
-                kind = 'IdentityProvider',
-                mapping_method = 'claim',
-                name = module.params['name'],
-                type = 'HTPasswdIdentityProvider',
-                htpasswd = ht_passwd_idp,
-            )
+            identity_provider = htpasswd_idp_builder(
+                                    username=module.params['username'],
+                                    password=module.params['password'],
+                                    name=module.params['name']
+                                )
+
             # create htpasswd
-            idp_id = module.params['name']
-            try:
-                api_response = api_instance.api_clusters_mgmt_v1_clusters_cluster_id_identity_providers_post(cluster_id, identity_provider=identity_provider)
-            except ApiException as e:
-                module.fail_json("Exception when calling DefaultApi->api_clusters_mgmt_v1_clusters_cluster_id_identity_providers_post: %s\n" % e)
-            # result['response'] = api_response.to_str()
-            result['name'] = api_response.name
-            result['type'] = api_response.type
-            result['username'] = api_response.htpasswd.username
+            new_htpasswd_idp, err = create_htpasswd_idp(api_instance, cluster_id, identity_provider)
+            if err:
+                module.fail_json(err)
+
+            result['name'] = new_htpasswd_idp.name
+            result['type'] = new_htpasswd_idp.type
+            result['username'] = new_htpasswd_idp.htpasswd.username
             result['password'] = ''
             result['changed'] = True
+
+            # grant cluster-admin access
+            cluster_role, err = create_cluster_role(api_instance, cluster_id, 'cluster-admins', module.params['username'])
+            if err:
+                module.fail_json(err)
     module.exit_json(**result)
 
 
