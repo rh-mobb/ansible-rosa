@@ -32,3 +32,6 @@ semver==2.13.0
 
 # ip math
 netaddr==0.8.0
+
+# ocm modules
+git+https://github.com/paulczar/ocm-python.git
