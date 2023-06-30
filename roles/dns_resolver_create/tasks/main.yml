@@ -1,5 +1,5 @@
 - name: get rosa cluster
-  rosa_cluster_info:
+  ocm_cluster_info:
     name: "{{ cluster_name }}"
   register: _cluster_info
 

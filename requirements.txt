@@ -34,4 +34,4 @@ semver==2.13.0
 netaddr==0.8.0
 
 # ocm modules
-git+https://github.com/paulczar/ocm-python.git
+git+https://github.com/rh-mobb/ocm-python.git

@@ -9,7 +9,7 @@
     verbosity: 0
 
 - name: check if cluster exists
-  rosa_cluster_info:
+  ocm_cluster_info:
     name: "{{ cluster_name }}"
   register: _cluster_exists
 
@@ -33,7 +33,7 @@
       register: _delete_cluster
 
     - name: verify the cluster is deleted
-      rosa_cluster_info:
+      ocm_cluster_info:
         name: "{{ cluster_name }}"
       register: _cluster_deleted
       changed_when: false

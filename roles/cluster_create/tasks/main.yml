@@ -37,19 +37,8 @@
         rosa_subnet_ids: "{{ _private_subnet_ids + _public_subnet_ids }}"
       when: (not rosa_private_link | bool)
 
-
-
-# - name: check if the cluster already exists
-#   command: "rosa describe cluster --cluster {{ cluster_name }}"
-#   register: _cluster_exists
-#   failed_when: false
-#   changed_when: false
-
-# - fail:
-#     var: _cluster_exists |V0\CPcgSE(Te|
-
 - name: check if cluster exists
-  rosa_cluster_info:
+  ocm_cluster_info:
     name: "{{ cluster_name }}"
   register: _cluster_exists
 
@@ -143,7 +132,7 @@
       register: _rosa_cluster
 
     - name: wait for cluster to be ready
-      rosa_cluster_info:
+      ocm_cluster_info:
         name: "{{ cluster_name }}"
       register: _cluster_ready
       until: _cluster_ready.cluster.state in ["ready","error"]
