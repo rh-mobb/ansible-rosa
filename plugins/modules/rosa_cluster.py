@@ -231,7 +231,7 @@ def run_module():
     rosa_version_cmd = [rosa, "version"]
     # rosa_version_cmd = [rosa, "version", "|", "head", "-1"]
     rc, stdout, stderr = module.run_command(rosa_version_cmd)
-    rosa_version = stdout.rstrip()[:7]
+    rosa_version = stdout.rstrip().split('\n')[0]
     if rc != 0:
         module.fail_json(msg='could not run rosa version', **result)
     if check_version.parse(rosa_version) < check_version.parse(MIN_ROSA_VERSION):
