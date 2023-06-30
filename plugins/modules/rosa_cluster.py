@@ -229,7 +229,6 @@ def run_module():
     # check that rosa is minimum version
     # MIN_ROSA_VERSION
     rosa_version_cmd = [rosa, "version"]
-    # rosa_version_cmd = [rosa, "version", "|", "head", "-1"]
     rc, stdout, stderr = module.run_command(rosa_version_cmd)
     rosa_version = stdout.rstrip().split('\n')[0]
     if rc != 0:
