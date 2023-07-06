@@ -23,7 +23,7 @@
 
     - name: check for oidc config
       set_fact:
-        _oidc_config_id: "{{ _cluster_exists.cluster.aws.sts.oidc_config.id }}"
+        _oidc_config_id: "{{ _cluster_exists.cluster.aws.sts.oidc_config.id | default(None) }}"
       when: '"oidc_config" in _cluster_exists.cluster.aws.sts.keys()'
 
     - name: delete cluster
@@ -49,22 +49,13 @@
 # - debug:
 #     var: _cluster_exists
 
-- when: (_cluster_exists.cluster == {} and _cluster_id is defined) or
+- include_role:
+    name: operator_roles_delete
+  vars:
+    cluster_id: "{{ _cluster_id }}"
+    operator_roles_prefix: "{{ _operator_roles_prefix }}"
+    oidc_endpoint_url: "{{ _oidc_endpoint_url }}"
+    oidc_config_id: "{{ _oidc_config_id | default('') }}"
+  when: (_cluster_exists.cluster == {} and _cluster_id is defined) or
         ((_cluster_deleted.cluster is defined) and (_cluster_deleted.cluster == {}))
-  block:
-    - name: delete the operator roles
-      shell: |
-        rosa delete operator-roles -c {{ _cluster_id }} --mode auto --yes || \
-          rosa delete operator-roles --prefix {{ _operator_roles_prefix }}
 
-
-    - name: delete the oidc endpoint
-      shell: |
-        rosa delete oidc-provider -c {{ _cluster_id }} --mode auto --yes || \
-          rosa delete oidc-provider --oidc-endpoint-url {{ _oidc_endpoint_url }}
-
-
-    - name: delete the oidc config
-      shell: |
-         rosa delete oidc-config  --oidc-config-id {{ _oidc_config_id }} --mode auto --yes
-      when: _oidc_config_id is defined

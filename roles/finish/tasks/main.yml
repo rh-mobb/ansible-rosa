@@ -33,7 +33,7 @@
 
       Authenticate to cluster:
         oc login {{ _cluster_info.cluster.api.url }} \
-          --username cluster-admin --password {{ rosa_admin_password }}
+          --username {{ rosa_admin_username }} --password "{{ rosa_admin_password }}"
   delegate_to: localhost
 
 - debug:

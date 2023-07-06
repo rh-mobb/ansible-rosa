@@ -8,17 +8,6 @@
       ***************************************
     verbosity: 0
 
-- when:
-    - aws_account_id is not defined
-    - rosa_sts | bool
-  block:
-    - name: get aws caller info for accountid
-      aws_caller_info:
-      register: _aws_caller_info
-
-    - set_fact:
-        aws_account_id: "{{ _aws_caller_info.account }}"
-
 # do this better ... maybe better set during vpc creation and inherited.
 - when: rosa_subnet_ids | length == 0
   block:
@@ -40,7 +29,7 @@
 - name: check if cluster exists
   ocm_cluster_info:
     name: "{{ cluster_name }}"
-  register: _cluster_exists
+  register: _cluster_info
 
 - name: configure proxy settings
   set_fact:
@@ -50,13 +39,8 @@
     rosa_no_proxy: ".s3.{{ rosa_region }}.amazonaws.com"
   when: proxy_enabled | bool
 
-- fail:
-    msg: "cluster autoscaling must be enabled to set min/max replicas"
-  when:
-    - not rosa_enable_autoscaling | bool
-    - rosa_min_replicas is defined or rosa_max_replicas is defined
-
-- block:
+- when: _cluster_info.cluster == {}
+  block:
     # TODO: this is only because we cannot create a new oidc config when there is an unused one.  at some
     #       point in the future, this logic will be removed, and thus this block may be removed.
     - name: get used oidc managed configs
@@ -94,8 +78,6 @@
         - rosa_hosted_cp | default(False) | bool
         - _oidc_id is undefined
 
-#https://dvbwgdztaeq9o.cloudfront.net/233hjj27fm4lorv4ho739c90gdserel7
-
     - set_fact:
         _oidc_id: "{{ _oidc_config.stdout }}"
       when:
@@ -125,29 +107,65 @@
         disable_workload_monitoring: "{{ rosa_disable_workload_monitoring | bool }}"
         min_replicas: "{{ rosa_min_replicas | default(omit) }}"
         max_replicas: "{{ rosa_max_replicas | default(omit) }}"
-        role_arn: "arn:aws:iam::{{ aws_account_id }}:role/ManagedOpenShift-Installer-Role"
-        support_role_arn: "arn:aws:iam::{{ aws_account_id }}:role/ManagedOpenShift-Support-Role"
-        controlplane_iam_role: "arn:aws:iam::{{ aws_account_id }}:role/ManagedOpenShift-ControlPlane-Role"
-        worker_iam_role: "arn:aws:iam::{{ aws_account_id }}:role/ManagedOpenShift-Worker-Role"
+        operator_roles_prefix: "{{ rosa_operator_roles_prefix | default(cluster_name) }}"
+        role_arn: "arn:aws:iam::{{ aws_account_id }}:role/{{ rosa_account_role_prefix }}-Installer-Role"
+        support_role_arn: "arn:aws:iam::{{ aws_account_id }}:role/{{ rosa_account_role_prefix }}-Support-Role"
+        controlplane_iam_role: "arn:aws:iam::{{ aws_account_id }}:role/{{ rosa_account_role_prefix }}-ControlPlane-Role"
+        worker_iam_role: "arn:aws:iam::{{ aws_account_id }}:role/{{ rosa_account_role_prefix }}-Worker-Role"
       register: _rosa_cluster
+
+- name: get info about the cluster
+  ocm_cluster_info:
+    name: "{{ cluster_name }}"
+  register: _cluster_info
+
+- when:
+    - rosa_sts | bool
+    - _cluster_info.cluster.state == 'waiting'
+  block:
+    - include_role:
+        name: roles/operator_roles_create
+      when: rosa_sts | bool
+
+- debug:
+    msg: |
+      *******************************************
+      * Waiting for cluster to start installing *
+      *******************************************
+
+- name: waiting for cluster to start installing
+  ocm_cluster_info:
+    name: "{{ cluster_name }}"
+  register: _cluster_info
+  until: _cluster_info.cluster.state in ["installing","error"]
+  retries: 10
+  delay: 60
+  no_log: true
+
+- when: rosa_wait | bool
+  block:
+    - debug:
+        msg: |
+          ***********************************
+          * Waiting for cluster to be ready *
+          ***********************************
+
+          You can watch progress logs by running:
+            $ rosa logs -c  {{ cluster_name }} install -w
 
     - name: wait for cluster to be ready
       ocm_cluster_info:
         name: "{{ cluster_name }}"
-      register: _cluster_ready
-      until: _cluster_ready.cluster.state in ["ready","error"]
+      register: _cluster_info
+      until: _cluster_info.cluster.state in ["ready","error"]
       retries: 120
       delay: 60
-      when:
-        - _rosa_cluster.changed | bool
-        - rosa_wait | bool
+      no_log: true
 
-    - fail:
-        msg: |
-          *****************************************
-          Cluster Install Failed
-          {{ _cluster_ready.cluster | to_nice_yaml }}
-          *****************************************
-      when: _cluster_ready.cluster.state == 'error'
-
-  when: _cluster_exists.cluster == {}
+- fail:
+    msg: |
+      *****************************************
+      Cluster Install Failed
+      {{ _cluster_info.cluster | to_nice_yaml }}
+      *****************************************
+  when: _cluster_info.cluster.state == 'error'

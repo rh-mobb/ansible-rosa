@@ -62,7 +62,6 @@ def run_module():
     # state will include any data that you want your module to pass back
     # for consumption, for example, in a subsequent task
     result = dict(
-        commands=[],
         cluster={},
     )
 
@@ -94,6 +93,7 @@ def run_module():
             if err:
                 module.fail_json(err)
             if not cluster_id:
+                module.exit_json(**result)
                 module.fail_json("Unable to determin cluster_id from cluster_name: {}".format(name))
 
         # result['cluster']['id'] = cluster_id

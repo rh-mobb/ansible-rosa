@@ -1,0 +1,39 @@
+---
+# tasks file for roles/operator-roles
+- name: check for cluster
+  ocm_cluster_info:
+    name: "{{ cluster_name }}"
+  register: _cluster_info
+
+- set_fact:
+    _cluster_id: "{{ _cluster_info.cluster.id }}"
+    _oidc_endpoint: "{{ _cluster_info.cluster.aws.sts.oidc_endpoint_url }}"
+
+# oidc provider
+- name: get the cert chain from the host
+  peer_cert_chain_info:
+    host: "{{ _oidc_endpoint }}"
+  register: _oidc_endpoint_chain
+
+- set_fact:
+    _oidc_endpoint_thumbprint: "{{ _oidc_endpoint_chain.ca_thumbprint | replace(':', '') }}"
+
+
+# switch these to use aws native
+- name: create operator roles for cluster
+  command: "rosa create operator-roles -c {{ _cluster_id }} --yes --mode auto"
+
+# - name: create oidc endpoint for cluster
+#   command: "rosa create oidc-provider -c {{ _cluster_id }} --yes --mode auto"
+
+- name: create oidc provider for cluster
+  oidc_provider:
+    url: "{{ _oidc_endpoint }}"
+    client_ids: ["openshift", "sts.amazonaws.com"]
+    thumbprints: "{{ _oidc_endpoint_thumbprint }}"
+    tags:
+      rosa_cluster_id: "{{ _cluster_id }}"
+  register: _oidc_provider_info
+  until: not _oidc_provider_info.failed
+  retries: 10
+  delay: 60

@@ -9,6 +9,9 @@ rosa_enable_autoscaling: true
 rosa_min_replicas: 2
 rosa_max_replicas: 4
 
-rosa_version: 4.10.3
+rosa_version: 4.12.22
 rosa_region: us-east-1
 rosa_vpc_cidr: "10.0.0.0/16"
+
+
+rosa_account_role_prefix: ansible

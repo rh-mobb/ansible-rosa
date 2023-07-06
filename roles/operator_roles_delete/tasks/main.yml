@@ -1,0 +1,32 @@
+---
+# tasks file for roles/operator-roles
+# - name: check for cluster
+#   ocm_cluster_info:
+#     name: "{{ cluster_name }}"
+#   register: _cluster_info
+
+# - set_fact:
+#     _cluster_id: "{{ _cluster_info.cluster.id }}"
+#     _oidc_endpoint: "{{ _cluster_info.cluster.aws.sts.oidc_endpoint_url }}"
+
+# switch these to use aws native
+- name: delete the operator roles
+  shell: |
+    rosa delete operator-roles -c {{ cluster_id }} --mode auto --yes || \
+      rosa delete operator-roles --prefix {{ operator_roles_prefix }} --mode auto --yes
+  when: (cluster_id is defined) or
+        (operator_roles_prefix is defined)
+
+- name: delete oidc provider for cluster
+  oidc_provider:
+    url: "{{ oidc_endpoint_url }}"
+    state: absent
+  when: oidc_endpoint_url is defined
+
+- name: delete the oidc config
+  shell: |
+      rosa delete oidc-config  --oidc-config-id {{ oidc_config_id }} --mode auto --yes
+  when: oidc_config_id != ''
+
+# rosa delete operator-roles -c 24pj3tg8nur2v67fvu28sk5urlr8facu
+# rosa delete oidc-provider -c 24pj3tg8nur2v67fvu28sk5urlr8facu

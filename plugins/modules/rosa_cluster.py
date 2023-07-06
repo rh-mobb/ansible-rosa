@@ -156,6 +156,7 @@ from packaging import version as check_version
 from semver import parse as semver_parse
 import time
 import json
+from tempfile import mkdtemp
 
 def run_module():
     # define available arguments/parameters a user can pass to the module
@@ -192,6 +193,7 @@ def run_module():
         controlplane_iam_role=dict(type='str', required=False),
         worker_iam_role=dict(type='str', required=False),
         hosted_cp=dict(type=bool, required=False),
+        operator_roles_prefix=dict(type=str, required=False),
         oidc_config_id=dict(type=str, required=False)
     )
 
@@ -242,9 +244,11 @@ def run_module():
     wait = params.pop('wait')
     sts = params.pop('sts')
     aws_account_id = params.pop('aws_account_id')
-    cluster_version = params['version']
-    cluster_semver = semver_parse(cluster_version)
-    sts_version = str(cluster_semver['major']) + "." + str(cluster_semver['minor'])
+    if not params['operator_roles_prefix']:
+        params['operator_roles_prefix'] = name
+    # cluster_version = params['version']
+    # cluster_semver = semver_parse(cluster_version)
+    # sts_version = str(cluster_semver['major']) + "." + str(cluster_semver['minor'])
 
     describe_args = [rosa, "describe", "cluster", "-c", name, "--output", "json"]
     if state == "absent":
@@ -259,7 +263,7 @@ def run_module():
             if not aws_account_id:
                 module.fail_json(msg="must provide aws account id when using sts\n", **result)
             args.append("--sts")
-            args.extend(['--mode', 'auto'])
+            args.extend(['--mode', 'manual'])
 
         for param, value in params.items():
             if not value: continue
@@ -292,28 +296,12 @@ def run_module():
                 module.exit_json(**result)
 
     if describe_rc == 1:
-        # create sts account roles
-        # if sts:
-        #     print("Create Account Roles")
-        #     create_account_roles = [rosa, "create", "account-roles", "--mode", "auto", "--yes"]
-        #     if state == "present":
-        #         rc = 1
-        #         while rc != 0:
-        #             rc, stdout, stderr = module.run_command(create_account_roles)
-        #             result['commands'].append(commands(rc, stdout, stderr, 'create sts account roles', create_account_roles))
-        #             if rc != 0:
-        #                 if "Throttling: Rate exceeded" in stderr:
-        #                     time.sleep(60)
-        #                     continue
-        #                 module.fail_json(msg="failed to create account roles\n%s" % (stderr))
-        #     elif state == "dry-run":
-        #         result['commands'].append(commands(0, "skipped due to dry-run", None, 'create sts account roles', create_account_roles))
-        # print ("Create Cluster")
         # if the cluster doesn't exist, create it
         if state in ['present', 'dry-run'] and "There is no cluster with identifier or name" in describe_stderr:
             if state == 'present':
                 result['changed'] = True
-            rc, stdout, stderr = module.run_command(args)
+            with tempfile.TemporaryDirectory() as tmpdirname:
+                rc, stdout, stderr = module.run_command(args, cwd=tmpdirname)
             # result['details'] = cluster_details(stdout)
             result['commands'].append(commands(rc, stdout, stderr, 'create cluster', args))
             if rc != 0:
