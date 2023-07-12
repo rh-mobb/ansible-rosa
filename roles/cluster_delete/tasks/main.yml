@@ -56,6 +56,6 @@
     operator_roles_prefix: "{{ _operator_roles_prefix }}"
     oidc_endpoint_url: "{{ _oidc_endpoint_url }}"
     oidc_config_id: "{{ _oidc_config_id | default('') }}"
-  when: (_cluster_exists.cluster == {} and _cluster_id is defined) or
-        ((_cluster_deleted.cluster is defined) and (_cluster_deleted.cluster == {}))
+  # when: (_cluster_exists.cluster == {} and _cluster_id is defined) or
+        # ((_cluster_deleted.cluster is defined) and (_cluster_deleted.cluster == {}))
 

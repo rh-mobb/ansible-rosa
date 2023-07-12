@@ -1,12 +1,14 @@
 ---
 # defaults for roles/cluster_create
 
+cluster_name: ansible-rosa
+
 rosa_private: false
 rosa_private_link: false
 rosa_disable_workload_monitoring: false
 rosa_enable_autoscaling: false
 rosa_hcp: false
-rosa_version: 4.12.22 # 4.13.2
+rosa_version: "4.12.22" # 4.13.2
 # rosa_min_replicas: 3
 # rosa_max_replicas: 6
 # wait for rosa to finish installing
@@ -18,7 +20,8 @@ rosa_vpc_endpoints_enabled: false
 rosa_subnet_ids: []
 rosa_machine_cidr: ~
 
-rosa_account_role_prefix: AnsibleROSA
+rosa_account_roles_version: "4.13"
+rosa_account_roles_prefix: AnsibleROSA
 ## leave commented out to use the cluster name as the prefix
 # rosa_operator_roles_prefix: ~
 

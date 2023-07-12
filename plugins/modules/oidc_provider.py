@@ -99,6 +99,8 @@ from ansible_collections.amazon.aws.plugins.module_utils.retries import AWSRetry
 from ansible_collections.community.aws.plugins.module_utils.modules import AnsibleCommunityAWSModule as AnsibleAWSModule
 
 def process_response(response):
+    if not 'Url' in response.keys():
+        response['Url'] = "pending"
     oidc_provider = dict(
         url = response['Url'],
         clientids = response['ClientIDList'],

@@ -10,12 +10,15 @@
 #     _oidc_endpoint: "{{ _cluster_info.cluster.aws.sts.oidc_endpoint_url }}"
 
 # switch these to use aws native
-- name: delete the operator roles
-  shell: |
-    rosa delete operator-roles -c {{ cluster_id }} --mode auto --yes || \
-      rosa delete operator-roles --prefix {{ operator_roles_prefix }} --mode auto --yes
-  when: (cluster_id is defined) or
-        (operator_roles_prefix is defined)
+
+- include_tasks: ./roles.yml
+
+# - name: delete the operator roles
+#   shell: |
+#     rosa delete operator-roles -c {{ cluster_id }} --mode auto --yes || \
+#       rosa delete operator-roles --prefix {{ operator_roles_prefix }} --mode auto --yes
+#   when: (cluster_id is defined) or
+#         (operator_roles_prefix is defined)
 
 - name: delete oidc provider for cluster
   oidc_provider:

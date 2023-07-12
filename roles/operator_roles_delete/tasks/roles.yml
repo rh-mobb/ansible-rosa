@@ -1,0 +1,84 @@
+
+- name: delete operator policy csi drivers
+  iam_policy:
+    iam_type: role
+    iam_name: "{{ cluster_name }}-openshift-cluster-csi-drivers-ebs-cloud-credentials"
+    policy_name: "{{ cluster_name }}-openshift-cluster-csi-drivers-ebs-cloud-credentials"
+    state: absent
+  register: _delete
+  failed_when: _delete.error.code != 'NoSuchEntity'
+
+- name: delete operator role csi drivers
+  iam_role:
+    name: "{{ cluster_name }}-openshift-cluster-csi-drivers-ebs-cloud-credentials"
+    state: absent
+
+- name: delete operator policy network config
+  iam_policy:
+    iam_type: role
+    iam_name: "{{ cluster_name }}-openshift-cloud-network-config-controller-cloud-cre"
+    policy_name: "{{ cluster_name }}-openshift-cloud-network-config-controller-cloud-cre"
+    state: absent
+  register: _delete
+  failed_when: _delete.error.code != 'NoSuchEntity'
+
+- name: delete operator role network config
+  iam_role:
+    name: "{{ cluster_name }}-openshift-cloud-network-config-controller-cloud-cre"
+    state: absent
+
+- name: delete operator policy machine api
+  iam_policy:
+    iam_type: role
+    iam_name: "{{ cluster_name }}-openshift-machine-api-aws-cloud-credentials"
+    policy_name: "{{ cluster_name }}-openshift-machine-api-aws-cloud-credentials"
+    state: absent
+  register: _delete
+  failed_when: _delete.error.code != 'NoSuchEntity'
+
+- name: delete operator role machine api
+  iam_role:
+    name: "{{ cluster_name }}-openshift-machine-api-aws-cloud-credentials"
+    state: absent
+
+- name: delete operator policy cloud credential operator
+  iam_policy:
+    iam_type: role
+    iam_name: "{{ cluster_name }}-openshift-cloud-credential-operator-cloud-credentia"
+    policy_name: "{{ cluster_name }}-openshift-cloud-credential-operator-cloud-credentia"
+    state: absent
+  register: _delete
+  failed_when: _delete.error.code != 'NoSuchEntity'
+
+- name: delete operator role cloud credential operator
+  iam_role:
+    name: "{{ cluster_name }}-openshift-cloud-credential-operator-cloud-credentia"
+    state: absent
+
+- name: delete operator policy image registry
+  iam_policy:
+    iam_type: role
+    iam_name: "{{ cluster_name }}-openshift-image-registry-installer-cloud-credential"
+    policy_name: "{{ cluster_name }}-openshift-image-registry-installer-cloud-credential"
+    state: absent
+  register: _delete
+  failed_when: _delete.error.code != 'NoSuchEntity'
+
+- name: delete operator role image registry
+  iam_role:
+    name: "{{ cluster_name }}-openshift-image-registry-installer-cloud-credential"
+    state: absent
+
+- name: delete operator policy ingress operator
+  iam_policy:
+    iam_type: role
+    iam_name: "{{ cluster_name }}-openshift-ingress-operator-cloud-credentials"
+    policy_name: "{{ cluster_name }}-openshift-ingress-operator-cloud-credentials"
+    state: absent
+  register: _delete
+  failed_when: _delete.error.code != 'NoSuchEntity'
+
+- name: delete operator role ingress operator
+  iam_role:
+    name: "{{ cluster_name }}-openshift-ingress-operator-cloud-credentials"
+    state: absent
