@@ -1,7 +1,7 @@
-- name: create security group for vpc endpoint for sts
+- name: create security group for vpc endpoints
   amazon.aws.ec2_security_group:
-    name: "rosa-{{ cluster_name }}-sts-endpoint"
-    description: allow traffic to STS endpoint
+    name: "rosa-{{ cluster_name }}-endpoint-sg"
+    description: allow traffic to VPC endpoints
     vpc_id: "{{ vpc_id }}"
     region: "{{ rosa_region }}"
     rules:
@@ -9,47 +9,73 @@
         ports: [443]
         cidr_ip: "{{ rosa_vpc_cidr }}"
         rule_desc: allow all on port 443
-  register: _sts_endpoint_sg
+  register: _vpc_endpoint_sg
 
-- name: Create vpc endpoint for sts
+- name: "Create vpc endpoint for {{ item }}"
   amazon.aws.ec2_vpc_endpoint:
     state: present
     vpc_id: "{{ vpc_id }}"
     region: "{{ rosa_region }}"
-    service: "com.amazonaws.{{ rosa_region }}.sts"
+    service: "com.amazonaws.{{ rosa_region }}.{{ item }}"
     vpc_endpoint_subnets: "{{ _private_subnet_ids }}"
     vpc_endpoint_type: Interface
-    vpc_endpoint_security_groups: ["{{ _sts_endpoint_sg.group_id }}"]
+    vpc_endpoint_security_groups: ["{{ _vpc_endpoint_sg.group_id }}"]
     tags:
-      Name: "rosa-{{ cluster_name }}-sts"
-  register: _sts_vpc_endpoint
+      Name: "rosa-{{ cluster_name }}-{{ item }}"
+  with_items: "{{ vpc_interface_endpoints }}"
 
-- name: Create vpc endpoint for ec2
+
+- name: "Create vpc gateway endpoint for {{ item }}"
   amazon.aws.ec2_vpc_endpoint:
     state: present
     region: "{{ rosa_region }}"
     vpc_id: "{{ vpc_id }}"
-    vpc_endpoint_subnets: "{{ _private_subnet_ids }}"
-    vpc_endpoint_type: Interface
-    vpc_endpoint_security_groups: ["{{ _sts_endpoint_sg.group_id }}"]
-    service: "com.amazonaws.{{ rosa_region }}.ec2"
+    vpc_endpoint_type: Gateway
+    service: "com.amazonaws.{{ rosa_region }}.{{ item }}"
+    route_table_ids: "{{ _route_table_ids }}"
     tags:
-      Name: "rosa-{{ cluster_name }}-s3"
-  register: _vpc_endpoint_ec2
+      Name: "rosa-{{ cluster_name }}-{{ item }}"
+  with_items: "{{ vpc_gateway_endpoints }}"
 
-- name: Create vpc endpoint for elasticloadbalancing
-  amazon.aws.ec2_vpc_endpoint:
-    state: present
-    region: "{{ rosa_region }}"
-    vpc_id: "{{ vpc_id }}"
-    vpc_endpoint_subnets: "{{ _private_subnet_ids }}"
-    vpc_endpoint_type: Interface
-    vpc_endpoint_security_groups: ["{{ _sts_endpoint_sg.group_id }}"]
-    service: "com.amazonaws.{{ rosa_region }}.elasticloadbalancing"
-    tags:
-      Name: "rosa-{{ cluster_name }}-sts"
-  register: _vpc_endpoints_elb
 
+# - name: Create vpc endpoint for sts
+#   amazon.aws.ec2_vpc_endpoint:
+#     state: present
+#     vpc_id: "{{ vpc_id }}"
+#     region: "{{ rosa_region }}"
+#     service: "com.amazonaws.{{ rosa_region }}.sts"
+#     vpc_endpoint_subnets: "{{ _private_subnet_ids }}"
+#     vpc_endpoint_type: Interface
+#     vpc_endpoint_security_groups: ["{{ _sts_endpoint_sg.group_id }}"]
+#     tags:
+#       Name: "rosa-{{ cluster_name }}-sts"
+#   register: _sts_vpc_endpoint
+
+# - name: Create vpc endpoint for ec2
+#   amazon.aws.ec2_vpc_endpoint:
+#     state: present
+#     region: "{{ rosa_region }}"
+#     vpc_id: "{{ vpc_id }}"
+#     vpc_endpoint_subnets: "{{ _private_subnet_ids }}"
+#     vpc_endpoint_type: Interface
+#     vpc_endpoint_security_groups: ["{{ _sts_endpoint_sg.group_id }}"]
+#     service: "com.amazonaws.{{ rosa_region }}.ec2"
+#     tags:
+#       Name: "rosa-{{ cluster_name }}-s3"
+#   register: _vpc_endpoint_ec2
+
+# - name: Create vpc endpoint for elasticloadbalancing
+#   amazon.aws.ec2_vpc_endpoint:
+#     state: present
+#     region: "{{ rosa_region }}"
+#     vpc_id: "{{ vpc_id }}"
+#     vpc_endpoint_subnets: "{{ _private_subnet_ids }}"
+#     vpc_endpoint_type: Interface
+#     vpc_endpoint_security_groups: ["{{ _sts_endpoint_sg.group_id }}"]
+#     service: "com.amazonaws.{{ rosa_region }}.elasticloadbalancing"
+#     tags:
+#       Name: "rosa-{{ cluster_name }}-sts"
+#   register: _vpc_endpoints_elb
 
 # - name: Create vpc endpoint for s3
 #   amazon.aws.ec2_vpc_endpoint:
@@ -62,15 +88,3 @@
 #     tags:
 #       Name: "rosa-{{ cluster_name }}-s3"
 #   register: _vpc_endpoint_s3
-
-- name: Create vpc endpoint for s3
-  amazon.aws.ec2_vpc_endpoint:
-    state: present
-    region: "{{ rosa_region }}"
-    vpc_id: "{{ vpc_id }}"
-    vpc_endpoint_type: Interface
-    service: "com.amazonaws.{{ rosa_region }}.s3"
-    route_table_ids: "{{ _route_table_ids }}"
-    tags:
-      Name: "rosa-{{ cluster_name }}-s3"
-  register: _vpc_endpoint_s3

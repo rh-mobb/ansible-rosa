@@ -19,7 +19,7 @@ rosa_admin_username: "admin"
 rosa_vpc_endpoints_enabled: false
 rosa_subnet_ids: []
 rosa_machine_cidr: ~
-
+rosa_hosted_cp: False
 rosa_account_roles_version: "4.13"
 rosa_account_roles_prefix: AnsibleROSA
 ## leave commented out to use the cluster name as the prefix

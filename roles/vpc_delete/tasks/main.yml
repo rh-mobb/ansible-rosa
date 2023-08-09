@@ -4,14 +4,12 @@
       "tag:Name": "rosa-{{ cluster_name }}"
     region: "{{ rosa_region }}"
   register: vpc_info
+  no_log: True
 
 - when: vpc_info.vpcs | length > 0
   block:
     - set_fact:
         vpc_id: "{{ vpc_info.vpcs[0].vpc_id }}"
-
-    - debug:
-        var: vpc_id
 
     ## NAT Gateway
     - ec2_vpc_nat_gateway_info:
@@ -19,6 +17,7 @@
           vpc-id: "{{ vpc_id }}"
         region: "{{ rosa_region }}"
       register: _nat_gw_info
+      no_log: True
 
     - name: delete nat gateways
       ec2_vpc_nat_gateway:
@@ -36,6 +35,7 @@
         filters:
           attachment.vpc-id: "{{ vpc_id }}"
       register: igw_info
+      no_log: True
 
     - name: delete internet gateway
       ec2_vpc_igw:
@@ -51,6 +51,7 @@
         filters:
           vpc-id: "{{ vpc_id }}"
       register: subnet_info
+      no_log: True
 
     - name: delete private subnets
       ec2_vpc_subnet:
@@ -67,6 +68,7 @@
         filters:
           vpc-id: "{{ vpc_id }}"
       register: route_table_info
+      no_log: True
 
     - name: delete public subnet route table
       ec2_vpc_route_table:

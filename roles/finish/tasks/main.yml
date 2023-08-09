@@ -6,7 +6,7 @@
     name: "{{ cluster_name }}"
   register: _cluster_info
   no_log: true
-  until:  _cluster_info.cluster.console.url
+  until:  (_cluster_info.cluster.console is defined) and (_cluster_info.cluster.console.url)
   retries: 120
   delay: 60
 

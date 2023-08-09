@@ -1,187 +1,23 @@
 - set_fact:
-    _oidc_endpoint: "{{ oidc_endpoint_url.replace('https://', '') }}"
+    _name: "{{ '-'.join((cluster_name,item.namespace,item.name))[:64] }}"
 
-# aws iam create-policy \
-#         --policy-document file://openshift_cluster_csi_drivers_ebs_cloud_credentials_policy.json \
-#         --policy-name ansible-openshift-cluster-csi-drivers-ebs-cloud-credentials \
-#         --tags Key=red-hat-managed,Value=true Key=rosa_role_prefix,Value=ansible Key=rosa_openshift_version,Value=4.13 Key=operator_name,Value=ebs-cloud-credentials Key=operator_namespace,Value=openshift-cluster-csi-drivers
+- set_fact:
+    _assume_role_policy_document_template: "{{ _cluster_type }}/{{ item.template }}"
+    _policy_json_file: "{{ _cluster_type }}/{{ item.file }}"
 
-# aws iam create-role \
-#         --assume-role-policy-document file://operator_cluster_csi_drivers_ebs_cloud_credentials_policy.json \
-#         --role-name ans-pczarkow-openshift-cluster-csi-drivers-ebs-cloud-credentials \
-#         --tags Key=red-hat-managed,Value=true Key=operator_name,Value=ebs-cloud-credentials Key=operator_namespace,Value=openshift-cluster-csi-drivers Key=rosa_cluster_id,Value=24srujaclkh2lkq393ltv7ld9n4d4710
-
-# aws iam attach-role-policy \
-#         --policy-arn arn:aws:iam::660250927410:policy/ansible-openshift-cluster-csi-drivers-ebs-cloud-credentials \
-#         --role-name ans-pczarkow-openshift-cluster-csi-drivers-ebs-cloud-credentials
-
-- name: create operator role csi drivers
+- name: "create operator role {{ _name }}"
   iam_role:
-    name: "{{ cluster_name }}-openshift-cluster-csi-drivers-ebs-cloud-credentials"
-    assume_role_policy_document: "{{ lookup('template','operator_cluster_csi_drivers_ebs_cloud_credentials_policy.json') }}"
+    name: "{{ _name }}"
+    assume_role_policy_document: "{{ lookup('template', _assume_role_policy_document_template) }}"
     tags:
       red-hat-managed: true
-      operator_name: ebs-cloud-credentials
-      operator_namespace: openshift-cluster-csi-drivers
+      operator_name: "{{ item.name }}"
+      operator_namespace: "{{ item.namespace }}"
       rosa_cluster_id: "{{ cluster_id }}"
 
-- name: create operator policy csi drivers
+- name: "create operator policy {{ _name }}"
   iam_policy:
     iam_type: role
-    iam_name: "{{ cluster_name }}-openshift-cluster-csi-drivers-ebs-cloud-credentials"
-    policy_name: "{{ cluster_name }}-openshift-cluster-csi-drivers-ebs-cloud-credentials"
-    policy_json: "{{ lookup('file','openshift_cluster_csi_drivers_ebs_cloud_credentials_policy.json') }}"
-
-
-# aws iam create-policy \
-#         --policy-document file://openshift_cloud_network_config_controller_cloud_credentials_policy.json \
-#         --policy-name ansible-openshift-cloud-network-config-controller-cloud-credenti \
-#         --tags Key=red-hat-managed,Value=true Key=rosa_role_prefix,Value=ansible Key=rosa_openshift_version,Value=4.13 Key=operator_name,Value=cloud-credentials Key=operator_namespace,Value=openshift-cloud-network-config-controller
-
-# aws iam create-role \
-#         --assume-role-policy-document file://operator_cloud_network_config_controller_cloud_credentials_policy.json \
-#         --role-name ans-pczarkow-openshift-cloud-network-config-controller-cloud-cre \
-#         --tags Key=red-hat-managed,Value=true Key=operator_name,Value=cloud-credentials Key=rosa_cluster_id,Value=24srujaclkh2lkq393ltv7ld9n4d4710 Key=operator_namespace,Value=openshift-cloud-network-config-controller
-
-# aws iam attach-role-policy \
-#         --policy-arn arn:aws:iam::660250927410:policy/ansible-openshift-cloud-network-config-controller-cloud-credenti \
-#         --role-name ans-pczarkow-openshift-cloud-network-config-controller-cloud-cre
-
-- name: create operator role network config
-  iam_role:
-    name: "{{ cluster_name }}-openshift-cloud-network-config-controller-cloud-cre"
-    assume_role_policy_document: "{{ lookup('template','operator_cloud_network_config_controller_cloud_credentials_policy.json') }}"
-    tags:
-      red-hat-managed: true
-      operator_name: cloud-credentials
-      operator_namespace: openshift-cloud-network-config-controller
-      rosa_cluster_id: "{{ cluster_id }}"
-
-- name: create operator policy network config
-  iam_policy:
-    iam_type: role
-    iam_name: "{{ cluster_name }}-openshift-cloud-network-config-controller-cloud-cre"
-    policy_name: "{{ cluster_name }}-openshift-cloud-network-config-controller-cloud-cre"
-    policy_json: "{{ lookup('file','openshift_cloud_network_config_controller_cloud_credentials_policy.json') }}"
-
-
-# aws iam create-policy \
-#         --policy-document file://openshift_machine_api_aws_cloud_credentials_policy.json \
-#         --policy-name ansible-openshift-machine-api-aws-cloud-credentials \
-#         --tags Key=red-hat-managed,Value=true Key=rosa_role_prefix,Value=ansible Key=rosa_openshift_version,Value=4.13 Key=operator_name,Value=aws-cloud-credentials Key=operator_namespace,Value=openshift-machine-api
-
-# aws iam create-role \
-#         --assume-role-policy-document file://operator_machine_api_aws_cloud_credentials_policy.json \
-#         --role-name ans-pczarkow-openshift-machine-api-aws-cloud-credentials \
-#         --tags Key=red-hat-managed,Value=true Key=operator_name,Value=aws-cloud-credentials Key=operator_namespace,Value=openshift-machine-api Key=rosa_cluster_id,Value=24srujaclkh2lkq393ltv7ld9n4d4710
-
-# aws iam attach-role-policy \
-#         --policy-arn arn:aws:iam::660250927410:policy/ansible-openshift-machine-api-aws-cloud-credentials \
-#         --role-name ans-pczarkow-openshift-machine-api-aws-cloud-credentials
-
-- name: create operator role machine api
-  iam_role:
-    name: "{{ cluster_name }}-openshift-machine-api-aws-cloud-credentials"
-    assume_role_policy_document: "{{ lookup('template','operator_machine_api_aws_cloud_credentials_policy.json') }}"
-    tags:
-      red-hat-managed: true
-      operator_name: aws-cloud-credentials
-      operator_namespace: openshift-machine-api
-      rosa_cluster_id: "{{ cluster_id }}"
-
-- name: create operator policy machine api
-  iam_policy:
-    iam_type: role
-    iam_name: "{{ cluster_name }}-openshift-machine-api-aws-cloud-credentials"
-    policy_name: "{{ cluster_name }}-openshift-machine-api-aws-cloud-credentials"
-    policy_json: "{{ lookup('file','openshift_machine_api_aws_cloud_credentials_policy.json') }}"
-
-# aws iam create-policy \
-#         --policy-document file://openshift_cloud_credential_operator_cloud_credential_operator_iam_ro_creds_policy.json \
-#         --policy-name ansible-openshift-cloud-credential-operator-cloud-credential-ope \
-#         --tags Key=red-hat-managed,Value=true Key=rosa_role_prefix,Value=ansible Key=rosa_openshift_version,Value=4.13 Key=operator_name,Value=cloud-credential-operator-iam-ro-creds Key=operator_namespace,Value=openshift-cloud-credential-operator
-
-# aws iam create-role \
-#         --assume-role-policy-document file://operator_cloud_credential_operator_cloud_credential_operator_iam_ro_creds_policy.json \
-#         --role-name ans-pczarkow-openshift-cloud-credential-operator-cloud-credentia \
-#         --tags Key=red-hat-managed,Value=true Key=rosa_cluster_id,Value=24srujaclkh2lkq393ltv7ld9n4d4710 Key=operator_name,Value=cloud-credential-operator-iam-ro-creds Key=operator_namespace,Value=openshift-cloud-credential-operator
-
-# aws iam attach-role-policy \
-#         --policy-arn arn:aws:iam::660250927410:policy/ansible-openshift-cloud-credential-operator-cloud-credential-ope \
-#         --role-name ans-pczarkow-openshift-cloud-credential-operator-cloud-credentia
-- name: create operator role cloud credential operator
-  iam_role:
-    name: "{{ cluster_name }}-openshift-cloud-credential-operator-cloud-credentia"
-    assume_role_policy_document: "{{ lookup('template','operator_cloud_credential_operator_cloud_credential_operator_iam_ro_creds_policy.json') }}"
-    tags:
-      red-hat-managed: true
-      operator_name: cloud-credential-operator-iam-ro-creds
-      operator_namespace: openshift-cloud-credential-operator
-      rosa_cluster_id: "{{ cluster_id }}"
-
-- name: create operator policy cloud credential operator
-  iam_policy:
-    iam_type: role
-    iam_name: "{{ cluster_name }}-openshift-cloud-credential-operator-cloud-credentia"
-    policy_name: "{{ cluster_name }}-openshift-cloud-credential-operator-cloud-credentia"
-    policy_json: "{{ lookup('file','openshift_cloud_credential_operator_cloud_credential_operator_iam_ro_creds_policy.json') }}"
-
-# aws iam create-policy \
-#         --policy-document file://openshift_image_registry_installer_cloud_credentials_policy.json \
-#         --policy-name ansible-openshift-image-registry-installer-cloud-credentials \
-#         --tags Key=red-hat-managed,Value=true Key=rosa_role_prefix,Value=ansible Key=rosa_openshift_version,Value=4.13 Key=operator_name,Value=installer-cloud-credentials Key=operator_namespace,Value=openshift-image-registry
-
-# aws iam create-role \
-#         --assume-role-policy-document file://operator_image_registry_installer_cloud_credentials_policy.json \
-#         --role-name ans-pczarkow-openshift-image-registry-installer-cloud-credential \
-#         --tags Key=red-hat-managed,Value=true Key=operator_name,Value=installer-cloud-credentials Key=operator_namespace,Value=openshift-image-registry Key=rosa_cluster_id,Value=24srujaclkh2lkq393ltv7ld9n4d4710
-
-# aws iam attach-role-policy \
-#         --policy-arn arn:aws:iam::660250927410:policy/ansible-openshift-image-registry-installer-cloud-credentials \
-#         --role-name ans-pczarkow-openshift-image-registry-installer-cloud-credential
-- name: create operator role image registry
-  iam_role:
-    name: "{{ cluster_name }}-openshift-image-registry-installer-cloud-credential"
-    assume_role_policy_document: "{{ lookup('template','operator_image_registry_installer_cloud_credentials_policy.json') }}"
-    tags:
-      red-hat-managed: true
-      operator_name: installer-cloud-credentials
-      operator_namespace: openshift-image-registry
-      rosa_cluster_id: "{{ cluster_id }}"
-
-- name: create operator policy image registry
-  iam_policy:
-    iam_type: role
-    iam_name: "{{ cluster_name }}-openshift-image-registry-installer-cloud-credential"
-    policy_name: "{{ cluster_name }}-openshift-image-registry-installer-cloud-credential"
-    policy_json: "{{ lookup('file','openshift_image_registry_installer_cloud_credentials_policy.json') }}"
-
-# aws iam create-policy \
-#         --policy-document file://openshift_ingress_operator_cloud_credentials_policy.json \
-#         --policy-name ansible-openshift-ingress-operator-cloud-credentials \
-#         --tags Key=red-hat-managed,Value=true Key=rosa_role_prefix,Value=ansible Key=rosa_openshift_version,Value=4.13 Key=operator_name,Value=cloud-credentials Key=operator_namespace,Value=openshift-ingress-operator
-
-# aws iam create-role \
-#         --assume-role-policy-document file://operator_ingress_operator_cloud_credentials_policy.json \
-#         --role-name ans-pczarkow-openshift-ingress-operator-cloud-credentials \
-#         --tags Key=red-hat-managed,Value=true Key=operator_name,Value=cloud-credentials Key=operator_namespace,Value=openshift-ingress-operator Key=rosa_cluster_id,Value=24srujaclkh2lkq393ltv7ld9n4d4710
-
-# aws iam attach-role-policy \
-#         --policy-arn arn:aws:iam::660250927410:policy/ansible-openshift-ingress-operator-cloud-credentials \
-#         --role-name ans-pczarkow-openshift-ingress-operator-cloud-credentials
-- name: create operator role ingrss operator
-  iam_role:
-    name: "{{ cluster_name }}-openshift-ingress-operator-cloud-credentials"
-    assume_role_policy_document: "{{ lookup('template','operator_ingress_operator_cloud_credentials_policy.json') }}"
-    tags:
-      red-hat-managed: true
-      operator_name: cloud-credentials
-      operator_namespace: openshift-ingress-operator
-      rosa_cluster_id: "{{ cluster_id }}"
-
-- name: create operator policy ingress operator
-  iam_policy:
-    iam_type: role
-    iam_name: "{{ cluster_name }}-openshift-ingress-operator-cloud-credentials"
-    policy_name: "{{ cluster_name }}-openshift-ingress-operator-cloud-credentials"
-    policy_json: "{{ lookup('file','openshift_ingress_operator_cloud_credentials_policy.json') }}"
+    iam_name: "{{ _name }}"
+    policy_name: "{{ _name }}"
+    policy_json: "{{ lookup('file', _policy_json_file) }}"

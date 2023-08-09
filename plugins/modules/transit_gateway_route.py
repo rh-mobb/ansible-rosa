@@ -7,7 +7,7 @@ __metaclass__ = type
 
 DOCUMENTATION = r'''
 ---
-module: oidc_provider
+module: transit_gateway_route
 
 short_description: Creates an IAM entity to describe an identity provider (IdP) that supports OpenID Connect (OIDC)
 
@@ -57,18 +57,18 @@ author:
 EXAMPLES = r'''
 # Pass in a message
 - name: Test with a message
-  my_namespace.my_collection.oidc_provider:
+  my_namespace.my_collection.transit_gateway_route:
     name: hello world
 
 # pass in a message and have changed true
 - name: Test with a message and changed output
-  my_namespace.my_collection.oidc_provider:
+  my_namespace.my_collection.transit_gateway_route:
     name: hello world
     new: true
 
 # fail the module
 - name: Test failure of the module
-  my_namespace.my_collection.oidc_provider:
+  my_namespace.my_collection.transit_gateway_route:
     name: fail me
 '''
 
@@ -106,55 +106,41 @@ def snake_case(s):
     sub('([A-Z]+)', r' \1',
     s.replace('-', ' '))).split()).lower()
 
-def process_response(response):
-    if not response:
-        return response
-    oidc_provider = dict()
-    if 'Tags' in response.keys():
-        oidc_provider['tags'] = boto3_tag_list_to_ansible_dict(response['Tags'])
-    for key in response.keys():
-        if key == 'Tags': next
-        oidc_provider[snake_case(key)] = response[key]
-    return oidc_provider
+def process_response(response_in):
+    if not response_in:
+        return response_in
+    response_out = dict()
+    for key in response_in.keys():
+        response_out[snake_case(key)] = response_in[key]
+    return response_out
 
-def get_oidc_arn(connection, arn_filter):
+def get_tgw_rt(connection,tgw_rt_id, tgw_att_id):
+    filters = [dict(
+        Name = 'attachment.transit-gateway-attachment-id',
+        Values = [tgw_att_id]
+    )]
     try:
-        response = connection.list_open_id_connect_providers()
+        response = connection.search_transit_gateway_routes(
+            TransitGatewayRouteTableId=tgw_rt_id, Filters=filters, MaxResults=5)
     except (BotoCoreError, ClientError) as e:
         return None, e
-    for oidc in response['OpenIDConnectProviderList']:
-        if arn_filter in oidc['Arn']:
-            return oidc['Arn'], None
-
-def get_oidc_info(connection, oidc_arn):
-    try:
-        response = connection.get_open_id_connect_provider(
-            OpenIDConnectProviderArn=oidc_arn
-        )
-    except (BotoCoreError, ClientError) as e:
-        if e.response["Error"]["Code"] == "NoSuchEntity":
-            return None, None
-        else:
-            return None, e
-    return process_response(response), None
+    tgw = response['Routes']
+    return tgw, None
 
 def run_module():
     module_args = dict(
-        url=dict(type='str', required=True),
-        client_ids=dict(type='list', required=False, default=[]),
-        thumbprints=dict(type='list', required=False),
-        tags=dict(type=dict, required=False),
+        destination_cidr_block=dict(type='str', required=True),
+        region=dict(type='str', required=True),
+        transit_gateway_route_table_id=dict(type='str', required=True),
+        transit_gateway_attachment_id=dict(type='str', required=True),
+        blackhole=dict(type='bool', default=False, required=False),
+        # Todo: support dry run
         state=dict(type='str', default='present', choices=['present','absent']),
     )
 
     result = dict(
         changed=False,
-        oidc_provider=dict(
-            url=str(),
-            client_ids=list(),
-            thumbprint_ids=list(),
-            tags=dict(),
-        ),
+        routes=[dict()],
     )
 
     module = AnsibleAWSModule(
@@ -165,65 +151,50 @@ def run_module():
     if module.check_mode:
         module.exit_json(**result)
 
-    try:
-        sts_connecton = module.client("sts", retry_decorator=AWSRetry.jittered_backoff())
-    except (BotoCoreError, ClientError) as e:
-        module.fail_json_aws(e, msg="Failed get account id for current user")
-    account_id = sts_connecton.get_caller_identity()["Account"]
+    connection = module.client("ec2",
+                    retry_decorator=AWSRetry.jittered_backoff(),
+                    region=module.params['region'])
 
-    arn_prefix = "arn:aws:iam::{}:oidc-provider".format(account_id)
-    connection = module.client("iam", retry_decorator=AWSRetry.jittered_backoff())
-    arn_suffix = module.params['url'].replace('https://','')
-    existing_oidc_arn = "/".join([arn_prefix, arn_suffix])
-
-    result['oidc_provider'], err = get_oidc_info(connection, existing_oidc_arn)
+    # check to see if it exists
+    result['routes'], err = get_tgw_rt(
+        connection,
+        module.params['transit_gateway_route_table_id'],
+        module.params['transit_gateway_attachment_id'])
     if err:
-        module.fail_json_aws(err, msg="Failed to fetch existing oidc provider {}".format(existing_oidc_arn))
+        module.fail_json_aws(err, msg="Failed to check for existing transit gateway route")
 
     # if it is to be deleted
     if module.params['state'] == "absent":
-        if not result['oidc_provider']:
+        if not result['routes']:
             module.exit_json(**result)
         try:
-            _ = connection.delete_open_id_connect_provider(
-                OpenIDConnectProviderArn=existing_oidc_arn
+            _ = connection.delete_transit_gateway_route(
+                DestinationCidrBlock=module.params['destination_cidr_block'],
+                TransitGatewayRouteTableId=module.params['transit_gateway_route_table_id'],
+                # todo DryRun=module.params['string'],
             )
         except (BotoCoreError, ClientError) as e:
-            module.fail_json_aws(e, msg="Failed to delete oidc provider")
+            module.fail_json_aws(e, msg="Failed to delete transit gateway route")
         result['changed'] = True
-        sleep(1)
-        result['oidc_provider'], err = get_oidc_info(connection, existing_oidc_arn)
-        if err:
-            module.fail_json_aws(err, msg="Failed to fetch existing oidc provider {}".format(existing_oidc_arn))
         module.exit_json(**result)
 
-    # if it exists, we can simply output the details
-    # todo support modifying existing
-    if result['oidc_provider']:
+    if result['routes']:
         module.exit_json(**result)
-
-
-    if not module.params['thumbprints']:
-        module.fail_json_aws(msg="Must provide at least one thumbprint")
 
     # create it
     try:
-        response = connection.create_open_id_connect_provider(
-            Url=module.params['url'],
-            ClientIDList=module.params['client_ids'],
-            ThumbprintList=module.params['thumbprints'],
-            Tags=ansible_dict_to_boto3_tag_list(module.params['tags']),
+        response = connection.create_transit_gateway_route(
+            DestinationCidrBlock=module.params['destination_cidr_block'],
+            TransitGatewayRouteTableId=module.params['transit_gateway_route_table_id'],
+            TransitGatewayAttachmentId=module.params['transit_gateway_attachment_id'],
+            Blackhole=module.params['blackhole'],
+            # todo DryRun=module.params['string'],
         )
     except (BotoCoreError, ClientError) as e:
         module.fail_json_aws(e, msg="Unknown error")
 
-    sleep(1)
-
-    result['oidc_provider'], err = get_oidc_info(connection, existing_oidc_arn)
-    if err:
-        module.fail_json_aws(err, msg="Failed to fetch existing oidc provider {}".format(existing_oidc_arn))
+    result['routes'] = [process_response(response)]
     result['changed'] = True
-
     # in the event of a successful module execution, you will want to
     # simple AnsibleModule.exit_json(), passing the key/value results
     module.exit_json(**result)

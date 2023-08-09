@@ -96,43 +96,11 @@ def run_module():
                 module.exit_json(**result)
                 module.fail_json("Unable to determin cluster_id from cluster_name: {}".format(name))
 
-        # result['cluster']['id'] = cluster_id
-
         cluster_info, err = OcmClusterModule.get_cluster_info(api_instance, cluster_id)
+        result['cluster'] = cluster_info
         if err:
             module.fail_json(err)
-        result['cluster'] = cluster_info
         module.exit_json(**result)
-
-#     describe_args = [rosa, "describe", "cluster", "-c", name, "--output", "json"]
-
-#     describe_rc, describe_stdout, describe_stderr = rosa_describe_cluster(module, rosa, name)
-#     result['commands'].append(commands(describe_rc, describe_stdout, describe_stderr, describe_args))
-#     if cluster_details(describe_stdout) == '':
-#         result['cluster'] = {}
-#     else:
-#         result['cluster'] = cluster_details(describe_stdout)
-#     module.exit_json(**result)
-
-# def rosa_describe_cluster(module, rosa, name):
-#     args = [rosa, "describe", "cluster", "-c", name, "--output", "json"]
-#     rc, stdout, stderr = module.run_command(args)
-#     return rc, stdout, stderr
-
-# def cluster_details(stdout):
-#     try:
-#         return json.loads(stdout)
-#     except:
-#         return stdout
-
-# def commands(rc, stdout, stderr, args):
-#     cr = dict(
-#             command=" ".join(args),
-#             rc=rc,
-#             stdout=stdout,
-#             stderr=stderr
-#     )
-#     return cr
 
 def main():
     run_module()

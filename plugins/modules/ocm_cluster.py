@@ -154,8 +154,14 @@ MIN_ROSA_VERSION = "1.2.23"
 from ansible.module_utils.basic import *
 from packaging import version as check_version
 from semver import parse as semver_parse
+from ansible.module_utils.ocm import OcmModule
+from ansible.module_utils.ocm import OcmClusterModule
+from ocm_client.rest import ApiException
+import ocm_client
 import time
 import json
+import string
+import random
 
 def run_module():
     # define available arguments/parameters a user can pass to the module
@@ -186,12 +192,13 @@ def run_module():
         disable_scp_checks=dict(type='bool', required=False),
         disable_workload_monitoring=dict(type='bool', required=False, default=False),
         wait=dict(type='bool', required=False),
-        state=dict(type='str', default='present', choices=['present','absent','dry-run', 'describe']),
+        state=dict(type='str', default='present', choices=['present','absent','dry-run']),
         role_arn=dict(type='str', required=False),
         support_role_arn=dict(type='str', required=False),
+        operator_roles_prefix=dict(type='str', required=False),
         controlplane_iam_role=dict(type='str', required=False),
         worker_iam_role=dict(type='str', required=False),
-        hosted_cp=dict(type=bool, required=False),
+        hosted_cp=dict(type=bool, required=False, default=False),
         oidc_config_id=dict(type=str, required=False)
     )
 
@@ -202,8 +209,7 @@ def run_module():
     # for consumption, for example, in a subsequent task
     result = dict(
         changed=False,
-        commands=[],
-        details=None,
+        cluster=dict()
     )
 
     # the AnsibleModule object will be our abstraction working with Ansible
@@ -221,157 +227,86 @@ def run_module():
     if module.check_mode:
         module.exit_json(**result)
 
-    # check that rosa binary exists
-    rosa = module.get_bin_path("rosa", required=True)
-    if rosa == None:
-        module.fail_json(msg='rosa cli not found in $PATH', **result)
+    # validate inputs
+    name = module.params['name']
+    cluster_id = ""
 
-    # check that rosa is minimum version
-    # MIN_ROSA_VERSION
-    rosa_version_cmd = [rosa, "version"]
-    rc, stdout, stderr = module.run_command(rosa_version_cmd)
-    rosa_version = stdout.rstrip()
-    if rc != 0:
-        module.fail_json(msg='could not run rosa version', **result)
-    if check_version.parse(rosa_version) < check_version.parse(MIN_ROSA_VERSION):
-        module.fail_json(msg="rosa version %s does not meet minimum of %s" % (rosa_version, MIN_ROSA_VERSION), **result)
+    if module.params['state'] != 'absent':
+        if not module.params['operator_roles_prefix']:
+            prefix = ''.join(random.choices(string.ascii_lowercase +
+                                string.digits, k=4))
+            module.params['operator_roles_prefix'] = "{}-{}".format(module.params['name'], prefix)
 
-    params = module.params
-    state = params.pop('state')
-    name = params.pop('name')
-    wait = params.pop('wait')
-    sts = params.pop('sts')
-    aws_account_id = params.pop('aws_account_id')
-    cluster_version = params['version']
-    cluster_semver = semver_parse(cluster_version)
-    sts_version = str(cluster_semver['major']) + "." + str(cluster_semver['minor'])
+    with ocm_client.ApiClient(OcmModule.ocm_authenticate()) as api_client:
+        api_instance = ocm_client.DefaultApi(api_client)
 
-    describe_args = [rosa, "describe", "cluster", "-c", name, "--output", "json"]
-    if state == "absent":
-        args = [rosa, "delete", "cluster", "-y", "-c", name]
-    else:
-        args = [rosa, "create", "cluster", "-y", "-c", name]
-
-        if state == "dry-run":
-            args.append("--dry-run")
-
-        if sts:
-            if not aws_account_id:
-                module.fail_json(msg="must provide aws account id when using sts\n", **result)
-            args.append("--sts")
-            args.extend(['--mode', 'auto'])
-
-        for param, value in params.items():
-            if not value: continue
-            if param == "multi_az": args.append("--multi-az")
-            elif param == "hosted_cp": args.append("--hosted-cp")
-            elif param == "enable_autoscaling": args.append("--enable-autoscaling")
-            elif param == "private": args.append("--private")
-            elif param == "private_link": args.append("--private-link")
-            elif param == "disable_scp_checks": args.append("--disable-scp-checks")
-            elif param == "disable_workload_monitoring": args.append("--disable-workload-monitoring")
-            elif param == "region" or param == "profile":
-                args.extend([argify(param), value])
-                describe_args.extend([argify(param), value])
-            else: args.extend([argify(param), value])
-
-    describe_rc, describe_stdout, describe_stderr = rosa_describe_cluster(module, rosa, name)
-
-    # if the cluster already exists
-    if describe_rc == 0:
-        # delete on absent
-        if state == "absent":
-            result['changed'] = True
-            rc, stdout, stderr = module.run_command(args)
-            reason = "delete the cluster"
-            command = " ".join(args)
-            result['commands'].append(commands(rc, stdout, stderr, reason, args))
-            if rc != 0:
-                module.fail_json(msg="failed to delete cluster\n%s" % (stderr), **result)
-            if not wait:
+        # Check to see if there is a cluster of the same name
+        if not cluster_id:
+            cluster_id, err = OcmClusterModule.get_cluster_id(api_instance, name)
+            if err:
+                module.fail_json(err)
+        if cluster_id:
+            cluster_info, err = OcmClusterModule.get_cluster_info(api_instance, cluster_id)
+            if err:
+                module.fail_json(err)
+            if module.params['state'] == "present":
+                result['cluster'] = cluster_info
                 module.exit_json(**result)
 
-    if describe_rc == 1:
-        # create sts account roles
-        # if sts:
-        #     print("Create Account Roles")
-        #     create_account_roles = [rosa, "create", "account-roles", "--mode", "auto", "--yes"]
-        #     if state == "present":
-        #         rc = 1
-        #         while rc != 0:
-        #             rc, stdout, stderr = module.run_command(create_account_roles)
-        #             result['commands'].append(commands(rc, stdout, stderr, 'create sts account roles', create_account_roles))
-        #             if rc != 0:
-        #                 if "Throttling: Rate exceeded" in stderr:
-        #                     time.sleep(60)
-        #                     continue
-        #                 module.fail_json(msg="failed to create account roles\n%s" % (stderr))
-        #     elif state == "dry-run":
-        #         result['commands'].append(commands(0, "skipped due to dry-run", None, 'create sts account roles', create_account_roles))
-        # print ("Create Cluster")
-        # if the cluster doesn't exist, create it
-        if state in ['present', 'dry-run'] and "There is no cluster with identifier or name" in describe_stderr:
-            if state == 'present':
-                result['changed'] = True
-            rc, stdout, stderr = module.run_command(args)
-            # result['details'] = cluster_details(stdout)
-            result['commands'].append(commands(rc, stdout, stderr, 'create cluster', args))
-            if rc != 0:
-                module.fail_json(msg="failed to create cluster\n%s" % (stderr), **result)
-        else:
-            # unknown error, better fail.
-            module.fail_json(msg="failed for unknown reason\n%s" % (describe_stderr), **result)
+        if module.params['state'] == "absent":
+            deprovision = True
+            dry_run = False
+            try:
+                api_instance.api_clusters_mgmt_v1_clusters_cluster_id_delete(cluster_id, deprovision=deprovision, dry_run=dry_run)
+            except ApiException as e:
+                err = "Exception when calling DefaultApi->api_clusters_mgmt_v1_clusters_cluster_id_delete: {}\n".format(e)
+                module.fail_json(err)
+            result['changed'] = True
+            cluster_info, err = OcmClusterModule.get_cluster_info(api_instance, cluster_id)
+            if err:
+                result['cluster'] = {}
+            else:
+                result['cluster'] = cluster_info
+            module.exit_json(**result)
 
-    if wait and state in ['present', 'absent']:
-        # ready = re.compile(r'State:\s+ready')
-        done = None
-        counter = 1
-        while not done:
-            time.sleep(60)
-            rc, stdout, stderr = rosa_describe_cluster(module, rosa, name)
-            if rc == 0 and state == 'present' and cluster_details(stdout)['ready']:
-                done = "success"
-            if rc == 1 and state == 'absent' and "There is no cluster with identifier or name" in stderr:
-                done = "success"
-            counter += 1
-            if counter > 60:
-                done = "timeout"
+            # todo we should fetch the cluster status and return it vs just returning empty dict
+            module.exit_json(**result)
 
-        if done == 'timeout':
-            result['details'] = cluster_details(stdout)
-            module.fail_json(msg="cluster did not finish provisioning within an hour\n%s" % (command_result['stderr']), **result)
+        if module.params['state'] == "present":
+            # check region is available
+            # https://api.openshift.com/api/clusters_mgmt/v1/cloud_providers/aws/regions
+            # check version is available
+            # https://api.openshift.com/api/clusters_mgmt/v1/versions?page=1&search=enabled+%3D+%27true%27+AND+rosa_enabled+%3D+%27true%27+AND+channel_group+%3D+%27stable%27&size=100
+            # get list of flavors
+            # https://api.openshift.com/api/clusters_mgmt/v1/flavours/osd-4
+                # "kind": "Flavour",
+                # "name": "OpenShift Dedicated 4.X",
+                # "id": "osd-4",
+            # check machine types (POST)
+            # https://api.openshift.com/api/clusters_mgmt/v1/aws_inquiries/machine_types?order=category+asc&page=1&size=100
+                #   "aws": {
+                #     "sts": {
+                #       "role_arn": "arn:aws:iam::660250927410:role/ManagedOpenShift-Installer-Role"
+                #     }
+                #   },
+                #   "region": {
+                #     "kind": "CloudRegion",
+                #     "id": "us-east-2"
+                #   }
+                # }
+            # check quotas
+            # https://api.openshift.com/api/accounts_mgmt/v1/organizations/1rkxPO7W12geIcRWITwI0I8VIQV/quota_cost?fetchRelatedResources=true&page=1&search=quota_id~%3D%27gpu%27&size=-1'
 
-    if state == "present":
-        rc, stdout, stderr = rosa_describe_cluster(module, rosa, name)
-        result['details'] = cluster_details(stdout)
-    elif state == "dry-run":
-        result['details'] = '{"output": "successful dry-run"}'
-    module.exit_json(**result)
+            cluster_info, err = OcmClusterModule.create_cluster(api_instance, module.params)
+            result['cluster'] = cluster_info
+            if err:
+                module.fail_json("cluster:\n{}\n{}".format(cluster_info,err),**result)
+            result['changed'] = True
+            module.exit_json(**result)
 
-def rosa_describe_cluster(module, rosa, name):
-    args = [rosa, "describe", "cluster", "-c", name, "--output", "json"]
-    rc, stdout, stderr = module.run_command(args)
-    return rc, stdout, stderr
-
-def cluster_details(stdout):
-    try:
-        return json.loads(stdout)
-    except:
-        return stdout
-
-def commands(rc, stdout, stderr, reason, args):
-    cr = dict(
-            reason=reason,
-            command=" ".join(args),
-            rc=rc,
-            stdout=stdout,
-            stderr=stderr
-    )
-    return cr
-
-
-def argify(param):
-    return "--" + param.replace("_", "-")
+        elif module.params['state'] == "dry-run":
+            # result['details'] = '{"output": "successful dry-run"}'
+            module.exit_json(**result)
 
 def main():
     run_module()

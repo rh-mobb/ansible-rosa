@@ -1,17 +1,16 @@
 ---
-# tasks file for roles/operator-roles
-# - name: check for cluster
-#   ocm_cluster_info:
-#     name: "{{ cluster_name }}"
-#   register: _cluster_info
+- set_fact:
+    _cluster_type: "{{ rosa_hosted_cp | ternary('hcp','classic') }}"
 
-# - set_fact:
-#     _cluster_id: "{{ _cluster_info.cluster.id }}"
-#     _oidc_endpoint: "{{ _cluster_info.cluster.aws.sts.oidc_endpoint_url }}"
+- with_items: "{{ operator_roles[_cluster_type] }}"
+  include_tasks: roles.yml
+  when: _cluster_type == 'classic'
 
-# switch these to use aws native
-
-- include_tasks: ./roles.yml
+- name: create operator roles for HCP clusters
+  command: |
+    rosa delete operator-roles --yes \
+      --prefix "{{ cluster_name }}" --mode auto
+  when: _cluster_type == 'hcp'
 
 # - name: delete the operator roles
 #   shell: |
@@ -24,12 +23,7 @@
   oidc_provider:
     url: "{{ oidc_endpoint_url }}"
     state: absent
-  when: oidc_endpoint_url is defined
+  when:
+    - oidc_endpoint_url is defined
 
-- name: delete the oidc config
-  shell: |
-      rosa delete oidc-config  --oidc-config-id {{ oidc_config_id }} --mode auto --yes
-  when: oidc_config_id != ''
-
-# rosa delete operator-roles -c 24pj3tg8nur2v67fvu28sk5urlr8facu
-# rosa delete oidc-provider -c 24pj3tg8nur2v67fvu28sk5urlr8facu
+# - fail:

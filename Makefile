@@ -50,6 +50,11 @@ create.private:
 delete.private:
 	$(ANSIBLE) delete-cluster.yaml -i ./environment/private-link/hosts
 
+create.pl: create.private
+
+delete.pl: delete.private
+
+
 delete.multiaz:
 	$(ANSIBLE) delete-cluster.yaml -i ./environment/multi-az/hosts
 

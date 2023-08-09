@@ -1,2 +1,33 @@
 ---
 # defaults file for roles/operator-roles
+operator_roles:
+  hcp:
+    - name: ebs-cloud-credentials
+      namespace: openshift-cluster-csi-drivers
+    - name: cloud-credentials
+      namespace: openshift-cloud-network-config-controller
+    - name: capa-controller-manager
+      namespace: kube-system
+    - name: control-plane-operator
+      namespace: kube-system
+    - name: kms-provider
+      namespace: kube-system
+    - name: kube-controller-manager
+      namespace: kube-system
+    - name: installer-cloud-credentials
+      namespace: openshift-image-registry
+    - name: cloud-credentials
+      namespace: openshift-ingress-operator
+  classic:
+    - name: ebs-cloud-credentials
+      namespace: openshift-cluster-csi-drivers
+    - name: cloud-credentials
+      namespace: openshift-cloud-network-config-controller
+    - name: aws-cloud-credentials
+      namespace: openshift-machine-api
+    - name: cloud-credential-operator-iam-ro-creds
+      namespace: openshift-cloud-credential-operator
+    - name: installer-cloud-credentials
+      namespace: openshift-image-registry
+    - name: cloud-credentials
+      namespace: openshift-ingress-operator

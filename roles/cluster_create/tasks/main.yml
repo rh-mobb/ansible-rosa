@@ -41,51 +41,24 @@
 
 - when: _cluster_info.cluster == {}
   block:
-    # TODO: this is only because we cannot create a new oidc config when there is an unused one.  at some
-    #       point in the future, this logic will be removed, and thus this block may be removed.
-    - name: get used oidc managed configs
-      shell: |
-        rosa list clusters -o json | jq -r '.[] | select(.hypershift.enabled).aws.sts.oidc_endpoint_url | split("/")[-1]'
-      register: _oidc_configs_used
-      when: rosa_hosted_cp | default(False) | bool
-
-    - name: get all oidc managed configs
-      shell: |
-        rosa list oidc-config -o json | jq -r '.[] | select(.managed).id'
-      register: _oidc_configs_all
-      when: rosa_hosted_cp | default(False) | bool
-
-    - name: get unused oidc managed configs
-      set_fact:
-        _oidc_configs_unused: "{{ _oidc_configs_all.stdout_lines | difference(_oidc_configs_used.stdout_lines) }}"
-      when: rosa_hosted_cp | default(False) | bool
-
-    - name: get a random unused config
-      set_fact:
-        _oidc_id: "{{ _oidc_configs_unused | random }}"
-      when:
-        - rosa_hosted_cp | default(False) | bool
-        - _oidc_configs_unused | length > 0
-    #
-    # end TODO
+    # - set_fact:
+    #     _installer_role_arn: "arn:aws:iam::{{ aws_account_id }}:role/{{ rosa_account_roles_prefix }}-Installer-Role"
 
     - name: create oidc config
-      shell: |
-        rosa create oidc-config --mode auto --managed --yes > /dev/null && \
-        rosa list oidc-config -o json | jq -r '.[] | select(.last_used_timestamp == null).id'
+      ocm_oidc_config:
+        state: present
       register: _oidc_config
-      when:
-        - rosa_hosted_cp | default(False) | bool
-        - _oidc_id is undefined
+      when: rosa_hosted_cp | default(False) | bool
 
     - set_fact:
-        _oidc_id: "{{ _oidc_config.stdout }}"
-      when:
-        - rosa_hosted_cp | default(False) | bool
-        - _oidc_id is undefined
+        _oidc_id: "{{ _oidc_config.oidc_config.id }}"
+      when: rosa_hosted_cp | default(False) | bool
+
+    # TODO - get rid of this for the above workflow
+    # - include_tasks: hcp_oidc.yml
 
     - name: create cluster
-      rosa_cluster:
+      ocm_cluster:
         # state: dry-run
         name: "{{ cluster_name }}"
         region: "{{ rosa_region }}"
@@ -119,8 +92,6 @@
     name: "{{ cluster_name }}"
   register: _cluster_info
 
-# - fail:
-
 - when:
     - rosa_sts | bool
     - _cluster_info.cluster.state == 'waiting'
@@ -130,22 +101,23 @@
       vars:
         cluster_id: "{{ _cluster_info.cluster.id }}"
         oidc_endpoint_url: "{{ _cluster_info.cluster.aws.sts.oidc_endpoint_url }}"
+        oidc_id: "{{ _oidc_id | default(omit) }}"
       when: rosa_sts | bool
 
-- debug:
-    msg: |
-      *******************************************
-      * Waiting for cluster to start installing *
-      *******************************************
+    - debug:
+        msg: |
+          *******************************************
+          * Waiting for cluster to start installing *
+          *******************************************
 
-- name: waiting for cluster to start installing
-  ocm_cluster_info:
-    name: "{{ cluster_name }}"
-  register: _cluster_info
-  until: _cluster_info.cluster.state in ["installing","error"]
-  retries: 10
-  delay: 60
-  no_log: true
+    - name: waiting for cluster to start installing
+      ocm_cluster_info:
+        name: "{{ cluster_name }}"
+      register: _cluster_info
+      until: _cluster_info.cluster.state in ["installing","error"]
+      retries: 10
+      delay: 60
+      no_log: true
 
 - when: rosa_wait | bool
   block:
