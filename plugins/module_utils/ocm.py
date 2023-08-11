@@ -109,7 +109,7 @@ OPERATOR_ROLES_HCP = [
 ]
 
 def find_ocm_config():
-    config = os.getenv('OCM_JSON', None)
+    config = os.getenv('OCM_JSON', str)
     if not config:
         for path in OCM_CONFIG_LOCATIONS:
             check = os.path.join(Path.home(),path)
