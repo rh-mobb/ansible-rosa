@@ -31,9 +31,11 @@ import boto3
 # except ImportError:
 #     pass  # Handled by AnsibleAWSModule
 
+OCM_CONFIG_LOCATIONS = [
+    "/Library/Application\ Support/ocm/ocm.json",
+    "/.config/ocm/ocm.json"
+]
 
-
-OCM_JSON = os.getenv('OCM_JSON', str(Path.home()) + "/.config/ocm/ocm.json")
 OCM_HOST = "https://api.openshift.com"
 
 DEFAULT_COMPUTE_NODES_MULTI_AZ = 3
@@ -106,6 +108,15 @@ OPERATOR_ROLES_HCP = [
     ),
 ]
 
+def find_ocm_config():
+    config = os.getenv('OCM_JSON', None)
+    if not config:
+        for path in OCM_CONFIG_LOCATIONS:
+            check = os.path.join(Path.home(),path)
+            if os.path.isfile(check):
+                return check
+    return config
+
 def rosa_creator_arn():
     client = boto3.client("sts")
     return client.get_caller_identity()["Arn"]
@@ -162,7 +173,7 @@ def api_visibility(private):
 
 class OcmModule(object):
     def ocm_authenticate():
-        f = open(OCM_JSON,)
+        f = open(find_ocm_config(),)
         user = json.load(f)
         auth = (user['client_id'], user['access_token'])
         params = {
