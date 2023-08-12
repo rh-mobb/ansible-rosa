@@ -109,7 +109,7 @@ OPERATOR_ROLES_HCP = [
 ]
 
 def find_ocm_config():
-    config = os.getenv('OCM_JSON',)
+    config = os.getenv('OCM_JSON', None)
     if not config:
         for path in OCM_CONFIG_LOCATIONS:
             check = os.path.join(Path.home(),path)
@@ -172,6 +172,33 @@ def api_visibility(private):
     return ocm_client.ClusterAPI()
 
 class OcmModule(object):
+    import requests
+import ocm_client
+
+class OcmModule(object):
+    def ocm_authenticate(self):
+        config_path = find_ocm_config()
+        if config_path is not None:
+            with open(config_path) as f:
+                user = json.load(f)
+                auth = (user['client_id'], user['access_token'])
+                params = {
+                    "grant_type": "refresh_token",
+                    "refresh_token": user['refresh_token']
+                }
+                response = requests.post(user['token_url'], auth=auth, data=params)
+                access_token = response.json()['access_token']
+
+                configuration = ocm_client.Configuration(
+                    host=OCM_HOST,
+                    api_key={
+                        'authorization': 'Bearer ' + access_token
+                    }
+                )
+        else:
+            return None, "OCM configuration file not found."  
+
+    """
     def ocm_authenticate():
         f = open(find_ocm_config(),)
         user = json.load(f)
@@ -189,6 +216,7 @@ class OcmModule(object):
 
         configuration.access_token = access_token
         return configuration
+    """
 
 class OcmClusterModule(object):
     def get_cluster_id(api_instance, cluster_name):
