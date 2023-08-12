@@ -176,7 +176,7 @@ class OcmModule(object):
 import ocm_client
 
 class OcmModule(object):
-    def ocm_authenticate():
+    def ocm_authenticate(self):
         config_path = find_ocm_config()
         if config_path is not None:
             with open(config_path) as f:
@@ -350,13 +350,13 @@ class OcmClusterModule(object):
         # return cluster.to_dict(), None
 
     @staticmethod
-    def ocm_authenticate():
+    def authenticate_ocm():
         ocm_module = OcmModule() 
         return ocm_module.ocm_authenticate()  
 
     @staticmethod
     def get_ocm_api_instance():
-        configuration = OcmClusterModule.ocm_authenticate()
+        configuration = OcmClusterModule.authenticate_ocm()
         if configuration:
             return ocm_client.DefaultApi(ocm_client.ApiClient(configuration))
         else:
