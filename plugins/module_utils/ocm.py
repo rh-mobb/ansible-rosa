@@ -177,7 +177,7 @@ import ocm_client
 
 class OcmModule(object):
     def ocm_authenticate():
-        config_path = find_ocm_config()
+        config_path = find_ocm_config(self)
         if config_path is not None:
             with open(config_path) as f:
                 user = json.load(f)
@@ -195,6 +195,7 @@ class OcmModule(object):
                         'authorization': 'Bearer ' + access_token
                     }
                 )
+                return configuration
         else:
             return None, "OCM configuration file not found."  
 
