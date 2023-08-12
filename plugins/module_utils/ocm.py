@@ -171,9 +171,9 @@ def api_visibility(private):
         )
     return ocm_client.ClusterAPI()
 
-class OcmModule(object):
-    import requests
-import ocm_client
+#class OcmModule(object):
+#    import requests
+#import ocm_client
 
 class OcmModule(object):
     def ocm_authenticate(self):
@@ -418,3 +418,4 @@ class OcmOidcConfig:
             err = "Exception when calling DefaultApi->api_clusters_mgmt_v1_oidc_configs_oidc_config_id_get: {}".format(e)
             return None, err
         return api_response, None
+
