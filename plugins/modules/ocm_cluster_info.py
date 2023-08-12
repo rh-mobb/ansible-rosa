@@ -85,8 +85,8 @@ def run_module():
     name = module.params['name']
     cluster_id = ""
 
-    # with ocm_client.ApiClient(OcmModule.ocm_authenticate()) as api_client:
-    with ocm_client.ApiClient(OcmClusterModule.authenticate_ocm()) as api_client:
+    with ocm_client.ApiClient(OcmModule.ocm_authenticate()) as api_client:
+    # with ocm_client.ApiClient(OcmClusterModule.authenticate_ocm()) as api_client:
         api_instance = ocm_client.DefaultApi(api_client)
 
         if not cluster_id:

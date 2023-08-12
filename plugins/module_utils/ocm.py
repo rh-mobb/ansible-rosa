@@ -350,13 +350,13 @@ class OcmClusterModule(object):
         # return cluster.to_dict(), None
 
     @staticmethod
-    def authenticate_ocm():
+    def ocm_authenticate():
         ocm_module = OcmModule() 
         return ocm_module.ocm_authenticate()  
 
     @staticmethod
     def get_ocm_api_instance():
-        configuration = OcmClusterModule.authenticate_ocm()
+        configuration = OcmClusterModule.ocm_authenticate()
         if configuration:
             return ocm_client.DefaultApi(ocm_client.ApiClient(configuration))
         else:
