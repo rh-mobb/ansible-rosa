@@ -176,8 +176,8 @@ class OcmModule(object):
 import ocm_client
 
 class OcmModule(object):
-    def ocm_authenticate():
-        config_path = find_ocm_config(self)
+    def ocm_authenticate(self):
+        config_path = find_ocm_config()
         if config_path is not None:
             with open(config_path) as f:
                 user = json.load(f)
