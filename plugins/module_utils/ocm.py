@@ -176,7 +176,7 @@ def api_visibility(private):
 #import ocm_client
 
 class OcmModule(object):
-    def ocm_authenticate():
+    def ocm_authenticate(self):
         config_path = find_ocm_config()
         if config_path is not None:
             with open(config_path) as f:
@@ -352,7 +352,11 @@ class OcmClusterModule(object):
     @staticmethod
     def authenticate_ocm():
         ocm_module = OcmModule() 
-        return ocm_module.ocm_authenticate()  
+        configuration, message = ocm_module.ocm_authenticate()
+        if configuration:
+            return configuration
+        else:
+            return None, message  
 
     @staticmethod
     def get_ocm_api_instance():
