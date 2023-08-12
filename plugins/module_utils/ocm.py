@@ -349,6 +349,20 @@ class OcmClusterModule(object):
         return cluster_create.to_dict(), None
         # return cluster.to_dict(), None
 
+    @staticmethod
+    def authenticate_ocm():
+        ocm_module = OcmModule() 
+        return ocm_module.ocm_authenticate()  
+
+    @staticmethod
+    def get_ocm_api_instance():
+        configuration = OcmClusterModule.authenticate_ocm()
+        if configuration:
+            return ocm_client.DefaultApi(ocm_client.ApiClient(configuration))
+        else:
+            return None, "Failed to authenticate with OCM."
+        
+
 class OcmIdpModule(object):
     def get_cluster_idps(api_instance, cluster_id):
         try:
