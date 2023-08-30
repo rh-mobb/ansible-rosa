@@ -31,11 +31,6 @@ import boto3
 # except ImportError:
 #     pass  # Handled by AnsibleAWSModule
 
-OCM_CONFIG_LOCATIONS = [
-    "/Library/Application\ Support/ocm/ocm.json",
-    "/.config/ocm/ocm.json"
-]
-
 OCM_HOST = "https://api.openshift.com"
 
 DEFAULT_COMPUTE_NODES_MULTI_AZ = 3
@@ -108,14 +103,28 @@ OPERATOR_ROLES_HCP = [
     ),
 ]
 
+
 def find_ocm_config():
+    OCM_CONFIG_LOCATIONS = [
+        "Library/Application Support/ocm/ocm.json",
+        ".config/ocm/ocm.json"
+    ]
     config = os.getenv('OCM_JSON', None)
+    home_directory = Path.home()
+    msg = "Looking for OCM config\n"
+    msg += "Home is {}\n".format(home_directory)
     if not config:
-        for path in OCM_CONFIG_LOCATIONS:
-            check = os.path.join(Path.home(),path)
+        for config_file in OCM_CONFIG_LOCATIONS:
+            check = os.path.join(home_directory, config_file)
+            msg += "  Checking for {}\n".format(check)
             if os.path.isfile(check):
                 return check
-    return config
+    if config:
+        return config
+    else:
+        msg += "Could not find OCM config file. Ensure you have run `rosa login` and try again."
+        err = Exception(msg)
+        raise err
 
 def rosa_creator_arn():
     client = boto3.client("sts")

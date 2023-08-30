@@ -33,14 +33,14 @@
 
 - name: figure out list of subnets
   set_fact:
-    _egress_vpc_private_subnet_ids: "{{ _egress_vpc_private_subnets.results | default([]) | json_query('[*].subnet.id') }}"
-    _egress_vpc_public_subnet_ids:  "{{ _egress_vpc_public_subnets.results  | default([]) | json_query('[*].subnet.id') }}"
+    egress_vpc_private_subnet_ids: "{{ _egress_vpc_private_subnets.results | default([]) | json_query('[*].subnet.id') }}"
+    egress_vpc_public_subnet_ids:  "{{ _egress_vpc_public_subnets.results  | default([]) | json_query('[*].subnet.id') }}"
 
 - name: attach VPC to transit gateway
   community.aws.ec2_transit_gateway_vpc_attachment:
     transit_gateway: "{{ tgw_id }}"
     name: "rosa-{{ cluster_name }}-egress-tgw-attach"
-    subnets: "{{ _egress_vpc_private_subnet_ids }}"
+    subnets: "{{ egress_vpc_private_subnet_ids }}"
     ipv6_support: False
     purge_subnets: False
     dns_support: True
@@ -63,7 +63,7 @@
     vpc_id: "{{ egress_vpc_id }}"
     tags:
       Name: "public-route-table"
-    subnets: "{{ _egress_vpc_public_subnet_ids }}"
+    subnets: "{{ egress_vpc_public_subnet_ids }}"
     routes:
       - dest: 0.0.0.0/0
         gateway_id: "{{ _igw.gateway_id }}"

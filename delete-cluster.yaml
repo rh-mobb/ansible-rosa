@@ -6,6 +6,13 @@
 
   roles:
     - name: roles/_vars
+    # - name: roles/custom_domain
+    #   vars:
+    #     custom_domain:
+    #       state: absent
+    #       name: "{{ rosa_custom_domain_vars.name }}"
+    #       namespace: "{{ rosa_custom_domain_vars.namespace }}"
+    #       fqdn: "{{ rosa_custom_domain_vars.fqdn }}"
     - name: roles/cluster_delete
     - name: roles/account_roles_delete
       when: rosa_sts | bool

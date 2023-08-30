@@ -1,0 +1,67 @@
+---
+# defaults file for roles/custom_domain
+custom_domain:
+  state: present
+  name: custom-domain
+  namespace: custom-domain
+  fqdn: apps.example.com # *.apps.example.com
+  scope: Internal # Internal / External
+  loadBalancer_type: NLB # NLB, Classic
+  tls_key: |
+    -----BEGIN PRIVATE KEY-----
+    MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQDcqTjh62VteJ6j
+    Y/jLrH65q65NycJCrGeGMYuU/x22iQLbUrbvh77TWlDkDcYIt3sIv1ig/rUBgT+T
+    c5eRa6QF5KP4kGX9kgqzzjnFqHZZ3bqloJWJ37gSY1WoppsvYs2j6e8op82fcsSu
+    B2uJVO9RGARZGj4wBq9naG3f9PXLcaHSBPB4A1l5qGtwt27YiIRQIoZXqspdh46+
+    ODTgOscQtG+gopjln7gBVXna+8fMuRIUeJAH18Ul2qEib9RJYNt6M0eZ65jql7VF
+    Uc0X84JztTq8JAadRHtdz2R0Bq+q89c2qGO8vZXIR2xU4iCq4a66w7reKcrChuGP
+    5/3iFZJHAgMBAAECggEAWuXmxcIHbToT93C2S4iKR4f+bJLhUD/fAXulaUJShiAY
+    qip/q1p69GuvCNLXsj2LFEZmhyOFgtIwU1h5pnD2B2txVHJ/YR5pBDq+t7q2zjw1
+    qAbnsv0SwZhj7+553OJRneU/HLtLTBSmCp6J4O+5Cenf2Kij13rZhLqTEH/DRQON
+    eYttBRx9NBi+9nLepuZHG/M2SGSaVWMjoIbBBzC2U7v+ko9ZXjZiLpFonAM86jGf
+    jPYReX75uzOIJ5k7gkC3fRiZbMLegyuy3NicmnGIEaDdjqDhs2lsH5K3ePEpnExv
+    qSbBYeY7GOV1vyryXATqZRRSX73hlbxy5s7Cv52BKQKBgQDuGt0Mv1+WWOf9Wgk9
+    JTp83Z2PPWF/v7QWQFIiWW8SbjG1K4mUIjG/bSPOQg99Dc2U1i9qVU3ue2JK49c5
+    eDLL+ACqBMEuD9pXTbhjGAFWV8onsDO2Kv+60ehhh6LfRud1u3Z+u15hl+0V3b1b
+    1d7zs6h5CWusftEFOKpnl985dQKBgQDtPrzwrcSUCqX7kPC7bUvA0bsBBnDAOn31
+    ACqKXgrRAwVWfys+piGCdJVIW888+RmAO/dT619ayM1dCGPoxyUv+BVxPSo8ETcC
+    Olx+dmtkZVeXPOvdIs3CnR1daLMtd42xyvBnMcFlQoG0ATF63l4IswIwxXa/43GB
+    Ke0+6gwpSwKBgD9l87mzMxZrMcopsRAQ25Pnxk4ff9huCNtr4PK4cXSs1ptwrj89
+    I5Xez4vZ1xnrFPQuW42qjQeU3sUmCWaJ9KyOqk6a2X0UR4S7cv8foyuEUJVku0Ak
+    DteFkKR3YwykanjUo2Z3KVg/Baeu1P6g4a5uBcvEkGDrm2gSgHz42T0JAoGAaGxK
+    4Wy6r6aYNEgxjW2oADDQLL1W92VHd4UhNFH8VM8NlGrY7/RTn4YNBxJR/zZtQQIj
+    9K4PBHiJ278LqrOs7JY3aeZQJqw1GCfz+j3JOyFYEltgPa9J/bUF7c1dwE908KKw
+    edtuklFZoY885iXmIdIYzrq7b+5+USnRIPYHcE0CgYAjaP171+KDskxWtHY2XzfP
+    QXcMpFmUwgQUtlsoYitnGCXvAPSa9ryteL5JucwNbonjqMvum7NFkMtim+M4ELgX
+    zC+iCCj1ZihrdgcEeml6oA3I+0jfDqnqaKiypbcRQr+p5m+BDgV4YzeB2o5uLlXE
+    nsyYRpduiwGIjqrmasqNzg==
+    -----END PRIVATE KEY-----
+  tls_cert:
+    -----BEGIN CERTIFICATE-----
+    MIIDmzCCAoOgAwIBAgIUTQyAfniIVxSlt9B2Hx0j+W2UQc4wDQYJKoZIhvcNAQEL
+    BQAwXTELMAkGA1UEBhMCWFgxFTATBgNVBAcMDERlZmF1bHQgQ2l0eTEcMBoGA1UE
+    CgwTRGVmYXVsdCBDb21wYW55IEx0ZDEZMBcGA1UEAwwQYXBwcy5leGFtcGxlLmNv
+    bTAeFw0yMzA4MjkxODIyMTJaFw0yNDA4MjgxODIyMTJaMF0xCzAJBgNVBAYTAlhY
+    MRUwEwYDVQQHDAxEZWZhdWx0IENpdHkxHDAaBgNVBAoME0RlZmF1bHQgQ29tcGFu
+    eSBMdGQxGTAXBgNVBAMMEGFwcHMuZXhhbXBsZS5jb20wggEiMA0GCSqGSIb3DQEB
+    AQUAA4IBDwAwggEKAoIBAQDcqTjh62VteJ6jY/jLrH65q65NycJCrGeGMYuU/x22
+    iQLbUrbvh77TWlDkDcYIt3sIv1ig/rUBgT+Tc5eRa6QF5KP4kGX9kgqzzjnFqHZZ
+    3bqloJWJ37gSY1WoppsvYs2j6e8op82fcsSuB2uJVO9RGARZGj4wBq9naG3f9PXL
+    caHSBPB4A1l5qGtwt27YiIRQIoZXqspdh46+ODTgOscQtG+gopjln7gBVXna+8fM
+    uRIUeJAH18Ul2qEib9RJYNt6M0eZ65jql7VFUc0X84JztTq8JAadRHtdz2R0Bq+q
+    89c2qGO8vZXIR2xU4iCq4a66w7reKcrChuGP5/3iFZJHAgMBAAGjUzBRMB0GA1Ud
+    DgQWBBTNFknjOhQUsYRjb4Qgk3kJalZTDjAfBgNVHSMEGDAWgBTNFknjOhQUsYRj
+    b4Qgk3kJalZTDjAPBgNVHRMBAf8EBTADAQH/MA0GCSqGSIb3DQEBCwUAA4IBAQDS
+    rMCF8CVeRLp5Atk3SyHujQ4qK33I52zs4ak4lg21aZIt3i1lQZpiwBLejyXZxAS9
+    GMxvbpoJIsfOhfOVLLRx6oBWLl/TT5uExphVu4NVgsVXA+110+SAaD/9o7B9FRfh
+    5buhvFCVCFHf8ASIczv5qGbhA4X1GgzHPFt14hSujhn4Uuc64kTh93936IW2MDF8
+    YBcOidlSUyvUNFcJNqWZGUskJ3RZzrx2d7SqK60OA99vZn4lfPuXH4MH3mPcHK3p
+    InpBFkJtmfXezFZ6FaCvpJaBvjXYHYFPNn6IN4CmKHnOHsBe5gQkxCnPOMI6xDlx
+    kYHnZjAZFNfBcXfkgm+4
+    -----END CERTIFICATE-----
+  ingress_vpc:
+    vpc_id: ""
+    public_subnets: []
+#
+
+

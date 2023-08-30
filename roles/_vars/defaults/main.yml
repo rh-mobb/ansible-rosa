@@ -27,6 +27,8 @@ rosa_account_roles_prefix: AnsibleROSA
 ## leave commented out to use the cluster name as the prefix
 # rosa_operator_roles_prefix: ~
 
+rosa_custom_domain_enabled: false
+
 # defaults for roles/juphost-create
 
 # when not set will search based on ami_name

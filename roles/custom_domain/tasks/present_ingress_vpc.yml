@@ -1,0 +1,67 @@
+- set_fact:
+    _ingress_vpc_target_group: "{{ cluster_name }}-{{ custom_domain.name }}"
+
+- name: create ingress vpc nlb target group
+  community.aws.elb_target_group:
+    name: "{{ _ingress_vpc_target_group }}"
+    protocol: TCP
+    port: 80
+    vpc_id: "{{ custom_domain.ingress_vpc.vpc_id }}"
+    target_type: ip
+    modify_targets: false
+    region: "{{ rosa_region }}"
+    state: present
+  register: _target_group
+  no_log: true
+
+- name: register targets for NLB IP addresses
+  community.aws.elb_target:
+    target_group_name: "{{ _ingress_vpc_target_group }}"
+    target_id: "{{ item }}"
+    target_port: 80
+    target_az: all
+    region: "{{ rosa_region }}"
+    state: present
+  with_items: "{{_custom_domain_ips}}"
+  no_log: true
+
+- name: register targets for NLB IP addresses
+  community.aws.elb_target:
+    target_group_name: "{{ _ingress_vpc_target_group }}"
+    target_id: "{{ item }}"
+    target_port: 443
+    target_az: all
+    region: "{{ rosa_region }}"
+    state: present
+  with_items: "{{_custom_domain_ips}}"
+  no_log: true
+
+- name: create the network load balancer
+  community.aws.elb_network_lb:
+    name: "{{ _ingress_vpc_target_group }}"
+    region: "{{ rosa_region }}"
+    subnets: "{{ custom_domain.ingress_vpc.public_subnets }}"
+    listeners:
+      - Protocol: TCP
+        Port: 80
+        DefaultActions:
+          - Type: forward
+            TargetGroupName: "{{ _ingress_vpc_target_group }}"
+      - Protocol: TCP
+        Port: 443
+        DefaultActions:
+          - Type: forward
+            TargetGroupName: "{{ _ingress_vpc_target_group }}"
+    state: present
+  register: _ingress_nlb
+  no_log: true
+
+- set_fact:
+    _ingress_nlb_dns: "{{ _ingress_nlb.load_balancer.dns_name }}"
+    _custom_domain_ips: "{{ query('community.general.dig', _ingress_nlb.load_balancer.dns_name )}}"
+  no_log: true
+
+- debug:
+    msg: |
+      Configure your DNS:
+        * Create a CNAME record for `*.{{ custom_domain.fqdn }}` pointing at `{{ _ingress_nlb_dns }}`

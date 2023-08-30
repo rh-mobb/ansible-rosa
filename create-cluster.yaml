@@ -29,7 +29,17 @@
     - name: roles/create_admin
       when: rosa_create_admin | bool
     - name: roles/finish
-
+    # - name: roles/custom_domain
+    #   when: rosa_custom_domain_enabled | bool
+    #   vars:
+    #     custom_domain:
+    #       state: present
+    #       name: "{{ rosa_custom_domain_vars.name }}"
+    #       namespace: "{{ rosa_custom_domain_vars.namespace }}"
+    #       fqdn: "{{ rosa_custom_domain_vars.fqdn }}"
+    #       ingress_vpc:
+    #         vpc_id:  "{{ egress_vpc_id }}"
+    #         public_subnets: "{{ egress_vpc_public_subnet_ids }}"
 
 # - hosts:      "jumphost"
 #   connection: "ssh"
