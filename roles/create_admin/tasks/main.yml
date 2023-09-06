@@ -9,6 +9,7 @@
   failed_when: (_create_admin.rc != 0) and ("already has an admin" not in _create_admin.stderr)
   changed_when: _create_admin.rc == 0
   no_log: true
+  when: rosa_create_admin
 
 
 
