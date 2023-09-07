@@ -26,6 +26,8 @@ jumphost_instance_type: t2.micro
 
 proxy_enabled: true
 
+rosa_create_admin: true
+
 ## don't set these and let it use your already logged in accounts
 # aws_access_key_id:
 # aws_secret_access_key:

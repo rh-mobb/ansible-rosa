@@ -12,3 +12,5 @@ rosa_max_replicas: 4
 rosa_version: 4.12.12
 rosa_region: us-east-1
 rosa_vpc_cidr: "10.0.0.0/16"
+
+rosa_create_admin: true
