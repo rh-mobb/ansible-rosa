@@ -24,6 +24,7 @@
     - name: roles/dns_resolver_create
       when: rosa_tgw_enabled | bool
     - name: roles/create_admin
+      when: rosa_create_admin | bool
     - name: roles/finish
 
 

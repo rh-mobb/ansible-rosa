@@ -12,7 +12,6 @@
 
 
 
-
 # - set_fact:
 #     rosa_admin_credentials: "{{ _create_admin.stdout | from_json }}"
 #   when: _create_admin.rc == 0

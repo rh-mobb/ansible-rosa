@@ -13,3 +13,5 @@ rosa_compute_machine_type: m5.xlarge
 # jumphost_instance_type: t1.micro
 jumphost_instance_type: t2.nano
 # jumphost_instance_type: m4.large
+
+rosa_create_admin: true
