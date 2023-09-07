@@ -35,7 +35,7 @@
         oc login {{ _cluster_info.cluster.api.url }} \
           --username cluster-admin --password {{ rosa_admin_password }}
   delegate_to: localhost
-  when: rosa_create_admin
+  when: rosa_create_admin | bool
 
 - debug:
     msg: |
@@ -45,7 +45,7 @@
       Create a cluster-admin user:
         rosa create admin --cluster {{ cluster_name }}
   delegate_to: localhost
-  when: not rosa_create_admin
+  when: not rosa_create_admin | bool
 
 - debug:
     msg: |
