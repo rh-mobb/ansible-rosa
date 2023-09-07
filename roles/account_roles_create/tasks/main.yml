@@ -1,9 +1,6 @@
 ---
 # tasks file for roles/account-roles
 
-# - set_fact:
-#     _ocp_version: "{{ rosa_version | regex_search('^[0-9]+\\.[0-9]+') }}"
-
 - name: create support role
   iam_role:
     name: "{{ rosa_account_roles_prefix }}-Support-Role"

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 
 # Copyright 2023 Paul Czarkowski <pczarkow@redhat.com>
 
