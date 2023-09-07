@@ -60,6 +60,12 @@ cd ansible-rosa
 make virtualenv
 ```
 
+### If you encounter SSL Certificate errors with ansible-galaxy and want to bypass certificate validation. USE WITH CAUTION!
+
+```
+IGNORE_CERTS=true make virtualenv
+```
+
 ## Deploy a Cluster
 
 ### Basic STS single AZ cluster
