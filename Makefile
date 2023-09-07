@@ -17,7 +17,7 @@ virtualenv:
 		. $(VIRTUALENV)/bin/activate
 		pip install pip --upgrade
 		LC_ALL=en_US.UTF-8 $(VIRTUALENV)/bin/pip3 install -r requirements.txt #--use-feature=2020-resolver
-		$(VIRTUALENV)/bin/ansible-galaxy collection install -r requirements.yml
+		$(VIRTUALENV)/bin/ansible-galaxy collection install -r requirements.yml --ignore-certs
 
 docker.image:
 	docker build -t quay.io/pczar/ansible-rosa .
