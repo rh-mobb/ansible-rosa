@@ -6,6 +6,7 @@ rosa_sts: true
 rosa_version: 4.11.6
 rosa_region: us-west-2
 rosa_vpc_cidr: "10.0.0.0/16"
+rosa_compute_machine_type: m5.xlarge
 
 # jumphost_ami: ami-0ba62214afa52bec7
 # jumphost_ami: ami-07b1d7739c91ed3fc

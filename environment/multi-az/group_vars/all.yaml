@@ -9,3 +9,4 @@ rosa_multi_az: true
 rosa_version: 4.11.6
 rosa_region: us-east-1
 rosa_vpc_cidr: "172.28.80.0/20"
+rosa_compute_machine_type: m5.xlarge
