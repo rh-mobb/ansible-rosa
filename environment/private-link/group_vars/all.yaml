@@ -3,7 +3,8 @@ cluster_name: ansible-rosa-pl
 rosa_private_link: true
 rosa_sts: true
 
-rosa_version: 4.11.6
+# uncomment to pin to a version
+# rosa_version: 4.13.10
 rosa_region: us-west-2
 rosa_vpc_cidr: "10.0.0.0/16"
 rosa_compute_machine_type: m5.xlarge
