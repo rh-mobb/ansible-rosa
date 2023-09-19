@@ -81,10 +81,10 @@
         min_replicas: "{{ rosa_min_replicas | default(omit) }}"
         max_replicas: "{{ rosa_max_replicas | default(omit) }}"
         compute_machine_type: "{{ rosa_compute_machine_type | default(omit) }}"
-        role_arn: "arn:aws:iam::{{ aws_account_id }}:role/{{ rosa_account_role_prefix }}-Installer-Role"
-        support_role_arn: "arn:aws:iam::{{ aws_account_id }}:role/{{ rosa_account_role_prefix }}-Support-Role"
-        controlplane_iam_role: "arn:aws:iam::{{ aws_account_id }}:role/{{ rosa_account_role_prefix }}-ControlPlane-Role"
-        worker_iam_role: "arn:aws:iam::{{ aws_account_id }}:role/{{ rosa_account_role_prefix }}-Worker-Role"
+        role_arn: "arn:aws:iam::{{ aws_account_id }}:role/{{ rosa_account_roles_prefix }}-Installer-Role"
+        support_role_arn: "arn:aws:iam::{{ aws_account_id }}:role/{{ rosa_account_roles_prefix }}-Support-Role"
+        controlplane_iam_role: "arn:aws:iam::{{ aws_account_id }}:role/{{ rosa_account_roles_prefix }}-ControlPlane-Role"
+        worker_iam_role: "arn:aws:iam::{{ aws_account_id }}:role/{{ rosa_account_roles_prefix }}-Worker-Role"
         operator_roles_prefix: "{{ rosa_operator_roles_prefix | default(cluster_name) }}"
       register: _rosa_cluster
 
