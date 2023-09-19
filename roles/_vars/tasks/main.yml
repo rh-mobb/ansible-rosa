@@ -1,6 +1,14 @@
 ---
-- fail:
-    msg: "proxy_enabled can only be enabled if rosa_private_link is enabled"
-  when:
-    - (not rosa_private_link | bool) and
-      (proxy_enabled | default(False) | bool)
+
+- include_tasks: validate.yml
+
+- when:
+    - aws_account_id is not defined
+    - rosa_sts | bool
+  block:
+    - name: get aws caller info for accountid
+      aws_caller_info:
+      register: _aws_caller_info
+
+    - set_fact:
+        aws_account_id: "{{ _aws_caller_info.account }}"

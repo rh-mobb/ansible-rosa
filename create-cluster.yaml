@@ -5,6 +5,7 @@
       - vars/main.yaml
 
   roles:
+    - name: roles/_vars
     - name: roles/network_math
     - name: roles/tgw_create
       when: rosa_tgw_enabled | bool
@@ -20,6 +21,8 @@
       when:
         - (rosa_private_link | bool) and
           (proxy_enabled | default(False) | bool)
+    - name: roles/account_roles_create
+      when: rosa_sts | bool
     - name: roles/cluster_create
     - name: roles/dns_resolver_create
       when: rosa_tgw_enabled | bool
@@ -28,13 +31,13 @@
     - name: roles/finish
 
 
-- hosts:      "jumphost"
-  connection: "ssh"
-  remote_user: ec2-user
-  vars:
-    cluster_api: "{{ hostvars.localhost._cluster_info.cluster.api.url }}"
-  roles:
-    - name: roles/post_install
-      when:
-        - (rosa_private or rosa_private_link) or
-          (enable_jumphost | default(False) | bool)
+# - hosts:      "jumphost"
+#   connection: "ssh"
+#   remote_user: ec2-user
+#   vars:
+#     cluster_api: "{{ hostvars.localhost._cluster_info.cluster.api.url }}"
+#   roles:
+#     - name: roles/post_install
+#       when:
+#         - (rosa_private or rosa_private_link) or
+#           (enable_jumphost | default(False) | bool)

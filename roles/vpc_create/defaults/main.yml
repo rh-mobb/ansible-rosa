@@ -1,2 +1,5 @@
 ---
 # defaults file for roles/vpc
+
+vpc_interface_endpoints: [sts,ec2,elasticloadbalancing]
+vpc_gateway_endpoints: [s3]

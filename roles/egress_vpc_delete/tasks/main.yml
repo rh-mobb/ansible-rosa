@@ -4,6 +4,7 @@
     filters:
       "tag:Name": "rosa-{{ cluster_name }}-egress"
   register: vpc_info
+  no_log: True
 
 - when: vpc_info.vpcs | length > 0
   block:
@@ -19,6 +20,7 @@
         filters:
           vpc-id: "{{ vpc_id }}"
       register: _nat_gw_info
+      no_log: True
 
     - name: delete nat gateways
       ec2_vpc_nat_gateway:
@@ -36,6 +38,7 @@
         filters:
           attachment.vpc-id: "{{ vpc_id }}"
       register: igw_info
+      no_log: True
 
     - name: delete internet gateway
       ec2_vpc_igw:
@@ -49,6 +52,7 @@
         filters:
           vpc-id: "{{ vpc_id }}"
       register: subnet_info
+      no_log: True
 
     - name: delete private subnets
       ec2_vpc_subnet:
@@ -65,6 +69,7 @@
           vpc-id: "{{ vpc_id }}"
         region: "{{ rosa_region }}"
       register: _route_table_info
+      no_log: True
 
     - name: delete public subnet route table
       ec2_vpc_route_table:
@@ -81,7 +86,5 @@
       ec2_vpc_net:
         state: absent
         region: "{{ rosa_region }}"
-        # name: "rosa-{{ cluster_name }}-egress"
         vpc_id: "{{ vpc_id }}"
-        # cidr_block: "{{ rosa_egress_vpc_cidr }}"
 

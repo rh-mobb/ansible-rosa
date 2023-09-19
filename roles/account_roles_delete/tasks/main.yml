@@ -1,0 +1,64 @@
+---
+# tasks file for roles/account-roles
+
+- set_fact:
+    _ocp_version: "{{ rosa_version | regex_search('^[0-9]+\\.[0-9]+') }}"
+
+- when: rosa_account_roles_prefix != "ManagedOpenShift"
+  block:
+    - name: delete support policy
+      iam_policy:
+        policy_name: "{{ rosa_account_roles_prefix }}-Support-Role-Policy"
+        iam_type: role
+        iam_name: "{{ rosa_account_roles_prefix }}-Support-Role"
+        state: absent
+      when: rosa_account_roles_prefix != "ManagedOpenShift"
+      register: _delete
+      failed_when: ('error' in _delete.keys()) and (_delete.error.code != 'NoSuchEntity')
+
+    - name: delete support role
+      iam_role:
+        name: "{{ rosa_account_roles_prefix }}-Support-Role"
+        state: absent
+
+    - name: delete installer policy
+      iam_policy:
+        policy_name: "{{ rosa_account_roles_prefix }}-Installer-Role-Policy"
+        iam_type: role
+        iam_name: "{{ rosa_account_roles_prefix }}-Installer-Role"
+        state: absent
+      register: _delete
+      failed_when: ('error' in _delete.keys()) and (_delete.error.code != 'NoSuchEntity')
+
+    - name: delete installer role
+      iam_role:
+        name: "{{ rosa_account_roles_prefix }}-Installer-Role"
+        state: absent
+
+    - name: delete ControlPlane policy
+      iam_policy:
+        policy_name: "{{ rosa_account_roles_prefix }}-ControlPlane-Role-Policy"
+        iam_type: role
+        iam_name: "{{ rosa_account_roles_prefix }}-ControlPlane-Role"
+        state: absent
+      register: _delete
+      failed_when: ('error' in _delete.keys()) and (_delete.error.code != 'NoSuchEntity')
+
+    - name: delete ControlPlane role
+      iam_role:
+        name: "{{ rosa_account_roles_prefix }}-ControlPlane-Role"
+        state: absent
+
+    - name: delete Worker policy
+      iam_policy:
+        policy_name: "{{ rosa_account_roles_prefix }}-Worker-Role-Policy"
+        iam_type: role
+        iam_name: "{{ rosa_account_roles_prefix }}-Worker-Role"
+        state: absent
+      register: _delete
+      failed_when: ('error' in _delete.keys()) and (_delete.error.code != 'NoSuchEntity')
+
+    - name: delete Worker role
+      iam_role:
+        name: "{{ rosa_account_roles_prefix }}-Worker-Role"
+        state: absent

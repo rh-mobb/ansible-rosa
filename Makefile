@@ -6,7 +6,7 @@ CLUSTER_NAME ?= ans-$(shell whoami)
 EXTRA_VARS ?= --extra-vars "cluster_name=$(CLUSTER_NAME)"
 
 VIRTUALENV ?= "./virtualenv/"
-ANSIBLE = $(VIRTUALENV)/bin/ansible-playbook $(EXTRA_VARS)
+ANSIBLE = $(VIRTUALENV)/bin/ansible-playbook -v $(EXTRA_VARS)
 
 IGNORE_CERTS ?= false
 IGNORE_CERTS_OPTION=
@@ -41,34 +41,39 @@ pull: docker.image.pull
 
 
 create:
-	$(ANSIBLE) -v create-cluster.yaml
+	$(ANSIBLE) create-cluster.yaml
 
 delete:
-	$(ANSIBLE) -v delete-cluster.yaml
+	$(ANSIBLE) delete-cluster.yaml
 
 create.multiaz:
-	$(ANSIBLE) -v create-cluster.yaml -i ./environment/multi-az/hosts
+	$(ANSIBLE) create-cluster.yaml -i ./environment/multi-az/hosts
 
 create.private:
-	$(ANSIBLE) -v create-cluster.yaml -i ./environment/private-link/hosts
+	$(ANSIBLE) create-cluster.yaml -i ./environment/private-link/hosts
 
 delete.private:
-	$(ANSIBLE) -v delete-cluster.yaml -i ./environment/private-link/hosts
+	$(ANSIBLE) delete-cluster.yaml -i ./environment/private-link/hosts
+
+create.pl: create.private
+
+delete.pl: delete.private
+
 
 delete.multiaz:
-	$(ANSIBLE) -v delete-cluster.yaml -i ./environment/multi-az/hosts
+	$(ANSIBLE) delete-cluster.yaml -i ./environment/multi-az/hosts
 
 create.tgw:
-	$(ANSIBLE) -v create-cluster.yaml -i ./environment/transit-gateway-egress/hosts
+	$(ANSIBLE) create-cluster.yaml -i ./environment/transit-gateway-egress/hosts
 
 delete.tgw:
-	$(ANSIBLE) -v delete-cluster.yaml -i ./environment/transit-gateway-egress/hosts
+	$(ANSIBLE) delete-cluster.yaml -i ./environment/transit-gateway-egress/hosts
 
 create.hcp:
-	$(ANSIBLE) -v create-cluster.yaml -i ./environment/hcp/hosts
+	$(ANSIBLE) create-cluster.yaml -i ./environment/hcp/hosts
 
 delete.hcp:
-	$(ANSIBLE) -v delete-cluster.yaml -i ./environment/hcp/hosts
+	$(ANSIBLE) delete-cluster.yaml -i ./environment/hcp/hosts
 
 
 docker.create: image

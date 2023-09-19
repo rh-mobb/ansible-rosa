@@ -6,21 +6,6 @@
     name: admin
     type: htpasswd
     cluster_name: "{{ cluster_name }}"
-    username: admin
+    username: "{{ rosa_admin_username }}"
     password: "{{ rosa_admin_password }}"
-
-# - set_fact:
-#     rosa_admin_credentials: {}
-
-# - command: rosa create admin -c {{ cluster_name }} -p "{{ rosa_admin_password }}" -o json
-#   register: _create_admin
-#   failed_when: (_create_admin.rc != 0) and ("already has an admin" not in _create_admin.stderr)
-#   changed_when: _create_admin.rc == 0
-#   no_log: true
-
-
-
-# - set_fact:
-#     rosa_admin_credentials: "{{ _create_admin.stdout | from_json }}"
-#   when: _create_admin.rc == 0
 
