@@ -16,6 +16,7 @@ rosa_admin_password: "Rosa1234password67890"
 rosa_vpc_endpoints_enabled: false
 rosa_subnet_ids: []
 rosa_machine_cidr: ~
+rosa_compute_machine_type: m5.xlarge
 
 # defaults for roles/juphost-create
 

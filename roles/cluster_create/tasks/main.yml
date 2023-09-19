@@ -140,6 +140,7 @@
         support_role_arn: "arn:aws:iam::{{ aws_account_id }}:role/ManagedOpenShift-Support-Role"
         controlplane_iam_role: "arn:aws:iam::{{ aws_account_id }}:role/ManagedOpenShift-ControlPlane-Role"
         worker_iam_role: "arn:aws:iam::{{ aws_account_id }}:role/ManagedOpenShift-Worker-Role"
+        compute_machine_type: "{{ rosa_compute_machine_type | default(omit) }}"
       register: _rosa_cluster
 
     - name: wait for cluster to be ready
