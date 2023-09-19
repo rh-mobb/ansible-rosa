@@ -7,7 +7,8 @@ rosa_private: false
 rosa_sts: true
 rosa_multi_az: true
 rosa_vpc_endpoints_enabled: true
-rosa_version: 4.12.12
+# uncomment to pin to a version
+# rosa_version: 4.13.10
 rosa_region: us-east-1
 rosa_vpc_cidr: "10.0.0.0/16"
 rosa_vpc_public_subnets: []
@@ -28,6 +29,11 @@ jumphost_instance_type: t2.micro
 proxy_enabled: true
 
 rosa_create_admin: true
+rosa_custom_domain_enabled: false
+rosa_custom_domain_vars:
+  name: custom-domain
+  namespace: custom-domain
+  fqdn: apps.example.com # *.apps.example.com
 
 ## don't set these and let it use your already logged in accounts
 # aws_access_key_id:

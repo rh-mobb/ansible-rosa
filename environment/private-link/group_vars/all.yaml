@@ -3,15 +3,17 @@ cluster_name: ansible-rosa-pl
 rosa_private_link: true
 rosa_sts: true
 
-rosa_version: 4.11.6
+# uncomment to pin to a version
+# rosa_version: 4.13.10
 rosa_region: us-west-2
 rosa_vpc_cidr: "10.0.0.0/16"
 rosa_compute_machine_type: m5.xlarge
 
+rosa_multi_az: true
 # jumphost_ami: ami-0ba62214afa52bec7
 # jumphost_ami: ami-07b1d7739c91ed3fc
 # jumphost_instance_type: t1.micro
-jumphost_instance_type: t2.nano
+jumphost_instance_type: t2.micro
 # jumphost_instance_type: m4.large
 
 rosa_create_admin: true

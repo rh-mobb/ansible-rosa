@@ -2,11 +2,11 @@
 # tasks file for roles/finish
 
 - name: fetch cluster details (waiting for api and console urls)
-  rosa_cluster_info:
+  ocm_cluster_info:
     name: "{{ cluster_name }}"
   register: _cluster_info
-  # no_log: true
-  until:  '"console" in _cluster_info.cluster.keys()'
+  no_log: true
+  until:  (_cluster_info.cluster.console is defined) and (_cluster_info.cluster.console.url)
   retries: 120
   delay: 60
 
@@ -33,7 +33,7 @@
 
       Authenticate to cluster:
         oc login {{ _cluster_info.cluster.api.url }} \
-          --username cluster-admin --password {{ rosa_admin_password }}
+          --username {{ rosa_admin_username }} --password "{{ rosa_admin_password }}"
   delegate_to: localhost
   when: rosa_create_admin | bool
 

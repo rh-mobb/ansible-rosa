@@ -1,0 +1,35 @@
+# - when: custom_domain.ingress_vpc.vpc_id != ''
+- include_tasks: absent_ingress_vpc.yml
+
+- name: check if cluster exists
+  ocm_cluster_info:
+    name: "{{ cluster_name }}"
+  register: _cluster_info
+
+- when: _cluster_info.cluster.state is defined and
+    (_cluster_info.cluster.state == "ready")
+  block:
+    - name: delete custom domain resource
+      kubernetes.core.k8s:
+        api_version: managed.openshift.io/v1alpha1
+        kind: CustomDomain
+        name: "{{ custom_domain.name }}"
+        state: absent
+      failed_when: false
+
+    - name: delete custom domain tls keypair secret
+      kubernetes.core.k8s:
+        state: absent
+        api_version: v1
+        kind: Secret
+        name: "{{ custom_domain.name }}-tls"
+        namespace: "{{ custom_domain.namespace }}"
+      failed_when: false
+
+    - name: delete namespace for custom domain
+      kubernetes.core.k8s:
+        name: "{{ custom_domain.namespace }}"
+        api_version: v1
+        kind: Namespace
+        state: absent
+      failed_when: false

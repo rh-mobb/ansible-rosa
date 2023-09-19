@@ -3,7 +3,7 @@
 
 - name: make sure we have a subnet to use egress vpc
   set_fact:
-    jumphost_subnet_id: "{{ _egress_vpc_public_subnet_ids[0] }}"
+    jumphost_subnet_id: "{{ egress_vpc_public_subnet_ids[0] }}"
     jumphost_vpc_id: "{{ egress_vpc_id }}"
   when:
     - jumphost_subnet_id is not defined

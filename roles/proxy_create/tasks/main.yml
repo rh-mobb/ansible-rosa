@@ -3,7 +3,7 @@
 
 - name: make sure we have a subnet to use
   set_fact:
-    _subnet_id: "{{ _egress_vpc_private_subnet_ids[0] }}"
+    _subnet_id: "{{ egress_vpc_private_subnet_ids[0] }}"
     _vpc_id: "{{ egress_vpc_id }}"
     _ca_key: "{{ lookup('file', 'squid-ca-key.pem') }}"
     _ca_cert: "{{ lookup('file', 'squid-ca-cert.pem') }}"

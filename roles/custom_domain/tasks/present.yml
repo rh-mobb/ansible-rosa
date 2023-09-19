@@ -1,0 +1,77 @@
+---
+# tasks file for roles/custom_domain
+
+- name: Create namespace for custom domain
+  kubernetes.core.k8s:
+    name: "{{ custom_domain.namespace }}"
+    api_version: v1
+    kind: Namespace
+    state: present
+
+- name: create custom domain tls keypair secret
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: "{{ custom_domain.name }}-tls"
+        namespace: "{{ custom_domain.namespace }}"
+      type: kubernetes.io/tls
+      data:
+        tls.crt: "{{ custom_domain.tls_cert | b64encode }}"
+        tls.key: "{{ custom_domain.tls_key | b64encode }}"
+
+- name: create custom domain resource
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: managed.openshift.io/v1alpha1
+      kind: CustomDomain
+      metadata:
+        name: "{{ custom_domain.name }}"
+      spec:
+        domain: "{{ custom_domain.fqdn }}"
+        scope: "{{ custom_domain.scope }}"
+        loadBalancerType: "{{ custom_domain.loadBalancer_type }}"
+        certificate:
+          name: "{{ custom_domain.name }}-tls"
+          namespace: "{{ custom_domain.namespace }}"
+
+- name: wait until custom domain resource has an assigned loadbalancer
+  set_fact:
+    _custom_domain: "{{  query('kubernetes.core.k8s',
+             api_version='managed.openshift.io/v1alpha1',
+             kind='CustomDomain',
+             namespace=custom_domain.namespace,
+             resource_name=custom_domain.name) }}"
+    until: _custom_domain[0].status.state == 'Ready'
+    retries: 10
+    delay: 60
+    no_log: true
+
+## When the LB is an NLB we can get the IP addresses of the NLB as they do not change
+# todo write or find NLB info module
+- when: custom_domain.loadBalancer_type == 'NLB'
+  block:
+    - set_fact:
+        _custom_domain_ips: "{{ query('community.general.dig', _custom_domain[0].status.endpoint )}}"
+      no_log: true
+
+    - debug:
+        msg: |
+          Create a DNS record for *.{{ custom_domain.fqdn }} to point at the following IPs
+          {{ _custom_domain_ips }}
+      when: custom_domain.ingress_vpc.vpc_id == ''
+
+## When the LB is classic we should use the LB's DNS
+- when: custom_domain.loadBalancer_type != 'NLB'
+  block:
+    - debug:
+        msg: |
+          Create a DNS record for *.{{ custom_domain.fqdn }} to point at the following name
+          {{ _custom_domain[0].status.endpoint }}
+      when: custom_domain.ingress_vpc.vpc_id == ''
+
+- when: custom_domain.ingress_vpc.vpc_id != ''
+  include_tasks: present_ingress_vpc.yml

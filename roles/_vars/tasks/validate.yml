@@ -1,0 +1,14 @@
+- fail:
+    msg: "Do not use mint mode, 'rosa_sts` must be set to True"
+  when: not rosa_sts | bool
+- fail:
+    msg: "proxy_enabled can only be enabled if rosa_private_link is enabled"
+  when:
+    - (not rosa_private_link | bool) and
+      (proxy_enabled | default(False) | bool)
+
+- fail:
+    msg: "cluster autoscaling must be enabled to set min/max replicas"
+  when:
+    - not rosa_enable_autoscaling | bool
+    - rosa_min_replicas is defined or rosa_max_replicas is defined

@@ -7,10 +7,11 @@
     filters:
       vpc-id: "{{ vpc_id }}"
   register: _sts_vpc_endpoint
+  no_log: True
 
-- debug:
-    msg: |
-      VPC Endpoints: {{ _sts_vpc_endpoint.vpc_endpoints }}"
+# - debug:
+#     msg: |
+#       VPC Endpoints: {{ _sts_vpc_endpoint.vpc_endpoints }}"
 
 - block:
     - name: delete vpc endpoints
@@ -30,6 +31,7 @@
       until: _check_sts_vpc_endpoint.vpc_endpoints | default([]) | length == 0
       retries: 60
       delay: 10
+      no_log: True
   when: _sts_vpc_endpoint.vpc_endpoints | default([]) | length > 0
 
 - name: get vpc endpoint security group
@@ -37,10 +39,11 @@
     region: "{{ rosa_region }}"
     filters:
       vpc-id: "{{ vpc_id }}"
-      group-name: "rosa-{{ cluster_name }}-sts-endpoint"
+      group-name: "rosa-{{ cluster_name }}-endpoint-sg"
   register: _sts_endpoint_sg
+  no_log: True
 
-- name: delete security group for vpc endpoint for sts
+- name: delete vpc endpoint security group
   amazon.aws.ec2_security_group:
     region: "{{ rosa_region }}"
     group_id: "{{ item.group_id }}"

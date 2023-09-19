@@ -33,60 +33,19 @@
 
 - name: figure out list of subnets
   set_fact:
-    _egress_vpc_private_subnet_ids: "{{ _egress_vpc_private_subnets.results | default([]) | json_query('[*].subnet.id') }}"
-    _egress_vpc_public_subnet_ids:  "{{ _egress_vpc_public_subnets.results  | default([]) | json_query('[*].subnet.id') }}"
-
-
-# - name: attach egress VPC to transit gateway
-#   ec2_transit_gateway_vpc_attachment:
-#     state: present
-#     transit_gateway: "{{ tgw_id }}"
-#     name: "rosa-{{ cluster_name }}-egress-vpc-tgw-attachment"
-#     subnets: "{{ _egress_vpc_private_subnet_ids}}"
-#   register: _tgw_attachment
-
-# - set_fact:
-#     _egress_vpc_tgw_attachment_id: "{{ _tgw_attachment[0].transit_gateway_attachment_id }}"
-
+    egress_vpc_private_subnet_ids: "{{ _egress_vpc_private_subnets.results | default([]) | json_query('[*].subnet.id') }}"
+    egress_vpc_public_subnet_ids:  "{{ _egress_vpc_public_subnets.results  | default([]) | json_query('[*].subnet.id') }}"
 
 - name: attach VPC to transit gateway
   community.aws.ec2_transit_gateway_vpc_attachment:
     transit_gateway: "{{ tgw_id }}"
     name: "rosa-{{ cluster_name }}-egress-tgw-attach"
-    subnets: "{{ _egress_vpc_private_subnet_ids }}"
+    subnets: "{{ egress_vpc_private_subnet_ids }}"
     ipv6_support: False
     purge_subnets: False
     dns_support: True
     region: "{{ rosa_region }}"
   register: _egress_vpc_tgw_attach
-
-# - name: attach VPC to transit gateway
-#   shell: |
-#     aws ec2 create-transit-gateway-vpc-attachment \
-#       --transit-gateway-id {{ tgw_id }} \
-#       --vpc-id {{ egress_vpc_id }} \
-#       --subnet-ids {{ _egress_vpc_private_subnet_ids | join(" ") }} \
-#       || aws ec2 describe-transit-gateway-vpc-attachments \
-#           --filters Name=vpc-id,Values={{ egress_vpc_id }}
-
-#   register: _tgw_attachment_cmd
-#   changed_when: _tgw_attachment_cmd.stderr == ""
-
-# - name: wait for transit gateway attachment to become available
-#   shell: |
-#     while [ "$(aws ec2 describe-transit-gateway-vpc-attachments \
-#         --filters Name=vpc-id,Values={{ egress_vpc_id }} \
-#         --query 'TransitGatewayVpcAttachments[0].State' \
-#         --output text)" != "available" ]; do
-#       sleep 5
-#     done
-
-#     aws ec2 describe-transit-gateway-vpc-attachments \
-#         --filters Name=vpc-id,Values={{ egress_vpc_id }} \
-#         --query 'TransitGatewayVpcAttachments[0].TransitGatewayAttachmentId' \
-#         --output text
-#   register: _tgw_attachment_describe
-#   changed_when: false
 
 - set_fact:
     _egress_vpc_tgw_attachment_id: "{{ _egress_vpc_tgw_attach.attachments[0].transit_gateway_attachment_id }}"
@@ -104,7 +63,7 @@
     vpc_id: "{{ egress_vpc_id }}"
     tags:
       Name: "public-route-table"
-    subnets: "{{ _egress_vpc_public_subnet_ids }}"
+    subnets: "{{ egress_vpc_public_subnet_ids }}"
     routes:
       - dest: 0.0.0.0/0
         gateway_id: "{{ _igw.gateway_id }}"
@@ -112,7 +71,6 @@
         gateway_id: "{{ tgw_id }}"
 
 # Private subnet routes
-
 - with_items: "{{ _egress_vpc_public_subnets.results }}"
   include_tasks: nat_gateway_routes.yml
   loop_control:

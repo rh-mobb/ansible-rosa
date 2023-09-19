@@ -1,0 +1,5 @@
+- when: custom_domain.state == 'present'
+  include_tasks: present.yml
+
+- when: custom_domain.state == 'absent'
+  include_tasks: absent.yml

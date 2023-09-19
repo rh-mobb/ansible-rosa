@@ -1,0 +1,16 @@
+- set_fact:
+    _name: "{{ '-'.join((cluster_name,item.namespace,item.name))[:64] }}"
+
+- name: "delete operator policy {{ _name }}"
+  iam_policy:
+    iam_type: role
+    iam_name: "{{ _name }}"
+    policy_name: "{{ _name }}"
+    state: absent
+  register: _delete
+  failed_when: ('error' in _delete.keys()) and (_delete.error.code != 'NoSuchEntity')
+
+- name: "delete operator role {{ _name }}"
+  iam_role:
+    name: "{{ _name }}"
+    state: absent
