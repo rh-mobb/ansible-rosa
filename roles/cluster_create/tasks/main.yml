@@ -86,7 +86,7 @@
         controlplane_iam_role: "arn:aws:iam::{{ aws_account_id }}:role/{{ rosa_account_roles_prefix }}-ControlPlane-Role"
         worker_iam_role: "arn:aws:iam::{{ aws_account_id }}:role/{{ rosa_account_roles_prefix }}-Worker-Role"
         operator_roles_prefix: "{{ rosa_operator_roles_prefix | default(cluster_name) }}"
-        kms_key: "{{ rosa_kms_key | default(omit) }}"
+        kms_key_arn: "{{ rosa_kms_key_arn | default(omit) }}"
       register: _rosa_cluster
 
 - name: get info about the cluster
@@ -94,10 +94,13 @@
     name: "{{ cluster_name }}"
   register: _cluster_info
 
+- debug:
+    var: _cluster_info
+
 - when:
     - rosa_sts | bool
     - _cluster_info.cluster.state == 'waiting'
-    - kms_key is not defined
+    - rosa_kms_key_arn is not defined
   block:
     - include_role:
         name: roles/operator_roles_create
@@ -122,13 +125,18 @@
       delay: 60
       no_log: true
 
+- name: get info about the cluster (KMS SECTION)
+  ocm_cluster_info:
+    name: "{{ cluster_name }}"
+  register: _cluster_info
+
 - when:
     - rosa_sts | bool
-    - _cluster_info.cluster.state == 'pending'
-    - kms_key is defined
-  block: #operator-role -> create kms policy.json -> create oidc-provider
+    - _cluster_info.cluster.state in ["pending","waiting"]
+    - rosa_kms_key_arn is defined
+  block: 
     - include_role:
-        name: roles/operator_roles_create
+        name: roles/operator_roles_create_kms
       vars:
         cluster_id: "{{ _cluster_info.cluster.id }}"
         oidc_endpoint_url: "{{ _cluster_info.cluster.aws.sts.oidc_endpoint_url }}"
@@ -138,10 +146,21 @@
     - debug:
         msg: |
           *******************************************
-          * Waiting for cluster to start installing *
+          * Waiting for cluster to start installing with BYOK KMS*
           *******************************************
 
-    - name: waiting for cluster to start installing
+    - name: DEBUGGING waiting for cluster to start installing with BYOK KMS
+      ocm_cluster_info:
+        name: "{{ cluster_name }}"
+      register: _cluster_info 
+
+    - debug:
+        var: _cluster_info
+
+    ### Create here the policy
+
+    ### Create then the oidc provider 
+    - name: waiting for cluster to start installing with BYOK KMS
       ocm_cluster_info:
         name: "{{ cluster_name }}"
       register: _cluster_info

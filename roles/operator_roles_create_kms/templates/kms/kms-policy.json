@@ -6,7 +6,7 @@
       "Sid": "Enable IAM User Permissions",
       "Effect": "Allow",
       "Principal": {
-        "AWS": "arn:aws:iam::${AWS_ACCOUNT}:root"
+        "AWS": "arn:aws:iam::{{ aws_account_id }}:root"
       },
       "Action": "kms:*",
       "Resource": "*"
@@ -16,11 +16,11 @@
       "Effect": "Allow",
       "Principal": {
         "AWS": [
-          "arn:aws:iam::${AWS_ACCOUNT}:role/ManagedOpenShift-Support-Role",
-          "arn:aws:iam::${AWS_ACCOUNT}:role/ManagedOpenShift-Installer-Role",
-          "arn:aws:iam::${AWS_ACCOUNT}:role/ManagedOpenShift-Worker-Role",
-          "arn:aws:iam::${AWS_ACCOUNT}:role/ManagedOpenShift-ControlPlane-Role",
-          "arn:aws:iam::${AWS_ACCOUNT}:role/${ROSA_CLUSTER_NAME}-openshift-cluster-csi-drivers-ebs-cloud-crede"
+          "arn:aws:iam::{{ aws_account_id }}:role/ManagedOpenShift-Support-Role",
+          "arn:aws:iam::{{ aws_account_id }}:role/ManagedOpenShift-Installer-Role",
+          "arn:aws:iam::{{ aws_account_id }}:role/ManagedOpenShift-Worker-Role",
+          "arn:aws:iam::{{ aws_account_id }}:role/ManagedOpenShift-ControlPlane-Role",
+          "{{ ebs_csi_arn }}"
         ]
       },
       "Action": [
@@ -37,11 +37,11 @@
       "Effect": "Allow",
       "Principal": {
         "AWS": [
-          "arn:aws:iam::${AWS_ACCOUNT}:role/ManagedOpenShift-Support-Role",
-          "arn:aws:iam::${AWS_ACCOUNT}:role/ManagedOpenShift-Installer-Role",
-          "arn:aws:iam::${AWS_ACCOUNT}:role/ManagedOpenShift-Worker-Role",
-          "arn:aws:iam::${AWS_ACCOUNT}:role/ManagedOpenShift-ControlPlane-Role",
-          "arn:aws:iam::${AWS_ACCOUNT}:role/${ROSA_CLUSTER_NAME}-openshift-cluster-csi-drivers-ebs-cloud-crede"
+          "arn:aws:iam::{{ aws_account_id }}:role/ManagedOpenShift-Support-Role",
+          "arn:aws:iam::{{ aws_account_id }}:role/ManagedOpenShift-Installer-Role",
+          "arn:aws:iam::{{ aws_account_id }}:role/ManagedOpenShift-Worker-Role",
+          "arn:aws:iam::{{ aws_account_id }}:role/ManagedOpenShift-ControlPlane-Role",
+          "{{ ebs_csi_arn }}"
         ]
       },
       "Action": ["kms:CreateGrant", "kms:ListGrants", "kms:RevokeGrant"],

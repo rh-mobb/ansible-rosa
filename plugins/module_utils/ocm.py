@@ -262,6 +262,9 @@ class OcmClusterModule(object):
                     role_arn = params['role_arn'],
                     support_role_arn = params['support_role_arn'],
                 ),
+
+                kms_key_arn=params['kms_key_arn'], #present in ocm-python aws.py. Added by vuberti@redhat.com
+                
                 account_id = params['aws_account_id'],
                 # audit_log
                 etcd_encryption = ocm_client.AwsEtcdEncryption(),
@@ -325,7 +328,7 @@ class OcmClusterModule(object):
                 channel_group = "stable",
             ),
 
-            kms_key_arn=params['kms_key_arn'], #present in ocm-python aws.py
+            
         )
 
         try:

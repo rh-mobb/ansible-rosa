@@ -2,11 +2,11 @@ cluster_name: ansible-rosa-pl
 
 rosa_private_link: true
 rosa_sts: true
-rosa_kms_key: "mykey"
+rosa_kms_key_arn: "arn:aws:kms:us-east-2:993908127962:key/d6de5939-d64b-4b4f-bb51-49969e2ba90a"
 
 # uncomment to pin to a version
 # rosa_version: 4.13.10
-rosa_region: us-west-2
+rosa_region: us-east-2
 rosa_vpc_cidr: "10.0.0.0/16"
 rosa_compute_machine_type: m5.xlarge
 
