@@ -1,3 +1,4 @@
+.vscode/*
 virtualenv/*
 tmp/*
 bin/*

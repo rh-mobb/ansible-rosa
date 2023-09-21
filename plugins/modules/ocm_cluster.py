@@ -119,6 +119,10 @@ options:
         description: wait for up to an hour until operation is complete
         required: false
         type: bool
+    kms_key:
+        description: kms key (BYOK)
+        required: false
+        type: str
     state:
         description: the action to take
         required: false
@@ -200,6 +204,7 @@ def run_module():
         worker_iam_role=dict(type='str', required=False),
         hosted_cp=dict(type=bool, required=False, default=False),
         oidc_config_id=dict(type=str, required=False)
+        kms_key=dict(type='str', required=False)
     )
 
     # seed the result dict in the object

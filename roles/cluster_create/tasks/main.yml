@@ -86,6 +86,7 @@
         controlplane_iam_role: "arn:aws:iam::{{ aws_account_id }}:role/{{ rosa_account_roles_prefix }}-ControlPlane-Role"
         worker_iam_role: "arn:aws:iam::{{ aws_account_id }}:role/{{ rosa_account_roles_prefix }}-Worker-Role"
         operator_roles_prefix: "{{ rosa_operator_roles_prefix | default(cluster_name) }}"
+        kms_key: "{{ rosa_kms_key | default(omit) }}"
       register: _rosa_cluster
 
 - name: get info about the cluster
@@ -96,6 +97,7 @@
 - when:
     - rosa_sts | bool
     - _cluster_info.cluster.state == 'waiting'
+    - kms_key is not defined
   block:
     - include_role:
         name: roles/operator_roles_create
@@ -119,6 +121,35 @@
       retries: 10
       delay: 60
       no_log: true
+
+- when:
+    - rosa_sts | bool
+    - _cluster_info.cluster.state == 'pending'
+    - kms_key is defined
+  block: #operator-role -> create kms policy.json -> create oidc-provider
+    - include_role:
+        name: roles/operator_roles_create
+      vars:
+        cluster_id: "{{ _cluster_info.cluster.id }}"
+        oidc_endpoint_url: "{{ _cluster_info.cluster.aws.sts.oidc_endpoint_url }}"
+        oidc_id: "{{ _oidc_id | default(omit) }}"
+      when: rosa_sts | bool
+
+    - debug:
+        msg: |
+          *******************************************
+          * Waiting for cluster to start installing *
+          *******************************************
+
+    - name: waiting for cluster to start installing
+      ocm_cluster_info:
+        name: "{{ cluster_name }}"
+      register: _cluster_info
+      until: _cluster_info.cluster.state in ["installing","error"]
+      retries: 10
+      delay: 60
+      no_log: true
+
 
 - when: rosa_wait | bool
   block:
