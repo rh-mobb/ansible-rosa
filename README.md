@@ -106,6 +106,19 @@ make create.tgw
 make delete.tgw
 ```
 
+### PrivateLink Cluster with BYOK (KMS)
+
+>See `./environment/private-link-kms/group_vars/all.yaml` for the example inventory used.
+
+Setting the variable 'rosa_kms_key_arn' to a kms arn, will execute the procedure found [here](https://mobb.ninja/docs/rosa/kms/)
+
+
+
+
+
+
+
+
 ## Other
 
 ### Deploy a Cluster with ansible in a docker image

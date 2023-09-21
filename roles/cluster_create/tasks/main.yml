@@ -130,6 +130,11 @@
     name: "{{ cluster_name }}"
   register: _cluster_info
 
+
+#
+# Create a cluster with BYOK KMS
+#
+
 - when:
     - rosa_sts | bool
     - _cluster_info.cluster.state in ["pending","waiting"]
@@ -145,19 +150,16 @@
 
     - debug:
         msg: |
-          *******************************************
-          * Waiting for cluster to start installing with BYOK KMS*
-          *******************************************
+          **********************************************************
+          * Waiting for cluster to start installing with BYOK KMS  *
+          **********************************************************
 
-    - name: DEBUGGING waiting for cluster to start installing with BYOK KMS
+    - name: waiting for cluster to start installing with BYOK KMS
       ocm_cluster_info:
         name: "{{ cluster_name }}"
       register: _cluster_info 
 
-    - debug:
-        var: _cluster_info
-
-    ### Create here the policy
+    
 
     ### Create then the oidc provider 
     - name: waiting for cluster to start installing with BYOK KMS

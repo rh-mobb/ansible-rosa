@@ -10,12 +10,6 @@
   register: _cluster_info
   no_log: true
 
-- debug:
-    msg: "printing cluster_info"
-
-- debug:
-    var: _cluster_info
-
 # oidc provider
 - name: get the cert chain from the host
   peer_cert_chain_info:
@@ -28,24 +22,14 @@
     _oidc_endpoint: "{{ oidc_endpoint_url.replace('https://', '') }}"
 
 
-#Create just the operator roles
-#rosa create operator-roles -c <cluster-name> --mode auto --yes
 
+#https://mobb.ninja/docs/rosa/kms/ 
+#Create just the operator roles
 
 - when: _cluster_type == 'classic'
   block:
     - with_items: "{{ operator_roles[_cluster_type] }}"
       include_tasks: roles.yml
-
-#Create the kms policy
-# _cluster_info.cluster.aws
-# KMS_ARN=$(aws kms create-key --region $AWS_REGION --description 'Custom ROSA Encryption Key' --query KeyMetadata.Arn --output text)
-# aws kms put-key-policy --key-id e3ea28d3-fbfe-4623-9618-3e741a68b65f --policy file://rosa-key-policy.json --policy-name default
-# needed vars:
-# - AWS_ACCOUNT = {{ aws_account_id }}
-# - 
-# - cluster-csi-drivers Principal (from _cluster_info??)
-# {{ ebs_csi_arn }}
 
     - set_fact:
         ebs_csi_arn: "{{ _cluster_info.cluster.aws.sts.operator_iam_roles | selectattr('name','match','ebs-cloud-credentials') | map(attribute='role_arn') | first }}"
@@ -53,21 +37,12 @@
     - set_fact:
         kms_key_id: "{{ rosa_kms_key_arn[-36:]  }}"
 
-    - name: Debuggin KMS Key
-      debug:
-        var: kms_key_id
-
-    - name: Debuggin EBS arn 
-      debug:
-        var: ebs_csi_arn
-
-    - name: Creating KMS policy
+    - name: Creating KMS policy template
       ansible.builtin.template:
         src: kms/kms-policy.json
         dest: /tmp/kms-policy.json
-    
-    
-    - name: Creating KMS policy in
+  
+    - name: Creating KMS policy in aws
       ansible.builtin.command: aws kms put-key-policy --key-id {{ kms_key_id }} --policy file:///tmp/kms-policy.json --policy-name default
       register: output
 
@@ -116,7 +91,4 @@
           --oidc-config-id "{{ oidc_id }}" \
           --installer-role-arn "arn:aws:iam::{{ aws_account_id }}:role/{{ rosa_account_roles_prefix }}-Installer-Role"
 
-# - name: create oidc endpoint for cluster
-#   command: "rosa create oidc-provider -c {{ _cluster_id }} --yes --mode auto"
 
-# - fail:

@@ -2,7 +2,7 @@ cluster_name: ansible-rosa-pl
 
 rosa_private_link: true
 rosa_sts: true
-rosa_kms_key_arn: "arn:aws:kms:us-east-2:993908127962:key/d6de5939-d64b-4b4f-bb51-49969e2ba90a"
+rosa_kms_key_arn: "" #arn:aws:kms:us-east-2:<redacted>:key/<redacted>
 
 # uncomment to pin to a version
 # rosa_version: 4.13.10
@@ -11,10 +11,7 @@ rosa_vpc_cidr: "10.0.0.0/16"
 rosa_compute_machine_type: m5.xlarge
 
 rosa_multi_az: true
-# jumphost_ami: ami-0ba62214afa52bec7
-# jumphost_ami: ami-07b1d7739c91ed3fc
-# jumphost_instance_type: t1.micro
+
 jumphost_instance_type: t2.micro
-# jumphost_instance_type: m4.large
 
 rosa_create_admin: true
