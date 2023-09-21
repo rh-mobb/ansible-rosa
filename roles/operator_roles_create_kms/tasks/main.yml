@@ -1,6 +1,7 @@
 ---
 - set_fact:
     _cluster_type: "{{ rosa_hosted_cp | ternary('hcp','classic') }}"
+  
 
 # tasks file for roles/operator-roles
 - name: check for cluster
@@ -47,10 +48,10 @@
 # {{ ebs_csi_arn }}
 
     - set_fact:
-        ebs_csi_arn: "{{ _cluster_info.cluster.aws.sts.operator_iam_role | selectattr('name','match','ebs-cloud-credentials') | map(attribute='role_arn') }}"
+        ebs_csi_arn: "{{ _cluster_info.cluster.aws.sts.operator_iam_roles | selectattr('name','match','ebs-cloud-credentials') | map(attribute='role_arn') | first }}"
 
     - set_fact:
-        kms_key_id: "{{ rosa_kms_key_arn[-37:]  }}"
+        kms_key_id: "{{ rosa_kms_key_arn[-36:]  }}"
 
     - name: Debuggin KMS Key
       debug:
@@ -65,8 +66,9 @@
         src: kms/kms-policy.json
         dest: /tmp/kms-policy.json
     
+    
     - name: Creating KMS policy in
-      ansible.builtin.command: aws kms put-key-policy --key-id {{ kms_key_id }} --policy file://tmp/kms-policy.json --policy-name default
+      ansible.builtin.command: aws kms put-key-policy --key-id {{ kms_key_id }} --policy file:///tmp/kms-policy.json --policy-name default
       register: output
 
      
