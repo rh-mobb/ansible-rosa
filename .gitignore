@@ -4,3 +4,4 @@ bin/*
 *.tgz
 *.gz
 *.swp
+*__pycache__*
