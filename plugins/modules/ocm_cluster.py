@@ -231,12 +231,6 @@ def run_module():
     name = module.params['name']
     cluster_id = ""
 
-    # correct the multi-az input for hosted control planes.  hosted control plane is 
-    # always considered multi-az because the control plane itself is multi-az.  the 
-    # machine pools are managed differently.
-    if module.params['hosted_cp']:
-        module.params['multi_az'] = True
-
     if module.params['state'] != 'absent':
         if not module.params['operator_roles_prefix']:
             prefix = ''.join(random.choices(string.ascii_lowercase +

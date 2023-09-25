@@ -245,6 +245,11 @@ class OcmClusterModule(object):
         )
         if not params['hosted_cp']:
             instance_iam_roles.master_role_arn = params['controlplane_iam_role']
+        else:
+            # correct the multi-az input for hosted control planes.  hosted control plane is 
+            # always considered multi-az because the control plane itself is multi-az.  the 
+            # machine pools are managed differently.
+            params['multi_az'] = True
         cluster = ocm_client.Cluster(
             api = api_visibility((params['private_link'] or params['private'])),
             aws = ocm_client.AWS(
