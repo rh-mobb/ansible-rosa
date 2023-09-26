@@ -138,8 +138,8 @@ def rosa_compute_nodes(params):
             return params['min_replicas']
     
     # return the generic compute node count if set
-    if 'compute_node_count' in params:
-        return params['compute_node_count']
+    if 'compute_nodes' in params:
+        return params['compute_nodes']
 
     # set defaults for multi-az versus single az
     if params['multi_az']:
