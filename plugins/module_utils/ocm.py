@@ -133,12 +133,12 @@ def rosa_creator_arn():
 def rosa_compute_nodes(params):
     # return the minimum count for autoscaling if it is set otherwise
     # default to a generic workflow
-    if 'enable_autoscaling' in params:
-        if 'min_replicas' in params:
+    if params['enable_autoscaling']:
+        if params['min_replicas']:
             return params['min_replicas']
     
     # return the generic compute node count if set
-    if 'compute_nodes' in params:
+    if params['compute_nodes']:
         return params['compute_nodes']
 
     # set defaults for multi-az versus single az
