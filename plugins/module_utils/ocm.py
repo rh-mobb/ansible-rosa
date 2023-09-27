@@ -130,13 +130,22 @@ def rosa_creator_arn():
     client = boto3.client("sts")
     return client.get_caller_identity()["Arn"]
 
-def rosa_compute_nodes(multi_az, count):
-    if count:
-        return count
-    if multi_az:
+def rosa_compute_nodes(params):
+    # return the minimum count for autoscaling if it is set otherwise
+    # default to a generic workflow
+    if params['enable_autoscaling']:
+        if params['min_replicas']:
+            return params['min_replicas']
+    
+    # return the generic compute node count if set
+    if params['compute_nodes']:
+        return params['compute_nodes']
+
+    # set defaults for multi-az versus single az
+    if params['multi_az']:
         return DEFAULT_COMPUTE_NODES_MULTI_AZ
-    else:
-        return DEFAULT_COMPUTE_NODES_SINGLE_AZ
+    
+    return DEFAULT_COMPUTE_NODES_SINGLE_AZ
 
 def getAvailibilityZoneForSubnets(subnet_ids, region):
     if type(subnet_ids) is str:
@@ -226,11 +235,6 @@ class OcmClusterModule(object):
         if err:
             return None, err
 
-        if not params['compute_nodes']:
-            if params['multi_az']:
-                params['compute_nodes'] = 3
-            else:
-                params['compute_nodes'] = 2
         additional_trust_bundle = None
         if params['additional_trust_bundle_file']:
             additional_trust_bundle = Path(params['additional_trust_bundle_file']).read_text()
@@ -245,6 +249,11 @@ class OcmClusterModule(object):
         )
         if not params['hosted_cp']:
             instance_iam_roles.master_role_arn = params['controlplane_iam_role']
+        else:
+            # correct the multi-az input for hosted control planes.  hosted control plane is 
+            # always considered multi-az because the control plane itself is multi-az.  the 
+            # machine pools are managed differently.
+            params['multi_az'] = True
         cluster = ocm_client.Cluster(
             api = api_visibility((params['private_link'] or params['private'])),
             aws = ocm_client.AWS(
@@ -294,7 +303,7 @@ class OcmClusterModule(object):
             # node_pools
             # TODO verify and build dynamically
             nodes = ocm_client.ClusterNodes(
-                compute = rosa_compute_nodes(params['multi_az'], params['compute_nodes']),
+                compute = int(rosa_compute_nodes(params)),
                 compute_machine_type = ocm_client.MachineType(
                     id = params['compute_machine_type'] or 'm5.xlarge'
                 ),
