@@ -3,6 +3,6 @@
   hosts: "{{ jumphost }}"
   gather_facts: false
   tasks:
-    - name: Import service-quotas role
+    - name: Import service_quotas role
       ansible.builtin.include_role:
-        name: service-quotas
+        name: service_quotas
