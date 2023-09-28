@@ -158,8 +158,8 @@ MIN_ROSA_VERSION = "1.2.23"
 from ansible.module_utils.basic import *
 from packaging import version as check_version
 from semver import parse as semver_parse
-from ansible.module_utils.ocm import OcmModule
-from ansible.module_utils.ocm import OcmClusterModule
+from ansible_collections.rh_mobb.rosa.plugins.module_utils.ocm import OcmModule
+from ansible_collections.rh_mobb.rosa.plugins.module_utils.ocm import OcmClusterModule
 from ocm_client.rest import ApiException
 import ocm_client
 import time

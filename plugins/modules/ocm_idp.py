@@ -100,9 +100,9 @@ type:
 '''
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.ocm import OcmModule
-from ansible.module_utils.ocm import OcmIdpModule
-from ansible.module_utils.ocm import OcmClusterModule
+from ansible_collections.rh_mobb.rosa.plugins.module_utils.ocm import OcmModule
+from ansible_collections.rh_mobb.rosa.plugins.module_utils.ocm import OcmIdpModule
+from ansible_collections.rh_mobb.rosa.plugins.module_utils.ocm import OcmClusterModule
 import ocm_client
 from ocm_client.rest import ApiException
 import os
