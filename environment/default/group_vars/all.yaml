@@ -16,3 +16,6 @@ rosa_region: us-east-1
 rosa_vpc_cidr: "10.0.0.0/16"
 rosa_compute_machine_type: m5.xlarge
 rosa_create_admin: true
+
+# uncomment to enable custom kms workflow
+# rosa_kms_key_arn: "" #arn:aws:kms:us-east-2:<redacted>:key/<redacted>

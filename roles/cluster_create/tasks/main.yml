@@ -94,21 +94,24 @@
     name: "{{ cluster_name }}"
   register: _cluster_info
 
-- debug:
-    var: _cluster_info
-
 - when:
     - rosa_sts | bool
     - _cluster_info.cluster.state == 'waiting'
-    - rosa_kms_key_arn is not defined
   block:
     - include_role:
-        name: roles/operator_roles_create
+        name: operator_roles_create
       vars:
         cluster_id: "{{ _cluster_info.cluster.id }}"
         oidc_endpoint_url: "{{ _cluster_info.cluster.aws.sts.oidc_endpoint_url }}"
         oidc_id: "{{ _oidc_id | default(omit) }}"
       when: rosa_sts | bool
+
+    - include_role:
+        name: kms_create
+      when:
+        - rosa_kms_key_arn != ""
+        - rosa_kms_key_arn != None
+        - rosa_sts | bool
 
     - debug:
         msg: |
@@ -124,53 +127,6 @@
       retries: 10
       delay: 60
       no_log: true
-
-- name: get info about the cluster (KMS SECTION)
-  ocm_cluster_info:
-    name: "{{ cluster_name }}"
-  register: _cluster_info
-
-
-#
-# Create a cluster with BYOK KMS
-#
-
-- when:
-    - rosa_sts | bool
-    - _cluster_info.cluster.state in ["pending","waiting"]
-    - rosa_kms_key_arn is defined
-  block: 
-    - include_role:
-        name: roles/operator_roles_create_kms
-      vars:
-        cluster_id: "{{ _cluster_info.cluster.id }}"
-        oidc_endpoint_url: "{{ _cluster_info.cluster.aws.sts.oidc_endpoint_url }}"
-        oidc_id: "{{ _oidc_id | default(omit) }}"
-      when: rosa_sts | bool
-
-    - debug:
-        msg: |
-          **********************************************************
-          * Waiting for cluster to start installing with BYOK KMS  *
-          **********************************************************
-
-    - name: waiting for cluster to start installing with BYOK KMS
-      ocm_cluster_info:
-        name: "{{ cluster_name }}"
-      register: _cluster_info 
-
-    
-
-    ### Create then the oidc provider 
-    - name: waiting for cluster to start installing with BYOK KMS
-      ocm_cluster_info:
-        name: "{{ cluster_name }}"
-      register: _cluster_info
-      until: _cluster_info.cluster.state in ["installing","error"]
-      retries: 10
-      delay: 60
-      no_log: true
-
 
 - when: rosa_wait | bool
   block:

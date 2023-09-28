@@ -88,3 +88,6 @@ rosa_egress_vpc_cidr: "10.10.0.0/24"
 #   - cidr: "10.10.0.16/28"
 #     az: "us-east-2a"
 #     resource_tags: { "Name":"{{ cluster_name }}-egress-private" }
+
+# use a custom kms key
+rosa_kms_key_arn: ""
