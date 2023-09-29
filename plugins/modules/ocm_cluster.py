@@ -46,10 +46,6 @@ options:
         description: Number of worker nodes to provision per zone. Single zone clusters need at least 2 nodes, multizone clusters need at least 3 nodes. (default 2)
         required: false
         type: int
-    enable_autoscaling:
-        description: region
-        required: false
-        type: bool
     min_replicas:
         description: Minimum number of compute nodes. (default 2)
         required: false
@@ -188,7 +184,6 @@ def run_module():
         additional_trust_bundle_file=dict(type='str', required=False),
         subnet_ids=dict(type='str', required=False),
         multi_az=dict(type='bool', required=False),
-        enable_autoscaling=dict(type='bool', required=False),
         private=dict(type='bool', required=False),
         private_link=dict(type='bool', required=False),
         sts=dict(type='bool', required=False),
