@@ -1,0 +1,1504 @@
+ansible-playbook [core 2.15.4]
+  config file = /home/vale/Projects/ansible-rosa/ansible.cfg
+  configured module search path = ['/home/vale/Projects/ansible-rosa/plugins/modules', '/home/vale/.ansible/plugins/modules', '/usr/share/ansible/plugins/modules']
+  ansible python module location = /home/vale/Projects/ansible-rosa/virtualenv/lib64/python3.11/site-packages/ansible
+  ansible collection location = /home/vale/.ansible/collections:/usr/share/ansible/collections
+  executable location = /home/vale/Projects/ansible-rosa/virtualenv/bin/ansible-playbook
+  python version = 3.11.4 (main, Jun  7 2023, 00:00:00) [GCC 13.1.1 20230511 (Red Hat 13.1.1-2)] (/home/vale/Projects/ansible-rosa/virtualenv/bin/python3)
+  jinja version = 3.0.3
+  libyaml = True
+Using /home/vale/Projects/ansible-rosa/ansible.cfg as config file
+redirecting (type: modules) ansible.builtin.aws_caller_info to amazon.aws.aws_caller_info
+redirecting (type: modules) ansible.builtin.aws_caller_info to amazon.aws.aws_caller_info
+redirecting (type: modules) ansible.builtin.ec2_transit_gateway to community.aws.ec2_transit_gateway
+redirecting (type: modules) ansible.builtin.aws_caller_info to amazon.aws.aws_caller_info
+redirecting (type: modules) ansible.builtin.aws_caller_info to amazon.aws.aws_caller_info
+redirecting (type: modules) ansible.builtin.ec2_vpc_net to amazon.aws.ec2_vpc_net
+redirecting (type: modules) ansible.builtin.ec2_vpc_subnet to amazon.aws.ec2_vpc_subnet
+redirecting (type: modules) ansible.builtin.ec2_vpc_subnet to amazon.aws.ec2_vpc_subnet
+redirecting (type: modules) ansible.builtin.ec2_vpc_igw to community.aws.ec2_vpc_igw
+redirecting (type: modules) community.aws.ec2_vpc_igw to amazon.aws.ec2_vpc_igw
+redirecting (type: modules) ansible.builtin.ec2_vpc_route_table to community.aws.ec2_vpc_route_table
+redirecting (type: modules) community.aws.ec2_vpc_route_table to amazon.aws.ec2_vpc_route_table
+redirecting (type: modules) ansible.builtin.ec2_vpc_route_table to community.aws.ec2_vpc_route_table
+redirecting (type: modules) community.aws.ec2_vpc_route_table to amazon.aws.ec2_vpc_route_table
+redirecting (type: modules) ansible.builtin.aws_caller_info to amazon.aws.aws_caller_info
+redirecting (type: modules) ansible.builtin.ec2_key to amazon.aws.ec2_key
+redirecting (type: modules) ansible.builtin.ec2_group to amazon.aws.ec2_group
+redirecting (type: modules) amazon.aws.ec2_group to amazon.aws.ec2_security_group
+redirecting (type: modules) ansible.builtin.ec2_ami_info to amazon.aws.ec2_ami_info
+redirecting (type: modules) ansible.builtin.ec2_instance to community.aws.ec2_instance
+redirecting (type: modules) community.aws.ec2_instance to amazon.aws.ec2_instance
+redirecting (type: modules) ansible.builtin.ec2_group to amazon.aws.ec2_group
+redirecting (type: modules) amazon.aws.ec2_group to amazon.aws.ec2_security_group
+redirecting (type: modules) ansible.builtin.ec2_instance to community.aws.ec2_instance
+redirecting (type: modules) community.aws.ec2_instance to amazon.aws.ec2_instance
+redirecting (type: modules) ansible.builtin.aws_caller_info to amazon.aws.aws_caller_info
+redirecting (type: modules) ansible.builtin.ec2_key to amazon.aws.ec2_key
+redirecting (type: modules) ansible.builtin.ec2_group to amazon.aws.ec2_group
+redirecting (type: modules) amazon.aws.ec2_group to amazon.aws.ec2_security_group
+redirecting (type: modules) ansible.builtin.ec2_ami_info to amazon.aws.ec2_ami_info
+redirecting (type: modules) ansible.builtin.ec2_instance to community.aws.ec2_instance
+redirecting (type: modules) community.aws.ec2_instance to amazon.aws.ec2_instance
+redirecting (type: modules) ansible.builtin.aws_caller_info to amazon.aws.aws_caller_info
+redirecting (type: modules) ansible.builtin.iam_role to community.aws.iam_role
+redirecting (type: modules) ansible.builtin.iam_policy to community.aws.iam_policy
+redirecting (type: modules) community.aws.iam_policy to amazon.aws.iam_policy
+redirecting (type: modules) ansible.builtin.iam_role to community.aws.iam_role
+redirecting (type: modules) ansible.builtin.iam_policy to community.aws.iam_policy
+redirecting (type: modules) community.aws.iam_policy to amazon.aws.iam_policy
+redirecting (type: modules) ansible.builtin.iam_role to community.aws.iam_role
+redirecting (type: modules) ansible.builtin.iam_policy to community.aws.iam_policy
+redirecting (type: modules) community.aws.iam_policy to amazon.aws.iam_policy
+redirecting (type: modules) ansible.builtin.iam_role to community.aws.iam_role
+redirecting (type: modules) ansible.builtin.iam_policy to community.aws.iam_policy
+redirecting (type: modules) community.aws.iam_policy to amazon.aws.iam_policy
+redirecting (type: modules) ansible.builtin.aws_caller_info to amazon.aws.aws_caller_info
+redirecting (type: modules) community.aws.route53_info to amazon.aws.route53_info
+redirecting (type: modules) ansible.builtin.aws_caller_info to amazon.aws.aws_caller_info
+redirecting (type: modules) ansible.builtin.aws_caller_info to amazon.aws.aws_caller_info
+redirecting (type: modules) ansible.builtin.ec2_instance_info to community.aws.ec2_instance_info
+redirecting (type: modules) community.aws.ec2_instance_info to amazon.aws.ec2_instance_info
+redirecting (type: callback) ansible.builtin.yaml to community.general.yaml
+redirecting (type: callback) ansible.builtin.yaml to community.general.yaml
+Skipping callback 'default', as we already have a stdout callback.
+Skipping callback 'minimal', as we already have a stdout callback.
+Skipping callback 'oneline', as we already have a stdout callback.
+
+PLAYBOOK: create-cluster.yaml **************************************************
+1 plays in create-cluster.yaml
+
+PLAY [all] *********************************************************************
+
+TASK [Gathering Facts] *********************************************************
+task path: /home/vale/Projects/ansible-rosa/create-cluster.yaml:2
+ok: [localhost]
+
+TASK [roles/_vars : include_tasks] *********************************************
+task path: /home/vale/Projects/ansible-rosa/roles/_vars/tasks/main.yml:3
+included: /home/vale/Projects/ansible-rosa/roles/_vars/tasks/validate.yml for localhost
+redirecting (type: modules) ansible.builtin.aws_caller_info to amazon.aws.aws_caller_info
+redirecting (type: modules) ansible.builtin.aws_caller_info to amazon.aws.aws_caller_info
+
+TASK [roles/_vars : get aws caller info for accountid] *************************
+task path: /home/vale/Projects/ansible-rosa/roles/_vars/tasks/main.yml:9
+ok: [localhost] => changed=false 
+  account: '976249332110'
+  account_alias: sandbox1799-gpte
+  arn: arn:aws:iam::976249332110:user/vuberti@redhat.com-mbkbf-admin
+  user_id: AIDA6GTH6UGHOIIHKUTOT
+
+TASK [roles/_vars : set_fact] **************************************************
+task path: /home/vale/Projects/ansible-rosa/roles/_vars/tasks/main.yml:13
+ok: [localhost] => changed=false 
+  ansible_facts:
+    aws_account_id: '976249332110'
+
+TASK [roles/network_math : include_tasks] **************************************
+task path: /home/vale/Projects/ansible-rosa/roles/network_math/tasks/main.yml:1
+included: /home/vale/Projects/ansible-rosa/roles/network_math/tasks/rosa_vpc.yml for localhost
+
+TASK [roles/network_math : set_fact] *******************************************
+task path: /home/vale/Projects/ansible-rosa/roles/network_math/tasks/rosa_vpc.yml:3
+ok: [localhost] => changed=false 
+  ansible_facts:
+    _cidr: '22'
+
+TASK [roles/network_math : set_fact] *******************************************
+task path: /home/vale/Projects/ansible-rosa/roles/network_math/tasks/rosa_vpc.yml:5
+ok: [localhost] => changed=false 
+  ansible_facts:
+    rosa_vpc_public_subnets:
+    - az: us-east-2a
+      cidr: 10.0.0.0/22
+      resource_tags:
+        Name: ansible-rosa-pl-public
+    - az: us-east-2b
+      cidr: 10.0.4.0/22
+      resource_tags:
+        Name: ansible-rosa-pl-public
+    - az: us-east-2c
+      cidr: 10.0.8.0/22
+      resource_tags:
+        Name: ansible-rosa-pl-public
+
+TASK [roles/network_math : set_fact] *******************************************
+task path: /home/vale/Projects/ansible-rosa/roles/network_math/tasks/rosa_vpc.yml:17
+ok: [localhost] => changed=false 
+  ansible_facts:
+    rosa_vpc_private_subnets:
+    - az: us-east-2a
+      cidr: 10.0.12.0/22
+      resource_tags:
+        Name: ansible-rosa-pl-private
+    - az: us-east-2b
+      cidr: 10.0.16.0/22
+      resource_tags:
+        Name: ansible-rosa-pl-private
+    - az: us-east-2c
+      cidr: 10.0.20.0/22
+      resource_tags:
+        Name: ansible-rosa-pl-private
+redirecting (type: modules) ansible.builtin.ec2_vpc_net to amazon.aws.ec2_vpc_net
+redirecting (type: modules) ansible.builtin.ec2_vpc_net to amazon.aws.ec2_vpc_net
+
+TASK [roles/vpc_create : create a vpc] *****************************************
+task path: /home/vale/Projects/ansible-rosa/roles/vpc_create/tasks/main.yml:2
+ok: [localhost] => changed=false 
+  vpc:
+    cidr_block: 10.0.0.0/16
+    cidr_block_association_set:
+    - association_id: vpc-cidr-assoc-0471dba9bfe2e19f1
+      cidr_block: 10.0.0.0/16
+      cidr_block_state:
+        state: associated
+    dhcp_options_id: dopt-0edb39eeaa648a513
+    id: vpc-04b06a145067515e0
+    instance_tenancy: default
+    is_default: false
+    name: rosa-ansible-rosa-pl
+    owner_id: '976249332110'
+    state: available
+    tags:
+      Name: rosa-ansible-rosa-pl
+
+TASK [roles/vpc_create : set_fact] *********************************************
+task path: /home/vale/Projects/ansible-rosa/roles/vpc_create/tasks/main.yml:11
+ok: [localhost] => changed=false 
+  ansible_facts:
+    cluster_id: tbd
+    vpc_id: vpc-04b06a145067515e0
+redirecting (type: modules) ansible.builtin.ec2_vpc_subnet to amazon.aws.ec2_vpc_subnet
+redirecting (type: modules) ansible.builtin.ec2_vpc_subnet to amazon.aws.ec2_vpc_subnet
+
+TASK [roles/vpc_create : create private subnets] *******************************
+task path: /home/vale/Projects/ansible-rosa/roles/vpc_create/tasks/main.yml:15
+ok: [localhost] => (item={'cidr': '10.0.12.0/22', 'az': 'us-east-2a', 'resource_tags': {'Name': 'ansible-rosa-pl-private'}}) => changed=false 
+  ansible_loop_var: item
+  item:
+    az: us-east-2a
+    cidr: 10.0.12.0/22
+    resource_tags:
+      Name: ansible-rosa-pl-private
+  subnet:
+    assign_ipv6_address_on_creation: false
+    availability_zone: us-east-2a
+    availability_zone_id: use2-az1
+    available_ip_address_count: 1019
+    cidr_block: 10.0.12.0/22
+    default_for_az: false
+    enable_dns64: false
+    id: subnet-09bd64f2940e301ec
+    ipv6_association_id: ''
+    ipv6_cidr_block: ''
+    ipv6_cidr_block_association_set: []
+    ipv6_native: false
+    map_customer_owned_ip_on_launch: false
+    map_public_ip_on_launch: false
+    owner_id: '976249332110'
+    private_dns_name_options_on_launch:
+      enable_resource_name_dns_a_record: false
+      enable_resource_name_dns_aaaa_record: false
+      hostname_type: ip-name
+    state: available
+    subnet_arn: arn:aws:ec2:us-east-2:976249332110:subnet/subnet-09bd64f2940e301ec
+    tags:
+      Name: ansible-rosa-pl-private
+    vpc_id: vpc-04b06a145067515e0
+redirecting (type: modules) ansible.builtin.ec2_vpc_subnet to amazon.aws.ec2_vpc_subnet
+redirecting (type: modules) ansible.builtin.ec2_vpc_subnet to amazon.aws.ec2_vpc_subnet
+ok: [localhost] => (item={'cidr': '10.0.16.0/22', 'az': 'us-east-2b', 'resource_tags': {'Name': 'ansible-rosa-pl-private'}}) => changed=false 
+  ansible_loop_var: item
+  item:
+    az: us-east-2b
+    cidr: 10.0.16.0/22
+    resource_tags:
+      Name: ansible-rosa-pl-private
+  subnet:
+    assign_ipv6_address_on_creation: false
+    availability_zone: us-east-2b
+    availability_zone_id: use2-az2
+    available_ip_address_count: 1019
+    cidr_block: 10.0.16.0/22
+    default_for_az: false
+    enable_dns64: false
+    id: subnet-07ad125e5df062e17
+    ipv6_association_id: ''
+    ipv6_cidr_block: ''
+    ipv6_cidr_block_association_set: []
+    ipv6_native: false
+    map_customer_owned_ip_on_launch: false
+    map_public_ip_on_launch: false
+    owner_id: '976249332110'
+    private_dns_name_options_on_launch:
+      enable_resource_name_dns_a_record: false
+      enable_resource_name_dns_aaaa_record: false
+      hostname_type: ip-name
+    state: available
+    subnet_arn: arn:aws:ec2:us-east-2:976249332110:subnet/subnet-07ad125e5df062e17
+    tags:
+      Name: ansible-rosa-pl-private
+    vpc_id: vpc-04b06a145067515e0
+redirecting (type: modules) ansible.builtin.ec2_vpc_subnet to amazon.aws.ec2_vpc_subnet
+redirecting (type: modules) ansible.builtin.ec2_vpc_subnet to amazon.aws.ec2_vpc_subnet
+ok: [localhost] => (item={'cidr': '10.0.20.0/22', 'az': 'us-east-2c', 'resource_tags': {'Name': 'ansible-rosa-pl-private'}}) => changed=false 
+  ansible_loop_var: item
+  item:
+    az: us-east-2c
+    cidr: 10.0.20.0/22
+    resource_tags:
+      Name: ansible-rosa-pl-private
+  subnet:
+    assign_ipv6_address_on_creation: false
+    availability_zone: us-east-2c
+    availability_zone_id: use2-az3
+    available_ip_address_count: 1019
+    cidr_block: 10.0.20.0/22
+    default_for_az: false
+    enable_dns64: false
+    id: subnet-0aa2538d5b2250447
+    ipv6_association_id: ''
+    ipv6_cidr_block: ''
+    ipv6_cidr_block_association_set: []
+    ipv6_native: false
+    map_customer_owned_ip_on_launch: false
+    map_public_ip_on_launch: false
+    owner_id: '976249332110'
+    private_dns_name_options_on_launch:
+      enable_resource_name_dns_a_record: false
+      enable_resource_name_dns_aaaa_record: false
+      hostname_type: ip-name
+    state: available
+    subnet_arn: arn:aws:ec2:us-east-2:976249332110:subnet/subnet-0aa2538d5b2250447
+    tags:
+      Name: ansible-rosa-pl-private
+    vpc_id: vpc-04b06a145067515e0
+redirecting (type: modules) ansible.builtin.ec2_vpc_subnet to amazon.aws.ec2_vpc_subnet
+redirecting (type: modules) ansible.builtin.ec2_vpc_subnet to amazon.aws.ec2_vpc_subnet
+
+TASK [roles/vpc_create : create public subnets] ********************************
+task path: /home/vale/Projects/ansible-rosa/roles/vpc_create/tasks/main.yml:26
+ok: [localhost] => (item={'cidr': '10.0.0.0/22', 'az': 'us-east-2a', 'resource_tags': {'Name': 'ansible-rosa-pl-public'}}) => changed=false 
+  ansible_loop_var: item
+  item:
+    az: us-east-2a
+    cidr: 10.0.0.0/22
+    resource_tags:
+      Name: ansible-rosa-pl-public
+  subnet:
+    assign_ipv6_address_on_creation: false
+    availability_zone: us-east-2a
+    availability_zone_id: use2-az1
+    available_ip_address_count: 1017
+    cidr_block: 10.0.0.0/22
+    default_for_az: false
+    enable_dns64: false
+    id: subnet-005b8fa377c1a4e23
+    ipv6_association_id: ''
+    ipv6_cidr_block: ''
+    ipv6_cidr_block_association_set: []
+    ipv6_native: false
+    map_customer_owned_ip_on_launch: false
+    map_public_ip_on_launch: false
+    owner_id: '976249332110'
+    private_dns_name_options_on_launch:
+      enable_resource_name_dns_a_record: false
+      enable_resource_name_dns_aaaa_record: false
+      hostname_type: ip-name
+    state: available
+    subnet_arn: arn:aws:ec2:us-east-2:976249332110:subnet/subnet-005b8fa377c1a4e23
+    tags:
+      Name: ansible-rosa-pl-public
+    vpc_id: vpc-04b06a145067515e0
+redirecting (type: modules) ansible.builtin.ec2_vpc_subnet to amazon.aws.ec2_vpc_subnet
+redirecting (type: modules) ansible.builtin.ec2_vpc_subnet to amazon.aws.ec2_vpc_subnet
+ok: [localhost] => (item={'cidr': '10.0.4.0/22', 'az': 'us-east-2b', 'resource_tags': {'Name': 'ansible-rosa-pl-public'}}) => changed=false 
+  ansible_loop_var: item
+  item:
+    az: us-east-2b
+    cidr: 10.0.4.0/22
+    resource_tags:
+      Name: ansible-rosa-pl-public
+  subnet:
+    assign_ipv6_address_on_creation: false
+    availability_zone: us-east-2b
+    availability_zone_id: use2-az2
+    available_ip_address_count: 1018
+    cidr_block: 10.0.4.0/22
+    default_for_az: false
+    enable_dns64: false
+    id: subnet-00d931268d698bc4b
+    ipv6_association_id: ''
+    ipv6_cidr_block: ''
+    ipv6_cidr_block_association_set: []
+    ipv6_native: false
+    map_customer_owned_ip_on_launch: false
+    map_public_ip_on_launch: false
+    owner_id: '976249332110'
+    private_dns_name_options_on_launch:
+      enable_resource_name_dns_a_record: false
+      enable_resource_name_dns_aaaa_record: false
+      hostname_type: ip-name
+    state: available
+    subnet_arn: arn:aws:ec2:us-east-2:976249332110:subnet/subnet-00d931268d698bc4b
+    tags:
+      Name: ansible-rosa-pl-public
+    vpc_id: vpc-04b06a145067515e0
+redirecting (type: modules) ansible.builtin.ec2_vpc_subnet to amazon.aws.ec2_vpc_subnet
+redirecting (type: modules) ansible.builtin.ec2_vpc_subnet to amazon.aws.ec2_vpc_subnet
+ok: [localhost] => (item={'cidr': '10.0.8.0/22', 'az': 'us-east-2c', 'resource_tags': {'Name': 'ansible-rosa-pl-public'}}) => changed=false 
+  ansible_loop_var: item
+  item:
+    az: us-east-2c
+    cidr: 10.0.8.0/22
+    resource_tags:
+      Name: ansible-rosa-pl-public
+  subnet:
+    assign_ipv6_address_on_creation: false
+    availability_zone: us-east-2c
+    availability_zone_id: use2-az3
+    available_ip_address_count: 1018
+    cidr_block: 10.0.8.0/22
+    default_for_az: false
+    enable_dns64: false
+    id: subnet-08df1aec3eb3b26f0
+    ipv6_association_id: ''
+    ipv6_cidr_block: ''
+    ipv6_cidr_block_association_set: []
+    ipv6_native: false
+    map_customer_owned_ip_on_launch: false
+    map_public_ip_on_launch: false
+    owner_id: '976249332110'
+    private_dns_name_options_on_launch:
+      enable_resource_name_dns_a_record: false
+      enable_resource_name_dns_aaaa_record: false
+      hostname_type: ip-name
+    state: available
+    subnet_arn: arn:aws:ec2:us-east-2:976249332110:subnet/subnet-08df1aec3eb3b26f0
+    tags:
+      Name: ansible-rosa-pl-public
+    vpc_id: vpc-04b06a145067515e0
+
+TASK [roles/vpc_create : figure out list of subnets] ***************************
+task path: /home/vale/Projects/ansible-rosa/roles/vpc_create/tasks/main.yml:37
+ok: [localhost] => changed=false 
+  ansible_facts:
+    _private_subnet_ids:
+    - subnet-09bd64f2940e301ec
+    - subnet-07ad125e5df062e17
+    - subnet-0aa2538d5b2250447
+    _public_subnet_ids:
+    - subnet-005b8fa377c1a4e23
+    - subnet-00d931268d698bc4b
+    - subnet-08df1aec3eb3b26f0
+redirecting (type: modules) ansible.builtin.ec2_vpc_igw to community.aws.ec2_vpc_igw
+redirecting (type: modules) community.aws.ec2_vpc_igw to amazon.aws.ec2_vpc_igw
+redirecting (type: modules) ansible.builtin.ec2_vpc_igw to community.aws.ec2_vpc_igw
+redirecting (type: modules) community.aws.ec2_vpc_igw to amazon.aws.ec2_vpc_igw
+
+TASK [roles/vpc_create : create internet gateway] ******************************
+task path: /home/vale/Projects/ansible-rosa/roles/vpc_create/tasks/main.yml:56
+ok: [localhost] => changed=false 
+  gateway_id: igw-014337a352f638184
+  tags: {}
+  vpc_id: vpc-04b06a145067515e0
+redirecting (type: modules) ansible.builtin.ec2_vpc_route_table to community.aws.ec2_vpc_route_table
+redirecting (type: modules) community.aws.ec2_vpc_route_table to amazon.aws.ec2_vpc_route_table
+redirecting (type: modules) ansible.builtin.ec2_vpc_route_table to community.aws.ec2_vpc_route_table
+redirecting (type: modules) community.aws.ec2_vpc_route_table to amazon.aws.ec2_vpc_route_table
+
+TASK [roles/vpc_create : create public subnet route table] *********************
+task path: /home/vale/Projects/ansible-rosa/roles/vpc_create/tasks/main.yml:65
+ok: [localhost] => changed=false 
+  route_table:
+    associations:
+    - association_state:
+        state: associated
+      main: false
+      route_table_association_id: rtbassoc-07bf9b089cdd61962
+      route_table_id: rtb-03f184988b50919b3
+      subnet_id: subnet-08df1aec3eb3b26f0
+    - association_state:
+        state: associated
+      main: false
+      route_table_association_id: rtbassoc-09eb2cf517042c05a
+      route_table_id: rtb-03f184988b50919b3
+      subnet_id: subnet-005b8fa377c1a4e23
+    - association_state:
+        state: associated
+      main: false
+      route_table_association_id: rtbassoc-027db626fb2e7747c
+      route_table_id: rtb-03f184988b50919b3
+      subnet_id: subnet-00d931268d698bc4b
+    id: rtb-03f184988b50919b3
+    owner_id: '976249332110'
+    propagating_vgws: []
+    route_table_id: rtb-03f184988b50919b3
+    routes:
+    - destination_cidr_block: 10.0.0.0/16
+      gateway_id: local
+      origin: CreateRouteTable
+      state: active
+    - destination_cidr_block: 0.0.0.0/0
+      gateway_id: igw-014337a352f638184
+      origin: CreateRoute
+      state: active
+    tags:
+      Name: public-route-table
+    vpc_id: vpc-04b06a145067515e0
+
+TASK [roles/vpc_create : include_tasks] ****************************************
+task path: /home/vale/Projects/ansible-rosa/roles/vpc_create/tasks/main.yml:77
+redirecting (type: modules) ansible.builtin.ec2_vpc_nat_gateway to community.aws.ec2_vpc_nat_gateway
+redirecting (type: modules) community.aws.ec2_vpc_nat_gateway to amazon.aws.ec2_vpc_nat_gateway
+redirecting (type: modules) ansible.builtin.ec2_vpc_route_table to community.aws.ec2_vpc_route_table
+redirecting (type: modules) community.aws.ec2_vpc_route_table to amazon.aws.ec2_vpc_route_table
+included: /home/vale/Projects/ansible-rosa/roles/vpc_create/tasks/nat_gateway_routes.yml for localhost => (item={'changed': False, 'subnet': {'availability_zone': 'us-east-2a', 'availability_zone_id': 'use2-az1', 'available_ip_address_count': 1017, 'cidr_block': '10.0.0.0/22', 'default_for_az': False, 'map_public_ip_on_launch': False, 'map_customer_owned_ip_on_launch': False, 'state': 'available', 'vpc_id': 'vpc-04b06a145067515e0', 'owner_id': '976249332110', 'assign_ipv6_address_on_creation': False, 'ipv6_cidr_block_association_set': [], 'tags': {'Name': 'ansible-rosa-pl-public'}, 'subnet_arn': 'arn:aws:ec2:us-east-2:976249332110:subnet/subnet-005b8fa377c1a4e23', 'enable_dns64': False, 'ipv6_native': False, 'private_dns_name_options_on_launch': {'hostname_type': 'ip-name', 'enable_resource_name_dns_a_record': False, 'enable_resource_name_dns_aaaa_record': False}, 'id': 'subnet-005b8fa377c1a4e23', 'ipv6_cidr_block': '', 'ipv6_association_id': ''}, 'invocation': {'module_args': {'region': 'us-east-2', 'vpc_id': 'vpc-04b06a145067515e0', 'cidr': '10.0.0.0/22', 'az': 'us-east-2a', 'purge_tags': False, 'resource_tags': {'Name': 'ansible-rosa-pl-public'}, 'tags': {'Name': 'ansible-rosa-pl-public'}, 'validate_certs': True, 'debug_botocore_endpoint_logs': False, 'ipv6_cidr': '', 'outpost_arn': '', 'state': 'present', 'map_public': False, 'assign_instances_ipv6': False, 'wait': True, 'wait_timeout': 300, 'access_key': None, 'secret_key': None, 'session_token': None, 'profile': None, 'endpoint_url': None, 'aws_ca_bundle': None, 'aws_config': None}}, 'failed': False, 'item': {'cidr': '10.0.0.0/22', 'az': 'us-east-2a', 'resource_tags': {'Name': 'ansible-rosa-pl-public'}}, 'ansible_loop_var': 'item'})
+redirecting (type: modules) ansible.builtin.ec2_vpc_nat_gateway to community.aws.ec2_vpc_nat_gateway
+redirecting (type: modules) community.aws.ec2_vpc_nat_gateway to amazon.aws.ec2_vpc_nat_gateway
+redirecting (type: modules) ansible.builtin.ec2_vpc_route_table to community.aws.ec2_vpc_route_table
+redirecting (type: modules) community.aws.ec2_vpc_route_table to amazon.aws.ec2_vpc_route_table
+included: /home/vale/Projects/ansible-rosa/roles/vpc_create/tasks/nat_gateway_routes.yml for localhost => (item={'changed': False, 'subnet': {'availability_zone': 'us-east-2b', 'availability_zone_id': 'use2-az2', 'available_ip_address_count': 1018, 'cidr_block': '10.0.4.0/22', 'default_for_az': False, 'map_public_ip_on_launch': False, 'map_customer_owned_ip_on_launch': False, 'state': 'available', 'vpc_id': 'vpc-04b06a145067515e0', 'owner_id': '976249332110', 'assign_ipv6_address_on_creation': False, 'ipv6_cidr_block_association_set': [], 'tags': {'Name': 'ansible-rosa-pl-public'}, 'subnet_arn': 'arn:aws:ec2:us-east-2:976249332110:subnet/subnet-00d931268d698bc4b', 'enable_dns64': False, 'ipv6_native': False, 'private_dns_name_options_on_launch': {'hostname_type': 'ip-name', 'enable_resource_name_dns_a_record': False, 'enable_resource_name_dns_aaaa_record': False}, 'id': 'subnet-00d931268d698bc4b', 'ipv6_cidr_block': '', 'ipv6_association_id': ''}, 'invocation': {'module_args': {'region': 'us-east-2', 'vpc_id': 'vpc-04b06a145067515e0', 'cidr': '10.0.4.0/22', 'az': 'us-east-2b', 'purge_tags': False, 'resource_tags': {'Name': 'ansible-rosa-pl-public'}, 'tags': {'Name': 'ansible-rosa-pl-public'}, 'validate_certs': True, 'debug_botocore_endpoint_logs': False, 'ipv6_cidr': '', 'outpost_arn': '', 'state': 'present', 'map_public': False, 'assign_instances_ipv6': False, 'wait': True, 'wait_timeout': 300, 'access_key': None, 'secret_key': None, 'session_token': None, 'profile': None, 'endpoint_url': None, 'aws_ca_bundle': None, 'aws_config': None}}, 'failed': False, 'item': {'cidr': '10.0.4.0/22', 'az': 'us-east-2b', 'resource_tags': {'Name': 'ansible-rosa-pl-public'}}, 'ansible_loop_var': 'item'})
+redirecting (type: modules) ansible.builtin.ec2_vpc_nat_gateway to community.aws.ec2_vpc_nat_gateway
+redirecting (type: modules) community.aws.ec2_vpc_nat_gateway to amazon.aws.ec2_vpc_nat_gateway
+redirecting (type: modules) ansible.builtin.ec2_vpc_route_table to community.aws.ec2_vpc_route_table
+redirecting (type: modules) community.aws.ec2_vpc_route_table to amazon.aws.ec2_vpc_route_table
+included: /home/vale/Projects/ansible-rosa/roles/vpc_create/tasks/nat_gateway_routes.yml for localhost => (item={'changed': False, 'subnet': {'availability_zone': 'us-east-2c', 'availability_zone_id': 'use2-az3', 'available_ip_address_count': 1018, 'cidr_block': '10.0.8.0/22', 'default_for_az': False, 'map_public_ip_on_launch': False, 'map_customer_owned_ip_on_launch': False, 'state': 'available', 'vpc_id': 'vpc-04b06a145067515e0', 'owner_id': '976249332110', 'assign_ipv6_address_on_creation': False, 'ipv6_cidr_block_association_set': [], 'tags': {'Name': 'ansible-rosa-pl-public'}, 'subnet_arn': 'arn:aws:ec2:us-east-2:976249332110:subnet/subnet-08df1aec3eb3b26f0', 'enable_dns64': False, 'ipv6_native': False, 'private_dns_name_options_on_launch': {'hostname_type': 'ip-name', 'enable_resource_name_dns_a_record': False, 'enable_resource_name_dns_aaaa_record': False}, 'id': 'subnet-08df1aec3eb3b26f0', 'ipv6_cidr_block': '', 'ipv6_association_id': ''}, 'invocation': {'module_args': {'region': 'us-east-2', 'vpc_id': 'vpc-04b06a145067515e0', 'cidr': '10.0.8.0/22', 'az': 'us-east-2c', 'purge_tags': False, 'resource_tags': {'Name': 'ansible-rosa-pl-public'}, 'tags': {'Name': 'ansible-rosa-pl-public'}, 'validate_certs': True, 'debug_botocore_endpoint_logs': False, 'ipv6_cidr': '', 'outpost_arn': '', 'state': 'present', 'map_public': False, 'assign_instances_ipv6': False, 'wait': True, 'wait_timeout': 300, 'access_key': None, 'secret_key': None, 'session_token': None, 'profile': None, 'endpoint_url': None, 'aws_ca_bundle': None, 'aws_config': None}}, 'failed': False, 'item': {'cidr': '10.0.8.0/22', 'az': 'us-east-2c', 'resource_tags': {'Name': 'ansible-rosa-pl-public'}}, 'ansible_loop_var': 'item'})
+redirecting (type: modules) ansible.builtin.ec2_vpc_nat_gateway to community.aws.ec2_vpc_nat_gateway
+redirecting (type: modules) community.aws.ec2_vpc_nat_gateway to amazon.aws.ec2_vpc_nat_gateway
+redirecting (type: modules) ansible.builtin.ec2_vpc_nat_gateway to community.aws.ec2_vpc_nat_gateway
+redirecting (type: modules) community.aws.ec2_vpc_nat_gateway to amazon.aws.ec2_vpc_nat_gateway
+
+TASK [roles/vpc_create : create nat gateway per public subnet (az)] ************
+task path: /home/vale/Projects/ansible-rosa/roles/vpc_create/tasks/nat_gateway_routes.yml:9
+ok: [localhost] => changed=false 
+  connectivity_type: public
+  create_time: '2023-09-29T08:13:44+00:00'
+  msg: NAT Gateway nat-0eea4e5539754cbd4 already exists in subnet_id subnet-005b8fa377c1a4e23
+  nat_gateway_addresses:
+  - allocation_id: eipalloc-0f256d045778ce049
+    association_id: eipassoc-02a6e0be5551522c5
+    is_primary: true
+    network_interface_id: eni-0cd9dc348b366a1a8
+    private_ip: 10.0.0.167
+    public_ip: 3.20.15.234
+    status: succeeded
+  nat_gateway_id: nat-0eea4e5539754cbd4
+  state: available
+  subnet_id: subnet-005b8fa377c1a4e23
+  tags: {}
+  vpc_id: vpc-04b06a145067515e0
+redirecting (type: modules) ansible.builtin.ec2_vpc_route_table to community.aws.ec2_vpc_route_table
+redirecting (type: modules) community.aws.ec2_vpc_route_table to amazon.aws.ec2_vpc_route_table
+redirecting (type: modules) ansible.builtin.ec2_vpc_route_table to community.aws.ec2_vpc_route_table
+redirecting (type: modules) community.aws.ec2_vpc_route_table to amazon.aws.ec2_vpc_route_table
+
+TASK [roles/vpc_create : create private subnet route table] ********************
+task path: /home/vale/Projects/ansible-rosa/roles/vpc_create/tasks/nat_gateway_routes.yml:21
+ok: [localhost] => (item={'changed': False, 'subnet': {'availability_zone': 'us-east-2a', 'availability_zone_id': 'use2-az1', 'available_ip_address_count': 1019, 'cidr_block': '10.0.12.0/22', 'default_for_az': False, 'map_public_ip_on_launch': False, 'map_customer_owned_ip_on_launch': False, 'state': 'available', 'vpc_id': 'vpc-04b06a145067515e0', 'owner_id': '976249332110', 'assign_ipv6_address_on_creation': False, 'ipv6_cidr_block_association_set': [], 'tags': {'Name': 'ansible-rosa-pl-private'}, 'subnet_arn': 'arn:aws:ec2:us-east-2:976249332110:subnet/subnet-09bd64f2940e301ec', 'enable_dns64': False, 'ipv6_native': False, 'private_dns_name_options_on_launch': {'hostname_type': 'ip-name', 'enable_resource_name_dns_a_record': False, 'enable_resource_name_dns_aaaa_record': False}, 'id': 'subnet-09bd64f2940e301ec', 'ipv6_cidr_block': '', 'ipv6_association_id': ''}, 'invocation': {'module_args': {'region': 'us-east-2', 'vpc_id': 'vpc-04b06a145067515e0', 'cidr': '10.0.12.0/22', 'az': 'us-east-2a', 'purge_tags': False, 'resource_tags': {'Name': 'ansible-rosa-pl-private'}, 'tags': {'Name': 'ansible-rosa-pl-private'}, 'validate_certs': True, 'debug_botocore_endpoint_logs': False, 'ipv6_cidr': '', 'outpost_arn': '', 'state': 'present', 'map_public': False, 'assign_instances_ipv6': False, 'wait': True, 'wait_timeout': 300, 'access_key': None, 'secret_key': None, 'session_token': None, 'profile': None, 'endpoint_url': None, 'aws_ca_bundle': None, 'aws_config': None}}, 'failed': False, 'item': {'cidr': '10.0.12.0/22', 'az': 'us-east-2a', 'resource_tags': {'Name': 'ansible-rosa-pl-private'}}, 'ansible_loop_var': 'item'}) => changed=false 
+  ansible_loop_var: item
+  item:
+    ansible_loop_var: item
+    changed: false
+    failed: false
+    invocation:
+      module_args:
+        access_key: null
+        assign_instances_ipv6: false
+        aws_ca_bundle: null
+        aws_config: null
+        az: us-east-2a
+        cidr: 10.0.12.0/22
+        debug_botocore_endpoint_logs: false
+        endpoint_url: null
+        ipv6_cidr: ''
+        map_public: false
+        outpost_arn: ''
+        profile: null
+        purge_tags: false
+        region: us-east-2
+        resource_tags:
+          Name: ansible-rosa-pl-private
+        secret_key: null
+        session_token: null
+        state: present
+        tags:
+          Name: ansible-rosa-pl-private
+        validate_certs: true
+        vpc_id: vpc-04b06a145067515e0
+        wait: true
+        wait_timeout: 300
+    item:
+      az: us-east-2a
+      cidr: 10.0.12.0/22
+      resource_tags:
+        Name: ansible-rosa-pl-private
+    subnet:
+      assign_ipv6_address_on_creation: false
+      availability_zone: us-east-2a
+      availability_zone_id: use2-az1
+      available_ip_address_count: 1019
+      cidr_block: 10.0.12.0/22
+      default_for_az: false
+      enable_dns64: false
+      id: subnet-09bd64f2940e301ec
+      ipv6_association_id: ''
+      ipv6_cidr_block: ''
+      ipv6_cidr_block_association_set: []
+      ipv6_native: false
+      map_customer_owned_ip_on_launch: false
+      map_public_ip_on_launch: false
+      owner_id: '976249332110'
+      private_dns_name_options_on_launch:
+        enable_resource_name_dns_a_record: false
+        enable_resource_name_dns_aaaa_record: false
+        hostname_type: ip-name
+      state: available
+      subnet_arn: arn:aws:ec2:us-east-2:976249332110:subnet/subnet-09bd64f2940e301ec
+      tags:
+        Name: ansible-rosa-pl-private
+      vpc_id: vpc-04b06a145067515e0
+  route_table:
+    associations:
+    - association_state:
+        state: associated
+      main: false
+      route_table_association_id: rtbassoc-071f64a1416a7e63e
+      route_table_id: rtb-046d80e565682ed89
+      subnet_id: subnet-09bd64f2940e301ec
+    id: rtb-046d80e565682ed89
+    owner_id: '976249332110'
+    propagating_vgws: []
+    route_table_id: rtb-046d80e565682ed89
+    routes:
+    - destination_cidr_block: 10.0.0.0/16
+      gateway_id: local
+      origin: CreateRouteTable
+      state: active
+    - destination_cidr_block: 0.0.0.0/0
+      nat_gateway_id: nat-0eea4e5539754cbd4
+      origin: CreateRoute
+      state: active
+    tags:
+      Name: rosa-private-nat-subnet-09bd64f2940e301ec
+    vpc_id: vpc-04b06a145067515e0
+redirecting (type: modules) ansible.builtin.ec2_vpc_nat_gateway to community.aws.ec2_vpc_nat_gateway
+redirecting (type: modules) community.aws.ec2_vpc_nat_gateway to amazon.aws.ec2_vpc_nat_gateway
+redirecting (type: modules) ansible.builtin.ec2_vpc_nat_gateway to community.aws.ec2_vpc_nat_gateway
+redirecting (type: modules) community.aws.ec2_vpc_nat_gateway to amazon.aws.ec2_vpc_nat_gateway
+
+TASK [roles/vpc_create : create nat gateway per public subnet (az)] ************
+task path: /home/vale/Projects/ansible-rosa/roles/vpc_create/tasks/nat_gateway_routes.yml:9
+ok: [localhost] => changed=false 
+  connectivity_type: public
+  create_time: '2023-09-29T08:15:35+00:00'
+  msg: NAT Gateway nat-034e6d0a7ff8a99a8 already exists in subnet_id subnet-00d931268d698bc4b
+  nat_gateway_addresses:
+  - allocation_id: eipalloc-03297a8cf3ba2bb09
+    association_id: eipassoc-07c244134fc68a738
+    is_primary: true
+    network_interface_id: eni-0ae44bada1cb4841b
+    private_ip: 10.0.7.101
+    public_ip: 3.137.130.159
+    status: succeeded
+  nat_gateway_id: nat-034e6d0a7ff8a99a8
+  state: available
+  subnet_id: subnet-00d931268d698bc4b
+  tags: {}
+  vpc_id: vpc-04b06a145067515e0
+redirecting (type: modules) ansible.builtin.ec2_vpc_route_table to community.aws.ec2_vpc_route_table
+redirecting (type: modules) community.aws.ec2_vpc_route_table to amazon.aws.ec2_vpc_route_table
+redirecting (type: modules) ansible.builtin.ec2_vpc_route_table to community.aws.ec2_vpc_route_table
+redirecting (type: modules) community.aws.ec2_vpc_route_table to amazon.aws.ec2_vpc_route_table
+
+TASK [roles/vpc_create : create private subnet route table] ********************
+task path: /home/vale/Projects/ansible-rosa/roles/vpc_create/tasks/nat_gateway_routes.yml:21
+ok: [localhost] => (item={'changed': False, 'subnet': {'availability_zone': 'us-east-2b', 'availability_zone_id': 'use2-az2', 'available_ip_address_count': 1019, 'cidr_block': '10.0.16.0/22', 'default_for_az': False, 'map_public_ip_on_launch': False, 'map_customer_owned_ip_on_launch': False, 'state': 'available', 'vpc_id': 'vpc-04b06a145067515e0', 'owner_id': '976249332110', 'assign_ipv6_address_on_creation': False, 'ipv6_cidr_block_association_set': [], 'tags': {'Name': 'ansible-rosa-pl-private'}, 'subnet_arn': 'arn:aws:ec2:us-east-2:976249332110:subnet/subnet-07ad125e5df062e17', 'enable_dns64': False, 'ipv6_native': False, 'private_dns_name_options_on_launch': {'hostname_type': 'ip-name', 'enable_resource_name_dns_a_record': False, 'enable_resource_name_dns_aaaa_record': False}, 'id': 'subnet-07ad125e5df062e17', 'ipv6_cidr_block': '', 'ipv6_association_id': ''}, 'invocation': {'module_args': {'region': 'us-east-2', 'vpc_id': 'vpc-04b06a145067515e0', 'cidr': '10.0.16.0/22', 'az': 'us-east-2b', 'purge_tags': False, 'resource_tags': {'Name': 'ansible-rosa-pl-private'}, 'tags': {'Name': 'ansible-rosa-pl-private'}, 'validate_certs': True, 'debug_botocore_endpoint_logs': False, 'ipv6_cidr': '', 'outpost_arn': '', 'state': 'present', 'map_public': False, 'assign_instances_ipv6': False, 'wait': True, 'wait_timeout': 300, 'access_key': None, 'secret_key': None, 'session_token': None, 'profile': None, 'endpoint_url': None, 'aws_ca_bundle': None, 'aws_config': None}}, 'failed': False, 'item': {'cidr': '10.0.16.0/22', 'az': 'us-east-2b', 'resource_tags': {'Name': 'ansible-rosa-pl-private'}}, 'ansible_loop_var': 'item'}) => changed=false 
+  ansible_loop_var: item
+  item:
+    ansible_loop_var: item
+    changed: false
+    failed: false
+    invocation:
+      module_args:
+        access_key: null
+        assign_instances_ipv6: false
+        aws_ca_bundle: null
+        aws_config: null
+        az: us-east-2b
+        cidr: 10.0.16.0/22
+        debug_botocore_endpoint_logs: false
+        endpoint_url: null
+        ipv6_cidr: ''
+        map_public: false
+        outpost_arn: ''
+        profile: null
+        purge_tags: false
+        region: us-east-2
+        resource_tags:
+          Name: ansible-rosa-pl-private
+        secret_key: null
+        session_token: null
+        state: present
+        tags:
+          Name: ansible-rosa-pl-private
+        validate_certs: true
+        vpc_id: vpc-04b06a145067515e0
+        wait: true
+        wait_timeout: 300
+    item:
+      az: us-east-2b
+      cidr: 10.0.16.0/22
+      resource_tags:
+        Name: ansible-rosa-pl-private
+    subnet:
+      assign_ipv6_address_on_creation: false
+      availability_zone: us-east-2b
+      availability_zone_id: use2-az2
+      available_ip_address_count: 1019
+      cidr_block: 10.0.16.0/22
+      default_for_az: false
+      enable_dns64: false
+      id: subnet-07ad125e5df062e17
+      ipv6_association_id: ''
+      ipv6_cidr_block: ''
+      ipv6_cidr_block_association_set: []
+      ipv6_native: false
+      map_customer_owned_ip_on_launch: false
+      map_public_ip_on_launch: false
+      owner_id: '976249332110'
+      private_dns_name_options_on_launch:
+        enable_resource_name_dns_a_record: false
+        enable_resource_name_dns_aaaa_record: false
+        hostname_type: ip-name
+      state: available
+      subnet_arn: arn:aws:ec2:us-east-2:976249332110:subnet/subnet-07ad125e5df062e17
+      tags:
+        Name: ansible-rosa-pl-private
+      vpc_id: vpc-04b06a145067515e0
+  route_table:
+    associations:
+    - association_state:
+        state: associated
+      main: false
+      route_table_association_id: rtbassoc-0d5388c6fd42d6c18
+      route_table_id: rtb-0a2abbe6cc94d147e
+      subnet_id: subnet-07ad125e5df062e17
+    id: rtb-0a2abbe6cc94d147e
+    owner_id: '976249332110'
+    propagating_vgws: []
+    route_table_id: rtb-0a2abbe6cc94d147e
+    routes:
+    - destination_cidr_block: 10.0.0.0/16
+      gateway_id: local
+      origin: CreateRouteTable
+      state: active
+    - destination_cidr_block: 0.0.0.0/0
+      nat_gateway_id: nat-034e6d0a7ff8a99a8
+      origin: CreateRoute
+      state: active
+    tags:
+      Name: rosa-private-nat-subnet-07ad125e5df062e17
+    vpc_id: vpc-04b06a145067515e0
+redirecting (type: modules) ansible.builtin.ec2_vpc_nat_gateway to community.aws.ec2_vpc_nat_gateway
+redirecting (type: modules) community.aws.ec2_vpc_nat_gateway to amazon.aws.ec2_vpc_nat_gateway
+redirecting (type: modules) ansible.builtin.ec2_vpc_nat_gateway to community.aws.ec2_vpc_nat_gateway
+redirecting (type: modules) community.aws.ec2_vpc_nat_gateway to amazon.aws.ec2_vpc_nat_gateway
+
+TASK [roles/vpc_create : create nat gateway per public subnet (az)] ************
+task path: /home/vale/Projects/ansible-rosa/roles/vpc_create/tasks/nat_gateway_routes.yml:9
+ok: [localhost] => changed=false 
+  connectivity_type: public
+  create_time: '2023-09-29T08:17:51+00:00'
+  msg: NAT Gateway nat-08b95d86c12a09028 already exists in subnet_id subnet-08df1aec3eb3b26f0
+  nat_gateway_addresses:
+  - allocation_id: eipalloc-021766fa99c42937d
+    association_id: eipassoc-0e0e9d7e9fcf67b00
+    is_primary: true
+    network_interface_id: eni-091a1d383893107af
+    private_ip: 10.0.8.47
+    public_ip: 3.136.215.28
+    status: succeeded
+  nat_gateway_id: nat-08b95d86c12a09028
+  state: available
+  subnet_id: subnet-08df1aec3eb3b26f0
+  tags: {}
+  vpc_id: vpc-04b06a145067515e0
+redirecting (type: modules) ansible.builtin.ec2_vpc_route_table to community.aws.ec2_vpc_route_table
+redirecting (type: modules) community.aws.ec2_vpc_route_table to amazon.aws.ec2_vpc_route_table
+redirecting (type: modules) ansible.builtin.ec2_vpc_route_table to community.aws.ec2_vpc_route_table
+redirecting (type: modules) community.aws.ec2_vpc_route_table to amazon.aws.ec2_vpc_route_table
+
+TASK [roles/vpc_create : create private subnet route table] ********************
+task path: /home/vale/Projects/ansible-rosa/roles/vpc_create/tasks/nat_gateway_routes.yml:21
+ok: [localhost] => (item={'changed': False, 'subnet': {'availability_zone': 'us-east-2c', 'availability_zone_id': 'use2-az3', 'available_ip_address_count': 1019, 'cidr_block': '10.0.20.0/22', 'default_for_az': False, 'map_public_ip_on_launch': False, 'map_customer_owned_ip_on_launch': False, 'state': 'available', 'vpc_id': 'vpc-04b06a145067515e0', 'owner_id': '976249332110', 'assign_ipv6_address_on_creation': False, 'ipv6_cidr_block_association_set': [], 'tags': {'Name': 'ansible-rosa-pl-private'}, 'subnet_arn': 'arn:aws:ec2:us-east-2:976249332110:subnet/subnet-0aa2538d5b2250447', 'enable_dns64': False, 'ipv6_native': False, 'private_dns_name_options_on_launch': {'hostname_type': 'ip-name', 'enable_resource_name_dns_a_record': False, 'enable_resource_name_dns_aaaa_record': False}, 'id': 'subnet-0aa2538d5b2250447', 'ipv6_cidr_block': '', 'ipv6_association_id': ''}, 'invocation': {'module_args': {'region': 'us-east-2', 'vpc_id': 'vpc-04b06a145067515e0', 'cidr': '10.0.20.0/22', 'az': 'us-east-2c', 'purge_tags': False, 'resource_tags': {'Name': 'ansible-rosa-pl-private'}, 'tags': {'Name': 'ansible-rosa-pl-private'}, 'validate_certs': True, 'debug_botocore_endpoint_logs': False, 'ipv6_cidr': '', 'outpost_arn': '', 'state': 'present', 'map_public': False, 'assign_instances_ipv6': False, 'wait': True, 'wait_timeout': 300, 'access_key': None, 'secret_key': None, 'session_token': None, 'profile': None, 'endpoint_url': None, 'aws_ca_bundle': None, 'aws_config': None}}, 'failed': False, 'item': {'cidr': '10.0.20.0/22', 'az': 'us-east-2c', 'resource_tags': {'Name': 'ansible-rosa-pl-private'}}, 'ansible_loop_var': 'item'}) => changed=false 
+  ansible_loop_var: item
+  item:
+    ansible_loop_var: item
+    changed: false
+    failed: false
+    invocation:
+      module_args:
+        access_key: null
+        assign_instances_ipv6: false
+        aws_ca_bundle: null
+        aws_config: null
+        az: us-east-2c
+        cidr: 10.0.20.0/22
+        debug_botocore_endpoint_logs: false
+        endpoint_url: null
+        ipv6_cidr: ''
+        map_public: false
+        outpost_arn: ''
+        profile: null
+        purge_tags: false
+        region: us-east-2
+        resource_tags:
+          Name: ansible-rosa-pl-private
+        secret_key: null
+        session_token: null
+        state: present
+        tags:
+          Name: ansible-rosa-pl-private
+        validate_certs: true
+        vpc_id: vpc-04b06a145067515e0
+        wait: true
+        wait_timeout: 300
+    item:
+      az: us-east-2c
+      cidr: 10.0.20.0/22
+      resource_tags:
+        Name: ansible-rosa-pl-private
+    subnet:
+      assign_ipv6_address_on_creation: false
+      availability_zone: us-east-2c
+      availability_zone_id: use2-az3
+      available_ip_address_count: 1019
+      cidr_block: 10.0.20.0/22
+      default_for_az: false
+      enable_dns64: false
+      id: subnet-0aa2538d5b2250447
+      ipv6_association_id: ''
+      ipv6_cidr_block: ''
+      ipv6_cidr_block_association_set: []
+      ipv6_native: false
+      map_customer_owned_ip_on_launch: false
+      map_public_ip_on_launch: false
+      owner_id: '976249332110'
+      private_dns_name_options_on_launch:
+        enable_resource_name_dns_a_record: false
+        enable_resource_name_dns_aaaa_record: false
+        hostname_type: ip-name
+      state: available
+      subnet_arn: arn:aws:ec2:us-east-2:976249332110:subnet/subnet-0aa2538d5b2250447
+      tags:
+        Name: ansible-rosa-pl-private
+      vpc_id: vpc-04b06a145067515e0
+  route_table:
+    associations:
+    - association_state:
+        state: associated
+      main: false
+      route_table_association_id: rtbassoc-070074f2e2c7d4f6e
+      route_table_id: rtb-0bfdec3f92d55409a
+      subnet_id: subnet-0aa2538d5b2250447
+    id: rtb-0bfdec3f92d55409a
+    owner_id: '976249332110'
+    propagating_vgws: []
+    route_table_id: rtb-0bfdec3f92d55409a
+    routes:
+    - destination_cidr_block: 10.0.0.0/16
+      gateway_id: local
+      origin: CreateRouteTable
+      state: active
+    - destination_cidr_block: 0.0.0.0/0
+      nat_gateway_id: nat-08b95d86c12a09028
+      origin: CreateRoute
+      state: active
+    tags:
+      Name: rosa-private-nat-subnet-0aa2538d5b2250447
+    vpc_id: vpc-04b06a145067515e0
+
+TASK [roles/jumphost_create : make sure we have a subnet to use no egress vpc] ***
+task path: /home/vale/Projects/ansible-rosa/roles/jumphost_create/tasks/main.yml:12
+ok: [localhost] => changed=false 
+  ansible_facts:
+    jumphost_subnet_id: subnet-005b8fa377c1a4e23
+    jumphost_vpc_id: vpc-04b06a145067515e0
+redirecting (type: modules) ansible.builtin.ec2_key to amazon.aws.ec2_key
+redirecting (type: modules) ansible.builtin.ec2_key to amazon.aws.ec2_key
+
+TASK [roles/jumphost_create : create ssh key pair] *****************************
+task path: /home/vale/Projects/ansible-rosa/roles/jumphost_create/tasks/main.yml:20
+ok: [localhost] => changed=false 
+  key:
+    fingerprint: 5b:4b:05:08:06:23:b6:37:f0:d9:b5:a2:ed:8d:f5:a7
+    id: key-066f6b241314f45e6
+    name: ROSA-ansible-rosa-pl-jumphost
+    tags: {}
+    type: rsa
+  msg: key pair already exists
+redirecting (type: modules) ansible.builtin.ec2_group to amazon.aws.ec2_group
+redirecting (type: modules) amazon.aws.ec2_group to amazon.aws.ec2_security_group
+redirecting (type: modules) ansible.builtin.ec2_group to amazon.aws.ec2_group
+redirecting (type: modules) amazon.aws.ec2_group to amazon.aws.ec2_security_group
+
+TASK [roles/jumphost_create : create ssh security group] ***********************
+task path: /home/vale/Projects/ansible-rosa/roles/jumphost_create/tasks/main.yml:26
+ok: [localhost] => changed=false 
+  description: security group for SSH
+  group_id: sg-01554ae517b681120
+  group_name: ROSA-ansible-rosa-pl-jumphost-ssh
+  ip_permissions:
+  - ip_protocol: '-1'
+    ip_ranges:
+    - cidr_ip: 10.0.0.0/8
+      description: allow all local
+    ipv6_ranges: []
+    prefix_list_ids: []
+    user_id_group_pairs: []
+  - from_port: 22
+    ip_protocol: tcp
+    ip_ranges:
+    - cidr_ip: 0.0.0.0/0
+      description: allow ssh
+    ipv6_ranges: []
+    prefix_list_ids: []
+    to_port: 22
+    user_id_group_pairs: []
+  ip_permissions_egress:
+  - ip_protocol: '-1'
+    ip_ranges:
+    - cidr_ip: 0.0.0.0/0
+    ipv6_ranges: []
+    prefix_list_ids: []
+    user_id_group_pairs: []
+  owner_id: '976249332110'
+  tags: {}
+  vpc_id: vpc-04b06a145067515e0
+redirecting (type: modules) ansible.builtin.ec2_ami_info to amazon.aws.ec2_ami_info
+redirecting (type: modules) ansible.builtin.ec2_ami_info to amazon.aws.ec2_ami_info
+
+TASK [roles/jumphost_create : determine ami image for jumphost_ami_name] *******
+task path: /home/vale/Projects/ansible-rosa/roles/jumphost_create/tasks/main.yml:45
+ok: [localhost] => changed=false 
+  images:
+  - architecture: x86_64
+    block_device_mappings:
+    - device_name: /dev/sda1
+      ebs:
+        delete_on_termination: true
+        encrypted: false
+        snapshot_id: snap-00076763432b27786
+        volume_size: 10
+        volume_type: gp2
+    creation_date: '2023-05-10T15:41:47.000Z'
+    deprecation_time: '2025-05-10T15:41:47.000Z'
+    description: Provided by Red Hat, Inc.
+    ena_support: true
+    hypervisor: xen
+    image_id: ami-0aa311f5004442a57
+    image_location: amazon/RHEL-8.8.0_HVM-20230503-x86_64-54-Hourly2-GP2
+    image_owner_alias: amazon
+    image_type: machine
+    name: RHEL-8.8.0_HVM-20230503-x86_64-54-Hourly2-GP2
+    owner_id: '309956199498'
+    platform_details: Red Hat Enterprise Linux
+    public: true
+    root_device_name: /dev/sda1
+    root_device_type: ebs
+    sriov_net_support: simple
+    state: available
+    tags: {}
+    usage_operation: RunInstances:0010
+    virtualization_type: hvm
+  - architecture: x86_64
+    block_device_mappings:
+    - device_name: /dev/sda1
+      ebs:
+        delete_on_termination: true
+        encrypted: false
+        snapshot_id: snap-06878c859901a556d
+        volume_size: 10
+        volume_type: gp2
+    creation_date: '2023-06-26T20:09:35.000Z'
+    deprecation_time: '2025-06-26T20:09:35.000Z'
+    description: Provided by Red Hat, Inc.
+    ena_support: true
+    hypervisor: xen
+    image_id: ami-0b530377951178d6b
+    image_location: amazon/RHEL-8.8.0_HVM-20230623-x86_64-3-Hourly2-GP2
+    image_owner_alias: amazon
+    image_type: machine
+    name: RHEL-8.8.0_HVM-20230623-x86_64-3-Hourly2-GP2
+    owner_id: '309956199498'
+    platform_details: Red Hat Enterprise Linux
+    public: true
+    root_device_name: /dev/sda1
+    root_device_type: ebs
+    sriov_net_support: simple
+    state: available
+    tags: {}
+    usage_operation: RunInstances:0010
+    virtualization_type: hvm
+  - architecture: x86_64
+    block_device_mappings:
+    - device_name: /dev/sda1
+      ebs:
+        delete_on_termination: true
+        encrypted: false
+        snapshot_id: snap-08113e5c927a3523f
+        volume_size: 10
+        volume_type: gp2
+    creation_date: '2023-08-07T18:53:49.000Z'
+    deprecation_time: '2025-08-07T18:53:49.000Z'
+    description: Provided by Red Hat, Inc.
+    ena_support: true
+    hypervisor: xen
+    image_id: ami-04617ae0baf90b791
+    image_location: amazon/RHEL-8.8.0_HVM-20230802-x86_64-64-Hourly2-GP2
+    image_owner_alias: amazon
+    image_type: machine
+    name: RHEL-8.8.0_HVM-20230802-x86_64-64-Hourly2-GP2
+    owner_id: '309956199498'
+    platform_details: Red Hat Enterprise Linux
+    public: true
+    root_device_name: /dev/sda1
+    root_device_type: ebs
+    sriov_net_support: simple
+    state: available
+    tags: {}
+    usage_operation: RunInstances:0010
+    virtualization_type: hvm
+  - architecture: x86_64
+    block_device_mappings:
+    - device_name: /dev/sda1
+      ebs:
+        delete_on_termination: true
+        encrypted: false
+        snapshot_id: snap-09d9b5befefa20f34
+        volume_size: 10
+        volume_type: gp2
+    creation_date: '2023-09-14T18:40:27.000Z'
+    deprecation_time: '2025-09-14T18:40:27.000Z'
+    description: Provided by Red Hat, Inc.
+    ena_support: true
+    hypervisor: xen
+    image_id: ami-08dcb4ebbc71a3c8e
+    image_location: amazon/RHEL-8.8.0_HVM-20230913-x86_64-4-Hourly2-GP2
+    image_owner_alias: amazon
+    image_type: machine
+    name: RHEL-8.8.0_HVM-20230913-x86_64-4-Hourly2-GP2
+    owner_id: '309956199498'
+    platform_details: Red Hat Enterprise Linux
+    public: true
+    root_device_name: /dev/sda1
+    root_device_type: ebs
+    sriov_net_support: simple
+    state: available
+    tags: {}
+    usage_operation: RunInstances:0010
+    virtualization_type: hvm
+
+TASK [roles/jumphost_create : set_fact] ****************************************
+task path: /home/vale/Projects/ansible-rosa/roles/jumphost_create/tasks/main.yml:53
+ok: [localhost] => changed=false 
+  ansible_facts:
+    jumphost_ami: ami-0aa311f5004442a57
+redirecting (type: modules) ansible.builtin.ec2_instance to community.aws.ec2_instance
+redirecting (type: modules) community.aws.ec2_instance to amazon.aws.ec2_instance
+redirecting (type: modules) ansible.builtin.ec2_instance to community.aws.ec2_instance
+redirecting (type: modules) community.aws.ec2_instance to amazon.aws.ec2_instance
+
+TASK [roles/jumphost_create : start jumphost instance] *************************
+task path: /home/vale/Projects/ansible-rosa/roles/jumphost_create/tasks/main.yml:57
+ok: [localhost] => changed=false 
+  changes: []
+  instance_ids:
+  - i-0557c82aa9b9a07df
+  instances:
+  - ami_launch_index: 0
+    architecture: x86_64
+    block_device_mappings:
+    - device_name: /dev/sda1
+      ebs:
+        attach_time: '2023-09-29T08:19:54+00:00'
+        delete_on_termination: true
+        status: attached
+        volume_id: vol-0e31cd0758d554499
+    capacity_reservation_specification:
+      capacity_reservation_preference: open
+    client_token: 6bf2947d46dc4e8185b443e32ba840a9
+    cpu_options:
+      core_count: 1
+      threads_per_core: 1
+    current_instance_boot_mode: legacy-bios
+    ebs_optimized: false
+    ena_support: true
+    enclave_options:
+      enabled: false
+    hibernation_options:
+      configured: false
+    hypervisor: xen
+    image_id: ami-0aa311f5004442a57
+    instance_id: i-0557c82aa9b9a07df
+    instance_type: t2.micro
+    key_name: ROSA-ansible-rosa-pl-jumphost
+    launch_time: '2023-09-29T08:19:53+00:00'
+    maintenance_options:
+      auto_recovery: default
+    metadata_options:
+      http_endpoint: enabled
+      http_protocol_ipv6: disabled
+      http_put_response_hop_limit: 1
+      http_tokens: optional
+      instance_metadata_tags: disabled
+      state: applied
+    monitoring:
+      state: disabled
+    network_interfaces:
+    - association:
+        ip_owner_id: amazon
+        public_dns_name: ec2-18-217-166-34.us-east-2.compute.amazonaws.com
+        public_ip: 18.217.166.34
+      attachment:
+        attach_time: '2023-09-29T08:19:53+00:00'
+        attachment_id: eni-attach-047a336aabba74979
+        delete_on_termination: true
+        device_index: 0
+        network_card_index: 0
+        status: attached
+      description: ''
+      groups:
+      - group_id: sg-01554ae517b681120
+        group_name: ROSA-ansible-rosa-pl-jumphost-ssh
+      interface_type: interface
+      ipv6_addresses: []
+      mac_address: 02:42:c6:58:df:bb
+      network_interface_id: eni-0dd57c37bf6cce061
+      owner_id: '976249332110'
+      private_dns_name: ip-10-0-2-171.us-east-2.compute.internal
+      private_ip_address: 10.0.2.171
+      private_ip_addresses:
+      - association:
+          ip_owner_id: amazon
+          public_dns_name: ec2-18-217-166-34.us-east-2.compute.amazonaws.com
+          public_ip: 18.217.166.34
+        primary: true
+        private_dns_name: ip-10-0-2-171.us-east-2.compute.internal
+        private_ip_address: 10.0.2.171
+      source_dest_check: true
+      status: in-use
+      subnet_id: subnet-005b8fa377c1a4e23
+      vpc_id: vpc-04b06a145067515e0
+    placement:
+      availability_zone: us-east-2a
+      group_name: ''
+      tenancy: default
+    platform_details: Red Hat Enterprise Linux
+    private_dns_name: ip-10-0-2-171.us-east-2.compute.internal
+    private_dns_name_options:
+      enable_resource_name_dns_a_record: false
+      enable_resource_name_dns_aaaa_record: false
+      hostname_type: ip-name
+    private_ip_address: 10.0.2.171
+    product_codes: []
+    public_dns_name: ec2-18-217-166-34.us-east-2.compute.amazonaws.com
+    public_ip_address: 18.217.166.34
+    root_device_name: /dev/sda1
+    root_device_type: ebs
+    security_groups:
+    - group_id: sg-01554ae517b681120
+      group_name: ROSA-ansible-rosa-pl-jumphost-ssh
+    source_dest_check: true
+    state:
+      code: 16
+      name: running
+    state_transition_reason: ''
+    subnet_id: subnet-005b8fa377c1a4e23
+    tags:
+      Name: ROSA-ansible-rosa-pl-jumphost
+    usage_operation: RunInstances:0010
+    usage_operation_update_time: '2023-09-29T08:19:53+00:00'
+    virtualization_type: hvm
+    vpc_id: vpc-04b06a145067515e0
+redirecting (type: modules) ansible.builtin.iam_role to community.aws.iam_role
+redirecting (type: modules) ansible.builtin.iam_role to community.aws.iam_role
+
+TASK [roles/account_roles_create : create support role] ************************
+task path: /home/vale/Projects/ansible-rosa/roles/account_roles_create/tasks/main.yml:4
+ok: [localhost] => changed=false 
+  arn: arn:aws:iam::976249332110:role/AnsibleROSA-Support-Role
+  assume_role_policy_document:
+    statement:
+    - action: sts:AssumeRole
+      effect: Allow
+      principal:
+        aws: arn:aws:iam::710019948333:role/RH-Technical-Support-Access
+    version: '2012-10-17'
+  assume_role_policy_document_raw:
+    Statement:
+    - Action: sts:AssumeRole
+      Effect: Allow
+      Principal:
+        AWS: arn:aws:iam::710019948333:role/RH-Technical-Support-Access
+    Version: '2012-10-17'
+  attached_policies: []
+  create_date: '2023-09-29T07:10:36+00:00'
+  gid: 0
+  group: root
+  iam_role:
+    arn: arn:aws:iam::976249332110:role/AnsibleROSA-Support-Role
+    assume_role_policy_document:
+      statement:
+      - action: sts:AssumeRole
+        effect: Allow
+        principal:
+          aws: arn:aws:iam::710019948333:role/RH-Technical-Support-Access
+      version: '2012-10-17'
+    assume_role_policy_document_raw:
+      Statement:
+      - Action: sts:AssumeRole
+        Effect: Allow
+        Principal:
+          AWS: arn:aws:iam::710019948333:role/RH-Technical-Support-Access
+      Version: '2012-10-17'
+    attached_policies: []
+    create_date: '2023-09-29T07:10:36+00:00'
+    max_session_duration: 3600
+    path: /
+    role_id: AROA6GTH6UGHEH4UQ3UDU
+    role_last_used: {}
+    role_name: AnsibleROSA-Support-Role
+    tags:
+      red-hat-managed: 'True'
+      rosa_openshift_version: '4.13'
+      rosa_role_prefix: AnsibleROSA
+      rosa_role_type: support
+  max_session_duration: 3600
+  mode: '0555'
+  owner: root
+  path: /
+  role_id: AROA6GTH6UGHEH4UQ3UDU
+  role_last_used: {}
+  role_name: AnsibleROSA-Support-Role
+  secontext: system_u:object_r:root_t:s0
+  size: 178
+  state: directory
+  tags:
+    red-hat-managed: 'True'
+    rosa_openshift_version: '4.13'
+    rosa_role_prefix: AnsibleROSA
+    rosa_role_type: support
+  uid: 0
+redirecting (type: modules) ansible.builtin.iam_policy to community.aws.iam_policy
+redirecting (type: modules) community.aws.iam_policy to amazon.aws.iam_policy
+redirecting (type: modules) ansible.builtin.iam_policy to community.aws.iam_policy
+redirecting (type: modules) community.aws.iam_policy to amazon.aws.iam_policy
+
+TASK [roles/account_roles_create : create support policy] **********************
+task path: /home/vale/Projects/ansible-rosa/roles/account_roles_create/tasks/main.yml:14
+ok: [localhost] => changed=false 
+  policies:
+  - AnsibleROSA-Support-Role-Policy
+  policy_names:
+  - AnsibleROSA-Support-Role-Policy
+  role_name: AnsibleROSA-Support-Role
+redirecting (type: modules) ansible.builtin.iam_role to community.aws.iam_role
+redirecting (type: modules) ansible.builtin.iam_role to community.aws.iam_role
+
+TASK [roles/account_roles_create : create installer role] **********************
+task path: /home/vale/Projects/ansible-rosa/roles/account_roles_create/tasks/main.yml:21
+ok: [localhost] => changed=false 
+  arn: arn:aws:iam::976249332110:role/AnsibleROSA-Installer-Role
+  assume_role_policy_document:
+    statement:
+    - action: sts:AssumeRole
+      effect: Allow
+      principal:
+        aws: arn:aws:iam::710019948333:role/RH-Managed-OpenShift-Installer
+    version: '2012-10-17'
+  assume_role_policy_document_raw:
+    Statement:
+    - Action: sts:AssumeRole
+      Effect: Allow
+      Principal:
+        AWS: arn:aws:iam::710019948333:role/RH-Managed-OpenShift-Installer
+    Version: '2012-10-17'
+  attached_policies: []
+  create_date: '2023-09-29T07:10:40+00:00'
+  gid: 0
+  group: root
+  iam_role:
+    arn: arn:aws:iam::976249332110:role/AnsibleROSA-Installer-Role
+    assume_role_policy_document:
+      statement:
+      - action: sts:AssumeRole
+        effect: Allow
+        principal:
+          aws: arn:aws:iam::710019948333:role/RH-Managed-OpenShift-Installer
+      version: '2012-10-17'
+    assume_role_policy_document_raw:
+      Statement:
+      - Action: sts:AssumeRole
+        Effect: Allow
+        Principal:
+          AWS: arn:aws:iam::710019948333:role/RH-Managed-OpenShift-Installer
+      Version: '2012-10-17'
+    attached_policies: []
+    create_date: '2023-09-29T07:10:40+00:00'
+    max_session_duration: 3600
+    path: /
+    role_id: AROA6GTH6UGHNSB4QU423
+    role_last_used:
+      last_used_date: '2023-09-29T08:08:32+00:00'
+      region: us-east-1
+    role_name: AnsibleROSA-Installer-Role
+    tags:
+      red-hat-managed: 'True'
+      rosa_openshift_version: '4.13'
+      rosa_role_prefix: AnsibleROSA
+      rosa_role_type: installer
+  max_session_duration: 3600
+  mode: '0555'
+  owner: root
+  path: /
+  role_id: AROA6GTH6UGHNSB4QU423
+  role_last_used:
+    last_used_date: '2023-09-29T08:08:32+00:00'
+    region: us-east-1
+  role_name: AnsibleROSA-Installer-Role
+  secontext: system_u:object_r:root_t:s0
+  size: 178
+  state: directory
+  tags:
+    red-hat-managed: 'True'
+    rosa_openshift_version: '4.13'
+    rosa_role_prefix: AnsibleROSA
+    rosa_role_type: installer
+  uid: 0
+redirecting (type: modules) ansible.builtin.iam_policy to community.aws.iam_policy
+redirecting (type: modules) community.aws.iam_policy to amazon.aws.iam_policy
+redirecting (type: modules) ansible.builtin.iam_policy to community.aws.iam_policy
+redirecting (type: modules) community.aws.iam_policy to amazon.aws.iam_policy
+
+TASK [roles/account_roles_create : create installer policy] ********************
+task path: /home/vale/Projects/ansible-rosa/roles/account_roles_create/tasks/main.yml:31
+ok: [localhost] => changed=false 
+  policies:
+  - AnsibleROSA-Installer-Role-Policy
+  policy_names:
+  - AnsibleROSA-Installer-Role-Policy
+  role_name: AnsibleROSA-Installer-Role
+redirecting (type: modules) ansible.builtin.iam_role to community.aws.iam_role
+redirecting (type: modules) ansible.builtin.iam_role to community.aws.iam_role
+
+TASK [roles/account_roles_create : create controlplane role] *******************
+task path: /home/vale/Projects/ansible-rosa/roles/account_roles_create/tasks/main.yml:38
+ok: [localhost] => changed=false 
+  arn: arn:aws:iam::976249332110:role/AnsibleROSA-ControlPlane-Role
+  assume_role_policy_document:
+    statement:
+    - action: sts:AssumeRole
+      effect: Allow
+      principal:
+        service: ec2.amazonaws.com
+    version: '2012-10-17'
+  assume_role_policy_document_raw:
+    Statement:
+    - Action: sts:AssumeRole
+      Effect: Allow
+      Principal:
+        Service: ec2.amazonaws.com
+    Version: '2012-10-17'
+  attached_policies: []
+  create_date: '2023-09-29T07:10:44+00:00'
+  gid: 0
+  group: root
+  iam_role:
+    arn: arn:aws:iam::976249332110:role/AnsibleROSA-ControlPlane-Role
+    assume_role_policy_document:
+      statement:
+      - action: sts:AssumeRole
+        effect: Allow
+        principal:
+          service: ec2.amazonaws.com
+      version: '2012-10-17'
+    assume_role_policy_document_raw:
+      Statement:
+      - Action: sts:AssumeRole
+        Effect: Allow
+        Principal:
+          Service: ec2.amazonaws.com
+      Version: '2012-10-17'
+    attached_policies: []
+    create_date: '2023-09-29T07:10:44+00:00'
+    max_session_duration: 3600
+    path: /
+    role_id: AROA6GTH6UGHFGWAOC2RN
+    role_last_used:
+      last_used_date: '2023-09-29T08:06:17+00:00'
+      region: us-east-1
+    role_name: AnsibleROSA-ControlPlane-Role
+    tags:
+      red-hat-managed: 'True'
+      rosa_openshift_version: '4.13'
+      rosa_role_prefix: AnsibleROSA
+      rosa_role_type: instance_controlplane
+  max_session_duration: 3600
+  mode: '0555'
+  owner: root
+  path: /
+  role_id: AROA6GTH6UGHFGWAOC2RN
+  role_last_used:
+    last_used_date: '2023-09-29T08:06:17+00:00'
+    region: us-east-1
+  role_name: AnsibleROSA-ControlPlane-Role
+  secontext: system_u:object_r:root_t:s0
+  size: 178
+  state: directory
+  tags:
+    red-hat-managed: 'True'
+    rosa_openshift_version: '4.13'
+    rosa_role_prefix: AnsibleROSA
+    rosa_role_type: instance_controlplane
+  uid: 0
+redirecting (type: modules) ansible.builtin.iam_policy to community.aws.iam_policy
+redirecting (type: modules) community.aws.iam_policy to amazon.aws.iam_policy
+redirecting (type: modules) ansible.builtin.iam_policy to community.aws.iam_policy
+redirecting (type: modules) community.aws.iam_policy to amazon.aws.iam_policy
+
+TASK [roles/account_roles_create : create controlplane policy] *****************
+task path: /home/vale/Projects/ansible-rosa/roles/account_roles_create/tasks/main.yml:48
+ok: [localhost] => changed=false 
+  policies:
+  - AnsibleROSA-ControlPlane-Role-Policy
+  policy_names:
+  - AnsibleROSA-ControlPlane-Role-Policy
+  role_name: AnsibleROSA-ControlPlane-Role
+redirecting (type: modules) ansible.builtin.iam_role to community.aws.iam_role
+redirecting (type: modules) ansible.builtin.iam_role to community.aws.iam_role
+
+TASK [roles/account_roles_create : create worker role] *************************
+task path: /home/vale/Projects/ansible-rosa/roles/account_roles_create/tasks/main.yml:55
+ok: [localhost] => changed=false 
+  arn: arn:aws:iam::976249332110:role/AnsibleROSA-Worker-Role
+  assume_role_policy_document:
+    statement:
+    - action: sts:AssumeRole
+      effect: Allow
+      principal:
+        service: ec2.amazonaws.com
+    version: '2012-10-17'
+  assume_role_policy_document_raw:
+    Statement:
+    - Action: sts:AssumeRole
+      Effect: Allow
+      Principal:
+        Service: ec2.amazonaws.com
+    Version: '2012-10-17'
+  attached_policies: []
+  create_date: '2023-09-29T07:10:48+00:00'
+  gid: 0
+  group: root
+  iam_role:
+    arn: arn:aws:iam::976249332110:role/AnsibleROSA-Worker-Role
+    assume_role_policy_document:
+      statement:
+      - action: sts:AssumeRole
+        effect: Allow
+        principal:
+          service: ec2.amazonaws.com
+      version: '2012-10-17'
+    assume_role_policy_document_raw:
+      Statement:
+      - Action: sts:AssumeRole
+        Effect: Allow
+        Principal:
+          Service: ec2.amazonaws.com
+      Version: '2012-10-17'
+    attached_policies: []
+    create_date: '2023-09-29T07:10:48+00:00'
+    max_session_duration: 3600
+    path: /
+    role_id: AROA6GTH6UGHAR4EEQ5FS
+    role_last_used:
+      last_used_date: '2023-09-29T07:51:08+00:00'
+      region: us-east-1
+    role_name: AnsibleROSA-Worker-Role
+    tags:
+      red-hat-managed: 'True'
+      rosa_openshift_version: '4.13'
+      rosa_role_prefix: AnsibleROSA
+      rosa_role_type: instance_worker
+  max_session_duration: 3600
+  mode: '0555'
+  owner: root
+  path: /
+  role_id: AROA6GTH6UGHAR4EEQ5FS
+  role_last_used:
+    last_used_date: '2023-09-29T07:51:08+00:00'
+    region: us-east-1
+  role_name: AnsibleROSA-Worker-Role
+  secontext: system_u:object_r:root_t:s0
+  size: 178
+  state: directory
+  tags:
+    red-hat-managed: 'True'
+    rosa_openshift_version: '4.13'
+    rosa_role_prefix: AnsibleROSA
+    rosa_role_type: instance_worker
+  uid: 0
+redirecting (type: modules) ansible.builtin.iam_policy to community.aws.iam_policy
+redirecting (type: modules) community.aws.iam_policy to amazon.aws.iam_policy
+redirecting (type: modules) ansible.builtin.iam_policy to community.aws.iam_policy
+redirecting (type: modules) community.aws.iam_policy to amazon.aws.iam_policy
+
+TASK [roles/account_roles_create : create worker policy] ***********************
+task path: /home/vale/Projects/ansible-rosa/roles/account_roles_create/tasks/main.yml:65
+ok: [localhost] => changed=false 
+  policies:
+  - AnsibleROSA-Worker-Role-Policy
+  policy_names:
+  - AnsibleROSA-Worker-Role-Policy
+  role_name: AnsibleROSA-Worker-Role
+
+TASK [roles/cluster_create : what cluster am i creating?] **********************
+task path: /home/vale/Projects/ansible-rosa/roles/cluster_create/tasks/main.yml:2
+ok: [localhost] => 
+  msg: |-
+    ***************************************
+    Preparing to create ansible-rosa-pl.
+    This task may take up to an hour.
+    ***************************************
+
+TASK [roles/cluster_create : figure out list of subnets] ***********************
+task path: /home/vale/Projects/ansible-rosa/roles/cluster_create/tasks/main.yml:14
+ok: [localhost] => changed=false 
+  ansible_facts:
+    _private_subnet_ids:
+    - subnet-09bd64f2940e301ec
+    - subnet-07ad125e5df062e17
+    - subnet-0aa2538d5b2250447
+    _public_subnet_ids:
+    - subnet-005b8fa377c1a4e23
+    - subnet-00d931268d698bc4b
+    - subnet-08df1aec3eb3b26f0
+
+TASK [roles/cluster_create : set subnet_ids when private-link cluster] *********
+task path: /home/vale/Projects/ansible-rosa/roles/cluster_create/tasks/main.yml:20
+ok: [localhost] => changed=false 
+  ansible_facts:
+    rosa_subnet_ids:
+    - subnet-09bd64f2940e301ec
+    - subnet-07ad125e5df062e17
+    - subnet-0aa2538d5b2250447
+
+TASK [roles/cluster_create : check if cluster exists] **************************
+task path: /home/vale/Projects/ansible-rosa/roles/cluster_create/tasks/main.yml:29
+fatal: [localhost]: FAILED! => 
+  msg: 'error processing module_util ansible_collections.rh_mobb.rosa.plugins.module_utils.ocm.OcmClusterModule loading redirected collection rh_mobb.rosa: unable to locate collection rh_mobb.rosa'
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=41   changed=0    unreachable=0    failed=1    skipped=29   rescued=0    ignored=0   
+

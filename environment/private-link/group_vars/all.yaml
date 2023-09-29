@@ -4,11 +4,11 @@ rosa_private_link: true
 rosa_sts: true
 
 #uncomment to add a custom kms key arn
-#rosa_kms_key_arn: "" 
+rosa_kms_key_arn: "arn:aws:kms:us-east-2:976249332110:key/1c5a1b23-96c4-4628-a6ea-e229ef216d9c" 
 
 # uncomment to pin to a version
 # rosa_version: 4.13.10
-rosa_region: us-west-2
+rosa_region: us-east-2
 rosa_vpc_cidr: "10.0.0.0/16"
 rosa_compute_machine_type: m5.xlarge
 
