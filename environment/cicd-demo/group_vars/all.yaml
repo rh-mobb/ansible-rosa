@@ -5,9 +5,10 @@ rosa_private_link: false
 # regardless of the following value.
 rosa_private: false
 rosa_sts: true
-rosa_enable_autoscaling: true
-rosa_min_replicas: 2
-rosa_max_replicas: 4
+
+# setting both min/max replicas enables autoscaling
+rosa_min_replicas: "{{ 3 if (rosa_multi_az | default(False)) else 2 }}"
+rosa_max_replicas: "{{ 6 if (rosa_multi_az | default(False)) else 4 }}"
 
 # uncomment to pin to a version
 # rosa_version: 4.13.10
