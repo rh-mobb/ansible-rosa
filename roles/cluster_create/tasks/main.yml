@@ -6,7 +6,7 @@
       Preparing to create {{ cluster_name }}.
       This task may take up to an hour.
       ***************************************
-      {{ compute_nodes }}
+      
     verbosity: 0
 
 # do this better ... maybe better set during vpc creation and inherited.
@@ -88,6 +88,7 @@
         worker_iam_role: "arn:aws:iam::{{ aws_account_id }}:role/{{ rosa_account_roles_prefix }}-Worker-Role"
         operator_roles_prefix: "{{ rosa_operator_roles_prefix | default(cluster_name) }}"
         kms_key_arn: "{{ rosa_kms_key_arn | default(omit) }}"
+        compute_nodes: "{{ rosa_compute_nodes | default(omit) }}"
       register: _rosa_cluster
 
 - debug:

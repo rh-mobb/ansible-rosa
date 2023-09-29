@@ -12,7 +12,7 @@ rosa_region: us-east-2
 rosa_vpc_cidr: "10.0.0.0/16"
 rosa_compute_machine_type: m5.xlarge
 #min_replicas: "3"
-#compute_nodes: 3
+compute_nodes: 3
 
 rosa_multi_az: true
 # jumphost_ami: ami-0ba62214afa52bec7
