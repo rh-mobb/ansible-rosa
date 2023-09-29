@@ -3,6 +3,9 @@ cluster_name: ansible-rosa-pl
 rosa_private_link: true
 rosa_sts: true
 
+#uncomment to add a custom kms key arn
+#rosa_kms_key_arn: "" 
+
 # uncomment to pin to a version
 # rosa_version: 4.13.10
 rosa_region: us-west-2

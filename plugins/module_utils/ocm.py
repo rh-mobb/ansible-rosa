@@ -126,9 +126,7 @@ def find_ocm_config():
         err = Exception(msg)
         raise err
 
-
 def rosa_creator_arn():
-    # aws sts get-caller-identity
     client = boto3.client("sts")
     return client.get_caller_identity()["Arn"]
 
@@ -172,8 +170,6 @@ def getAvailibilityZoneForSubnets(subnet_ids, region):
 
 def populateOperatorRoles(prefix, account_id, hcp):
     source_roles = OPERATOR_ROLES_HCP if hcp else OPERATOR_ROLES_CLASSIC
-    #rosa sts kms is rosa classic
-    # used later for 'rosa create operator-roles -c $ROSA_CLUSTER_NAME --mode auto --yes'
     operator_roles = []
     for role_contents in source_roles:
         role = "{}-{}-{}".format(prefix,role_contents['namespace'],role_contents['name'])
@@ -261,8 +257,8 @@ class OcmClusterModule(object):
         cluster = ocm_client.Cluster(
 
             api = api_visibility((params['private_link'] or params['private'])),
-            aws = ocm_client.AWS( #ocm-python https://github.com/rh-mobb/ocm-python ocm_client/models/aws.py line 68
-                sts = ocm_client.STS( #ocm-python https://github.com/rh-mobb/ocm-python ocm_client/models/sts.py
+            aws = ocm_client.AWS( 
+                sts = ocm_client.STS( 
                     enabled = params['sts'],
                     auto_mode = False, #params['hosted_cp'],
                     instance_iam_roles = instance_iam_roles,

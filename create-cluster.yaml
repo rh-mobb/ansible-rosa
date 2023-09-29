@@ -24,9 +24,6 @@
     - name: roles/account_roles_create
       when: rosa_sts | bool
     - name: roles/cluster_create
-    # Create operator-roles
-    # Create the kms policy and upload it to aws
-    # Create the oidc-provider
     - name: roles/dns_resolver_create
       when: rosa_tgw_enabled | bool
     - name: roles/create_admin
