@@ -23,3 +23,6 @@ jumphost_instance_type: t2.micro
 # jumphost_instance_type: m4.large
 
 rosa_create_admin: true
+
+# uncomment to enable custom kms workflow
+# rosa_kms_key_arn: "" #arn:aws:kms:us-east-2:<redacted>:key/<redacted>

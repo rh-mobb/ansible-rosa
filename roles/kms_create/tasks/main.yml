@@ -1,0 +1,9 @@
+---
+- set_fact:
+    ebs_csi_arn: "{{ _cluster_info.cluster.aws.sts.operator_iam_roles | selectattr('name','match','ebs-cloud-credentials') | map(attribute='role_arn') | first }}"
+
+- name: "attach the kms key policy to the existing key"
+  community.aws.kms_key:
+    key_id: "{{ rosa_kms_key_arn }}"
+    state: "present"
+    policy: "{{ lookup('template', 'kms-policy.json.j2') }}"
