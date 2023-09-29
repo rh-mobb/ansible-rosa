@@ -7,8 +7,3 @@
     - (not rosa_private_link | bool) and
       (proxy_enabled | default(False) | bool)
 
-- fail:
-    msg: "cluster autoscaling must be enabled to set min/max replicas"
-  when:
-    - not rosa_enable_autoscaling | bool
-    - rosa_min_replicas is defined or rosa_max_replicas is defined

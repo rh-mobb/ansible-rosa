@@ -46,10 +46,6 @@ options:
         description: Number of worker nodes to provision per zone. Single zone clusters need at least 2 nodes, multizone clusters need at least 3 nodes. (default 2)
         required: false
         type: int
-    enable_autoscaling:
-        description: region
-        required: false
-        type: bool
     min_replicas:
         description: Minimum number of compute nodes. (default 2)
         required: false
@@ -119,6 +115,10 @@ options:
         description: wait for up to an hour until operation is complete
         required: false
         type: bool
+    kms_key_arn:
+        description: kms key (BYOK)
+        required: false
+        type: str
     state:
         description: the action to take
         required: false
@@ -184,7 +184,6 @@ def run_module():
         additional_trust_bundle_file=dict(type='str', required=False),
         subnet_ids=dict(type='str', required=False),
         multi_az=dict(type='bool', required=False),
-        enable_autoscaling=dict(type='bool', required=False),
         private=dict(type='bool', required=False),
         private_link=dict(type='bool', required=False),
         sts=dict(type='bool', required=False),
@@ -199,7 +198,8 @@ def run_module():
         controlplane_iam_role=dict(type='str', required=False),
         worker_iam_role=dict(type='str', required=False),
         hosted_cp=dict(type=bool, required=False, default=False),
-        oidc_config_id=dict(type=str, required=False)
+        oidc_config_id=dict(type=str, required=False),
+        kms_key_arn=dict(type='str', required=False)
     )
 
     # seed the result dict in the object
