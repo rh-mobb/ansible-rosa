@@ -40,10 +40,6 @@ options:
         description: Number of worker nodes to provision per zone. Single zone clusters need at least 2 nodes, multizone clusters need at least 3 nodes. (default 2)
         required: false
         type: int
-    enable_autoscaling:
-        description: region
-        required: false
-        type: bool
     min_replicas:
         description: Minimum number of compute nodes. (default 2)
         required: false

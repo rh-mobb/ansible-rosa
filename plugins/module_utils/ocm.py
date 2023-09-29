@@ -35,6 +35,7 @@ OCM_HOST = "https://api.openshift.com"
 
 DEFAULT_COMPUTE_NODES_MULTI_AZ = 3
 DEFAULT_COMPUTE_NODES_SINGLE_AZ = 2
+DEFAULT_COMPUTE_MACHINE_TYPE = 'm5.xlarge'
 
 # TODO get these from OCM API, vs hard coding them.
 OPERATOR_ROLES_CLASSIC = [
@@ -130,24 +131,40 @@ def rosa_creator_arn():
     client = boto3.client("sts")
     return client.get_caller_identity()["Arn"]
 
-def rosa_compute_nodes(params):
-    # return the minimum count for autoscaling if it is set otherwise
-    # default to a generic workflow
-    if params['enable_autoscaling']:
-        if params['min_replicas']:
-            return params['min_replicas']
-    
-    # return the generic compute node count if set
+def rosa_compute_node_count(params):
+    # return the requested compute node count if set
     if params['compute_nodes']:
         return params['compute_nodes']
 
     # set defaults for multi-az versus single az
     if params['multi_az']:
         return DEFAULT_COMPUTE_NODES_MULTI_AZ
-    
+
     return DEFAULT_COMPUTE_NODES_SINGLE_AZ
 
-def getAvailibilityZoneForSubnets(subnet_ids, region):
+def rosa_compute_nodes(params, availability_zones):
+    compute_nodes = ocm_client.ClusterNodes(
+        compute_machine_type = ocm_client.MachineType(
+            id = params['compute_machine_type'] or DEFAULT_COMPUTE_MACHINE_TYPE
+        ),
+        availability_zones = availability_zones
+    )
+
+    # return the nodes with the autoscaling object attached if set
+    if params['min_replicas'] and params['max_replicas']:
+        compute_nodes.autoscale_compute = ocm_client.MachinePoolAutoscaling(
+            min_replicas=int(params['min_replicas']),
+            max_replicas=int(params['max_replicas'])
+        )
+
+        return compute_nodes
+    
+    # return compute node object for non-autoscaling use case
+    compute_nodes.compute = int(rosa_compute_node_count(params))
+
+    return compute_nodes
+
+def getAvailabilityZoneForSubnets(subnet_ids, region):
     if type(subnet_ids) is str:
         subnet_ids = subnet_ids.join(',')
     if type(subnet_ids) is list:
@@ -231,7 +248,7 @@ class OcmClusterModule(object):
         return cluster_info.to_dict(), None
 
     def create_cluster(api_instance, params):
-        availibility_zones, err = getAvailibilityZoneForSubnets(params['subnet_ids'].split(','), params['region'])
+        availability_zones, err = getAvailabilityZoneForSubnets(params['subnet_ids'].split(','), params['region'])
         if err:
             return None, err
 
@@ -306,13 +323,7 @@ class OcmClusterModule(object):
             # node_drain_grace_period = 15
             # node_pools
             # TODO verify and build dynamically
-            nodes = ocm_client.ClusterNodes(
-                compute = int(rosa_compute_nodes(params)),
-                compute_machine_type = ocm_client.MachineType(
-                    id = params['compute_machine_type'] or 'm5.xlarge'
-                ),
-                availability_zones = availibility_zones
-            ),
+            nodes = rosa_compute_nodes(params, availability_zones),
             product = ocm_client.Product(
                 id = 'rosa'
             ),
