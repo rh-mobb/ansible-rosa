@@ -269,7 +269,7 @@ class OcmClusterModule(object):
                     support_role_arn = params['support_role_arn'],
                 ),
 
-                kms_key_arn=params['kms_key_arn'], #present in ocm-python aws.py. Added by vuberti@redhat.com
+                kms_key_arn=params['kms_key_arn'], 
                 
                 account_id = params['aws_account_id'],
                 # audit_log

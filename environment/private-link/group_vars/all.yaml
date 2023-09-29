@@ -1,16 +1,18 @@
-cluster_name: ansible-rosa-pl
+cluster_name: ansible-rosa-v1
 
 rosa_private_link: true
 rosa_sts: true
 
 #uncomment to add a custom kms key arn
-rosa_kms_key_arn: "arn:aws:kms:us-east-2:976249332110:key/1c5a1b23-96c4-4628-a6ea-e229ef216d9c" 
+rosa_kms_key_arn: "arn:aws:kms:us-east-2:066188790342:key/096f3e1a-3a79-4888-8fb6-f4210132da49" 
 
 # uncomment to pin to a version
 # rosa_version: 4.13.10
 rosa_region: us-east-2
 rosa_vpc_cidr: "10.0.0.0/16"
 rosa_compute_machine_type: m5.xlarge
+#min_replicas: "3"
+#compute_nodes: 3
 
 rosa_multi_az: true
 # jumphost_ami: ami-0ba62214afa52bec7
