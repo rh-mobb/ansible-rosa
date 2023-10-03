@@ -285,7 +285,7 @@ class OcmClusterModule(object):
                     role_arn = params['role_arn'],
                     support_role_arn = params['support_role_arn'],
                 ),
-
+                
                 kms_key_arn=params['kms_key_arn'], 
                 
                 account_id = params['aws_account_id'],
@@ -349,6 +349,11 @@ class OcmClusterModule(object):
         )
 
         try:
+            # Check if kms_key_arn is not null or empty and remove it from param dict
+            # if kms_key_arn is == '' (user does not require a custom kms key) install will fail if kms_key_arn param is not removed
+            if cluster.aws.kms_key_arn == '':
+               cluster.aws.__setattr__("kms_key_arn", None)
+
             cluster_create = api_instance.api_clusters_mgmt_v1_clusters_post(cluster=cluster)
         except ApiException as e:
             return cluster.to_dict(), "Exception when calling DefaultApi->api_clusters_mgmt_v1_clusters_post: {}\n".format(e)
