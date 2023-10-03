@@ -1,13 +1,13 @@
 cluster_name: ansible-rosa-v1
 
-rosa_private_link: true
-rosa_sts: true
+#rosa_private_link: true
+#rosa_sts: true
 
 #set to false if you do not want to delete the account roles. Useful if different ROSA are installed using the same AWS account. Default to false (all the account roles are deleted)
 #delete_account_roles: false
 
 #uncomment to add a custom kms key arn
-rosa_kms_key_arn: "" 
+#rosa_kms_key_arn: "" 
 
 # uncomment to pin to a version
 # rosa_version: 4.13.10
