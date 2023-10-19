@@ -1,2 +1,3 @@
 ---
 # vars file for roles/account-roles
+delete_account_roles: true

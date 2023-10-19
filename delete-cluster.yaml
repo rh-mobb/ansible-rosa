@@ -15,7 +15,9 @@
     #       fqdn: "{{ rosa_custom_domain_vars.fqdn }}"
     - name: roles/cluster_delete
     - name: roles/account_roles_delete
-      when: rosa_sts | bool
+      when: 
+        - rosa_sts | bool
+        - delete_account_roles
     - name: roles/jumphost_delete
       when:
         - (rosa_private or rosa_private_link) or

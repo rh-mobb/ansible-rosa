@@ -87,7 +87,7 @@
         controlplane_iam_role: "arn:aws:iam::{{ aws_account_id }}:role/{{ rosa_account_roles_prefix }}-ControlPlane-Role"
         worker_iam_role: "arn:aws:iam::{{ aws_account_id }}:role/{{ rosa_account_roles_prefix }}-Worker-Role"
         operator_roles_prefix: "{{ rosa_operator_roles_prefix | default(cluster_name) }}"
-        kms_key_arn: "{{ rosa_kms_key_arn | default(omit) }}"
+        kms_key_arn: "{{ rosa_kms_key_arn | default(None) }}"
       register: _rosa_cluster
 
 - debug:

@@ -240,6 +240,8 @@ def run_module():
     with ocm_client.ApiClient(OcmModule.ocm_authenticate()) as api_client:
         api_instance = ocm_client.DefaultApi(api_client)
 
+        
+  
         # Check to see if there is a cluster of the same name
         if not cluster_id:
             cluster_id, err = OcmClusterModule.get_cluster_id(api_instance, name)
