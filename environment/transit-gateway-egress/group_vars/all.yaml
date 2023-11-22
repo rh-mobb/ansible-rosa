@@ -40,3 +40,6 @@ rosa_custom_domain_vars:
 # aws_secret_access_key:
 # aws_default_region:
 # rosa_token:
+
+# uncomment to enable custom kms workflow
+# rosa_kms_key_arn: "" #arn:aws:kms:us-east-2:<redacted>:key/<redacted>

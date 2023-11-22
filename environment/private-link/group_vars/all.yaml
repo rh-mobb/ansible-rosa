@@ -1,13 +1,22 @@
-cluster_name: ansible-rosa-pl
+cluster_name: ansible-rosa-v1
 
-rosa_private_link: true
+rosa_private_link: false
 rosa_sts: true
+
+#set to false if you do not want to delete the account roles. Useful if different ROSA are installed using the same AWS account. Default to false (all the account roles are deleted)
+#delete_account_roles: false
+
+#uncomment to add a custom kms key arn
+#rosa_kms_key_arn: "" 
 
 # uncomment to pin to a version
 # rosa_version: 4.13.10
-rosa_region: us-west-2
+rosa_region: us-east-2
 rosa_vpc_cidr: "10.0.0.0/16"
 rosa_compute_machine_type: m5.xlarge
+#min_replicas: "3"
+rosa_compute_nodes: 3
+#rosa_min_replicas: 3
 
 rosa_multi_az: true
 # jumphost_ami: ami-0ba62214afa52bec7
@@ -17,3 +26,6 @@ jumphost_instance_type: t2.micro
 # jumphost_instance_type: m4.large
 
 rosa_create_admin: true
+
+# uncomment to enable custom kms workflow
+# rosa_kms_key_arn: "" #arn:aws:kms:us-east-2:<redacted>:key/<redacted>

@@ -5,7 +5,6 @@ rosa_private_link: false
 # regardless of the following value.
 rosa_private: false
 rosa_sts: true
-# rosa_enable_autoscaling: true
 # rosa_min_replicas: 3
 # rosa_max_replicas: 6
 rosa_hosted_cp: true
@@ -17,3 +16,6 @@ rosa_compute_machine_type: m5.xlarge
 
 rosa_create_admin: true
 rosa_multi_az: true
+
+# uncomment to enable custom kms workflow
+# rosa_kms_key_arn: "" #arn:aws:kms:us-east-2:<redacted>:key/<redacted>

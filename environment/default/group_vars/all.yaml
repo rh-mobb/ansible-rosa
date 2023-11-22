@@ -5,9 +5,10 @@ rosa_private_link: false
 # regardless of the following value.
 rosa_private: false
 rosa_sts: true
-rosa_enable_autoscaling: true
-rosa_min_replicas: 2
-rosa_max_replicas: 4
+
+# setting both min/max replicas enables autoscaling
+rosa_min_replicas: "{{ 3 if (rosa_multi_az | default(False)) else 2 }}"
+rosa_max_replicas: "{{ 6 if (rosa_multi_az | default(False)) else 4 }}"
 
 # uncomment to pin to a version
 # rosa_version: 4.13.10
@@ -16,3 +17,6 @@ rosa_region: us-east-1
 rosa_vpc_cidr: "10.0.0.0/16"
 rosa_compute_machine_type: m5.xlarge
 rosa_create_admin: true
+
+# uncomment to enable custom kms workflow
+# rosa_kms_key_arn: "" #arn:aws:kms:us-east-2:<redacted>:key/<redacted>

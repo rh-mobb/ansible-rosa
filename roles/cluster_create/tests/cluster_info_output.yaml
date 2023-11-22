@@ -1,0 +1,406 @@
+_cluster_info:
+    changed: false
+    cluster:
+      additional_trust_bundle: null
+      addons:
+      - addon: null
+        addon_version: null
+        billing: null
+        creation_timestamp: null
+        href: null
+        id: null
+        kind: null
+        operator_version: null
+        parameters: null
+        state: null
+        state_description: null
+        updated_timestamp: null
+      - addon: null
+        addon_version: null
+        billing: null
+        creation_timestamp: null
+        href: null
+        id: null
+        kind: null
+        operator_version: null
+        parameters: null
+        state: null
+        state_description: null
+        updated_timestamp: null
+      api:
+        listening: internal
+        url: null
+      aws:
+        access_key_id: null
+        account_id: null
+        audit_log:
+          role_arn: ''
+        billing_account_id: null
+        ec2_metadata_http_tokens: ''
+        etcd_encryption: null
+        kms_key_arn: arn:aws:kms:us-east-2:993908127962:key/d6de5939-d64b-4b4f-bb51-49969e2ba90a
+        private_link: true
+        private_link_configuration:
+          principals: null
+        secret_access_key: null
+        sts:
+          auto_mode: false
+          enabled: true
+          external_id: null
+          instance_iam_roles:
+            master_role_arn: arn:aws:iam::993908127962:role/AnsibleROSA-ControlPlane-Role
+            worker_role_arn: arn:aws:iam::993908127962:role/AnsibleROSA-Worker-Role
+          managed_policies: false
+          oidc_config: null
+          oidc_endpoint_url: https://rh-oidc.s3.us-east-1.amazonaws.com/26cqmk1roq9fp72kh624db9hjg4v2p8o
+          operator_iam_roles:
+          - id: ''
+            name: cloud-credential-operator-iam-ro-creds
+            namespace: openshift-cloud-credential-operator
+            role_arn: arn:aws:iam::993908127962:role/ansible-rosa-pl-openshift-cloud-credential-operator-cloud-creden
+            service_account: ''
+          - id: ''
+            name: installer-cloud-credentials
+            namespace: openshift-image-registry
+            role_arn: arn:aws:iam::993908127962:role/ansible-rosa-pl-openshift-image-registry-installer-cloud-credent
+            service_account: ''
+          - id: ''
+            name: cloud-credentials
+            namespace: openshift-ingress-operator
+            role_arn: arn:aws:iam::993908127962:role/ansible-rosa-pl-openshift-ingress-operator-cloud-credentials
+            service_account: ''
+          - id: ''
+            name: ebs-cloud-credentials
+            namespace: openshift-cluster-csi-drivers
+            role_arn: arn:aws:iam::993908127962:role/ansible-rosa-pl-openshift-cluster-csi-drivers-ebs-cloud-credenti
+            service_account: ''
+          - id: ''
+            name: cloud-credentials
+            namespace: openshift-cloud-network-config-controller
+            role_arn: arn:aws:iam::993908127962:role/ansible-rosa-pl-openshift-cloud-network-config-controller-cloud-
+            service_account: ''
+          - id: ''
+            name: aws-cloud-credentials
+            namespace: openshift-machine-api
+            role_arn: arn:aws:iam::993908127962:role/ansible-rosa-pl-openshift-machine-api-aws-cloud-credentials
+            service_account: ''
+          operator_role_prefix: ansible-rosa-pl
+          permission_boundary: null
+          role_arn: arn:aws:iam::993908127962:role/AnsibleROSA-Installer-Role
+          support_role_arn: arn:aws:iam::993908127962:role/AnsibleROSA-Support-Role
+        subnet_ids:
+        - subnet-0af105410fc2fc481
+        - subnet-079182e6c109592f0
+        - subnet-003f110a80d36baed
+        tags:
+          red-hat-clustertype: rosa
+          red-hat-managed: 'true'
+      aws_infrastructure_access_role_grants:
+      - console_url: null
+        href: null
+        id: null
+        kind: null
+        role: null
+        state: null
+        state_description: null
+        user_arn: null
+      - console_url: null
+        href: null
+        id: null
+        kind: null
+        role: null
+        state: null
+        state_description: null
+        user_arn: null
+      billing_model: standard
+      byo_oidc:
+        enabled: false
+      ccs:
+        disable_scp_checks: false
+        enabled: true
+        href: null
+        id: null
+        kind: null
+      cloud_provider:
+        display_name: null
+        href: /api/clusters_mgmt/v1/cloud_providers/aws
+        id: aws
+        kind: CloudProviderLink
+        name: null
+      console: null
+      creation_timestamp: '2023-09-21T08:05:38.979400+00:00'
+      delete_protection:
+        enabled: false
+      disable_user_workload_monitoring: false
+      dns:
+        base_domain: 98x1.p1.openshiftapps.com
+      etcd_encryption: false
+      expiration_timestamp: null
+      external_configuration:
+        labels:
+        - href: null
+          id: null
+          key: null
+          kind: null
+          value: null
+        - href: null
+          id: null
+          key: null
+          kind: null
+          value: null
+        manifests:
+        - href: null
+          id: null
+          kind: null
+          workloads: null
+        - href: null
+          id: null
+          kind: null
+          workloads: null
+        syncsets:
+        - href: null
+          id: null
+          kind: null
+          resources: null
+        - href: null
+          id: null
+          kind: null
+          resources: null
+      external_id: null
+      fips: null
+      flavour:
+        aws: null
+        gcp: null
+        href: /api/clusters_mgmt/v1/flavours/osd-4
+        id: osd-4
+        kind: FlavourLink
+        name: null
+        network: null
+        nodes: null
+      gcp: null
+      gcp_encryption_key: null
+      gcp_network: null
+      groups:
+      - href: null
+        id: null
+        kind: null
+        users: null
+      - href: null
+        id: null
+        kind: null
+        users: null
+      health_state: null
+      href: /api/clusters_mgmt/v1/clusters/26cqmk1roq9fp72kh624db9hjg4v2p8o
+      htpasswd: null
+      hypershift:
+        enabled: false
+      id: 26cqmk1roq9fp72kh624db9hjg4v2p8o
+      identity_providers:
+      - challenge: null
+        github: null
+        gitlab: null
+        google: null
+        href: null
+        htpasswd: null
+        id: null
+        kind: null
+        ldap: null
+        login: null
+        mapping_method: null
+        name: null
+        open_id: null
+        type: null
+      - challenge: null
+        github: null
+        gitlab: null
+        google: null
+        href: null
+        htpasswd: null
+        id: null
+        kind: null
+        ldap: null
+        login: null
+        mapping_method: null
+        name: null
+        open_id: null
+        type: null
+      inflight_checks:
+      - details: null
+        ended_at: null
+        href: null
+        id: null
+        kind: null
+        name: null
+        restarts: null
+        started_at: null
+        state: null
+      - details: null
+        ended_at: null
+        href: null
+        id: null
+        kind: null
+        name: null
+        restarts: null
+        started_at: null
+        state: null
+      infra_id: null
+      ingresses:
+      - default: null
+        dns_name: null
+        href: null
+        id: null
+        kind: null
+        listening: null
+        load_balancer_type: null
+        route_selectors: null
+      - default: null
+        dns_name: null
+        href: null
+        id: null
+        kind: null
+        listening: null
+        load_balancer_type: null
+        route_selectors: null
+      kind: Cluster
+      load_balancer_quota: null
+      machine_pools:
+      - autoscaling: null
+        availability_zones: null
+        aws: null
+        href: null
+        id: null
+        instance_type: null
+        kind: null
+        labels: null
+        replicas: null
+        root_volume: null
+        security_group_filters: null
+        subnets: null
+        taints: null
+      - autoscaling: null
+        availability_zones: null
+        aws: null
+        href: null
+        id: null
+        instance_type: null
+        kind: null
+        labels: null
+        replicas: null
+        root_volume: null
+        security_group_filters: null
+        subnets: null
+        taints: null
+      managed: true
+      managed_service:
+        enabled: false
+      multi_az: true
+      name: ansible-rosa-pl
+      network:
+        host_prefix: 23
+        machine_cidr: 10.0.0.0/16
+        pod_cidr: 10.128.0.0/14
+        service_cidr: 172.30.0.0/16
+        type: OVNKubernetes
+      node_drain_grace_period:
+        unit: minutes
+        value: 60.0
+      node_pools: null
+      nodes:
+        autoscale_compute: null
+        availability_zones:
+        - us-east-2c
+        - us-east-2b
+        - us-east-2a
+        compute: 3
+        compute_labels: null
+        compute_machine_type:
+          category: null
+          ccs_only: null
+          cloud_provider: null
+          cpu: null
+          generic_name: null
+          href: /api/clusters_mgmt/v1/machine_types/m5.xlarge
+          id: m5.xlarge
+          kind: MachineTypeLink
+          memory: null
+          name: null
+          size: null
+        compute_root_volume:
+          aws:
+            iops: null
+            size: 300
+          gcp: null
+        infra: 3
+        infra_machine_type:
+          category: null
+          ccs_only: null
+          cloud_provider: null
+          cpu: null
+          generic_name: null
+          href: /api/clusters_mgmt/v1/machine_types/r5.xlarge
+          id: r5.xlarge
+          kind: MachineTypeLink
+          memory: null
+          name: null
+          size: null
+        master: 3
+        master_machine_type: null
+        security_group_filters: null
+        total: null
+      openshift_version: null
+      product:
+        href: /api/clusters_mgmt/v1/products/rosa
+        id: rosa
+        kind: ProductLink
+        name: null
+      properties:
+        rosa_creator_arn: arn:aws:iam::993908127962:user/vuberti@redhat.com-6g4kx-admin
+        rosa_provisioner: ocm-ansible-module
+      provision_shard: null
+      proxy: null
+      region:
+        ccs_only: null
+        cloud_provider: null
+        display_name: null
+        enabled: null
+        href: /api/clusters_mgmt/v1/cloud_providers/aws/regions/us-east-2
+        id: us-east-2
+        kind: CloudRegionLink
+        name: null
+        supports_hypershift: null
+        supports_multi_az: null
+      state: waiting
+      status:
+        configuration_mode: full
+        current_compute: null
+        description: Waiting for OIDC configuration
+        dns_ready: false
+        href: null
+        id: null
+        kind: null
+        limited_support_reason_count: 0
+        oidc_ready: false
+        provision_error_code: ''
+        provision_error_message: ''
+        state: waiting
+      storage_quota: null
+      subscription:
+        href: /api/accounts_mgmt/v1/subscriptions/2VhLoIFVP8LCPy20b86TZFCUvaP
+        id: 2VhLoIFVP8LCPy20b86TZFCUvaP
+        kind: SubscriptionLink
+      version:
+        available_upgrades:
+        - 4.13.11
+        - 4.13.12
+        channel_group: stable
+        default: null
+        enabled: null
+        end_of_life_timestamp: '2024-09-17T00:00:00+00:00'
+        hosted_control_plane_enabled: null
+        href: /api/clusters_mgmt/v1/versions/openshift-v4.13.10
+        id: openshift-v4.13.10
+        kind: Version
+        raw_id: 4.13.10
+        release_image: null
+        rosa_enabled: null
+    failed: false

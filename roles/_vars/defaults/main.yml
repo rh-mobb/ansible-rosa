@@ -6,13 +6,17 @@ cluster_name: ansible-rosa
 rosa_private: false
 rosa_private_link: false
 rosa_disable_workload_monitoring: false
-rosa_enable_autoscaling: false
 rosa_hcp: false
 
 rosa_version: "4.14.1"
 
+# disable autoscaling
+# rosa_compute_nodes: 3
+
+# enable autoscaling
 # rosa_min_replicas: 3
 # rosa_max_replicas: 6
+
 # wait for rosa to finish installing
 rosa_wait: true
 rosa_multi_az: false
@@ -88,3 +92,6 @@ rosa_egress_vpc_cidr: "10.10.0.0/24"
 #   - cidr: "10.10.0.16/28"
 #     az: "us-east-2a"
 #     resource_tags: { "Name":"{{ cluster_name }}-egress-private" }
+
+# use a custom kms key
+rosa_kms_key_arn: ""

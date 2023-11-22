@@ -6,6 +6,7 @@
       Preparing to create {{ cluster_name }}.
       This task may take up to an hour.
       ***************************************
+      
     verbosity: 0
 
 # do this better ... maybe better set during vpc creation and inherited.
@@ -88,17 +89,23 @@
         https_proxy: "{{ rosa_https_proxy | default(omit) }}"
         no_proxy: "{{ rosa_no_proxy | default(omit) }}"
         additional_trust_bundle_file: "{{ rosa_additional_trust_bundle_file | default(omit) }}"
-        enable_autoscaling: "{{ rosa_enable_autoscaling | bool }}"
         disable_workload_monitoring: "{{ rosa_disable_workload_monitoring | bool }}"
         min_replicas: "{{ rosa_min_replicas | default(omit) }}"
         max_replicas: "{{ rosa_max_replicas | default(omit) }}"
+        compute_nodes: "{{ rosa_compute_nodes | default(omit) }}"
         compute_machine_type: "{{ rosa_compute_machine_type | default(omit) }}"
         role_arn: "{{ _role_arn }}"
         support_role_arn: "{{ _support_role_arn }}"
         controlplane_iam_role: "{{ _controlplane_iam_role | default(omit) }}"
         worker_iam_role: "{{ _worker_iam_role }}"
         operator_roles_prefix: "{{ cluster_name }}"
+        kms_key_arn: "{{ rosa_kms_key_arn | default(None) }}"
       register: _rosa_cluster
+
+- debug:
+    msg: "debug rosa"
+- debug:
+    var: _rosa_cluster
 
 - name: get info about the cluster
   ocm_cluster_info:
@@ -110,12 +117,19 @@
     - _cluster_info.cluster.state == 'waiting'
   block:
     - include_role:
-        name: roles/operator_roles_create
+        name: operator_roles_create
       vars:
         cluster_id: "{{ _cluster_info.cluster.id }}"
         oidc_endpoint_url: "{{ _cluster_info.cluster.aws.sts.oidc_endpoint_url }}"
         oidc_id: "{{ _oidc_id | default(omit) }}"
       when: rosa_sts | bool
+
+    - include_role:
+        name: kms_create
+      when:
+        - rosa_kms_key_arn != ""
+        - rosa_kms_key_arn != None
+        - rosa_sts | bool
 
     - debug:
         msg: |
