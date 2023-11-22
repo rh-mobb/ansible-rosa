@@ -1,0 +1,23 @@
+
+- set_fact:
+    _name: "{{ '-'.join((cluster_name,item.namespace,item.name))[:64] }}"
+    _assume_role_policy_document_template: "{{ _cluster_type }}/{{ item.template }}"
+    _policy_json_file: "{{ _cluster_type }}/{{ item.file }}"
+
+
+- name: "create operator role {{ _name }}"
+  iam_role:
+    name: "{{ _name }}"
+    assume_role_policy_document: "{{ lookup('template', _assume_role_policy_document_template) }}"
+    tags:
+      red-hat-managed: 'true'
+      operator_name: "{{ item.name }}"
+      operator_namespace: "{{ item.namespace }}"
+      rosa_cluster_id: "{{ cluster_id }}"
+
+- name: "create operator policy {{ _name }}"
+  iam_policy:
+    iam_type: role
+    iam_name: "{{ _name }}"
+    policy_name: "{{ _name }}"
+    policy_json: "{{ lookup('file', _policy_json_file) }}"

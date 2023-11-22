@@ -4,35 +4,35 @@ operator_roles:
   hcp:
     - name: ebs-cloud-credentials
       namespace: openshift-cluster-csi-drivers
-      file: openshift_cluster_csi_drivers_ebs_cloud_credentials_policy.json
+      managed_policy_arn: arn:aws:iam::aws:policy/service-role/ROSAAmazonEBSCSIDriverOperatorPolicy
       template: operator_cluster_csi_drivers_ebs_cloud_credentials_policy.json
     - name: cloud-credentials
       namespace: openshift-cloud-network-config-controller
-      file: openshift_cloud_network_config_controller_cloud_credentials_policy.json
+      managed_policy_arn: arn:aws:iam::aws:policy/service-role/ROSACloudNetworkConfigOperatorPolicy
       template: operator_cloud_network_config_controller_cloud_credentials_policy.json
     - name: installer-cloud-credentials
       namespace: openshift-image-registry
-      file: openshift_image_registry_installer_cloud_credentials_policy.json
+      managed_policy_arn: arn:aws:iam::aws:policy/service-role/ROSAImageRegistryOperatorPolicy
       template: operator_image_registry_installer_cloud_credentials_policy.json
     - name: cloud-credentials
       namespace: openshift-ingress-operator
-      file: openshift_ingress_operator_cloud_credentials_policy.json
+      managed_policy_arn: arn:aws:iam::aws:policy/service-role/ROSAIngressOperatorPolicy
       template: operator_ingress_operator_cloud_credentials_policy.json
     - name: capa-controller-manager
       namespace: kube-system
-      file: openshift_capa_controller_manager_credentials_policy.json
+      managed_policy_arn: arn:aws:iam::aws:policy/service-role/ROSANodePoolManagementPolicy
       template: operator_capa_controller_manager_credentials_policy.json
     - name: control-plane-operator
       namespace: kube-system
-      file: openshift_control_plane_operator_credentials_policy.json
+      managed_policy_arn: arn:aws:iam::aws:policy/service-role/ROSAControlPlaneOperatorPolicy
       template: operator_control_plane_operator_credentials_policy.json
     - name: kms-provider
       namespace: kube-system
-      file: openshift_kms_provider_credentials_policy.json
+      managed_policy_arn: arn:aws:iam::aws:policy/service-role/ROSAKMSProviderPolicy
       template: operator_kms_provider_credentials_policy.json
     - name: kube-controller-manager
       namespace: kube-system
-      file: openshift_kube_controller_manager_credentials_policy.json
+      managed_policy_arn: arn:aws:iam::aws:policy/service-role/ROSAKubeControllerPolicy
       template: operator_kube_controller_manager_credentials_policy.json
   classic:
     - name: ebs-cloud-credentials

@@ -32,7 +32,7 @@
       register: _oidc_provider_info
 
     - with_items: "{{ operator_roles[_cluster_type] }}"
-      include_tasks: roles.yml
+      include_tasks: classic.yml
 
 - when: _cluster_type == 'hcp'
   block:
@@ -45,16 +45,8 @@
           red-hat-managed: "true"
       register: _oidc_provider_info
 
-    - set_fact:
-        oidc_id: "{{ _cluster_info.cluster.aws.sts.oidc_config.id }}"
-      when: (oidc_id is not defined) or (oidc_id == '')
-
-    - name: create operator roles for HCP clusters
-      command: |
-        rosa create operator-roles --hosted-cp --mode auto --yes \
-          --prefix "{{ cluster_name }}" \
-          --oidc-config-id "{{ oidc_id }}" \
-          --installer-role-arn "arn:aws:iam::{{ aws_account_id }}:role/{{ rosa_account_roles_prefix }}-Installer-Role"
+    - with_items: "{{ operator_roles[_cluster_type] }}"
+      include_tasks: hcp.yml
 
 # - name: create oidc endpoint for cluster
 #   command: "rosa create oidc-provider -c {{ _cluster_id }} --yes --mode auto"

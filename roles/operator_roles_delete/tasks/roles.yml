@@ -1,5 +1,9 @@
 - set_fact:
-    _name: "{{ '-'.join((cluster_name,item.namespace,item.name))[:64] }}"
+    _name: "{{ '-'.join([cluster_name,item.namespace,item.name])[:64] }}"
+    when: _cluster_type == 'classic'
+- set_fact:
+    _name: "{{ '-'.join([cluster_name, 'hcp', item.namespace,item.name])[:64] }}"
+    when: _cluster_type == 'hcp'
 
 - name: "delete operator policy {{ _name }}"
   iam_policy:
@@ -9,6 +13,7 @@
     state: absent
   register: _delete
   failed_when: ('error' in _delete.keys()) and (_delete.error.code != 'NoSuchEntity')
+  when: _cluster_type == 'classic'
 
 - name: "delete operator role {{ _name }}"
   iam_role:
