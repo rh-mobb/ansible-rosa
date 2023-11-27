@@ -14,7 +14,14 @@
   peer_cert_chain_info:
     host: "{{ oidc_endpoint_url }}"
   register: _oidc_endpoint_chain
-  no_log: true
+  # no_log: true
+  # retries: 5
+  # delay: 10
+  # failed_when: _oidc_endpoint_chain.ca_thumbprint != ""
+
+- debug:
+    msg: |
+      chain: {{ _oidc_endpoint_chain }}
 
 - set_fact:
     _oidc_endpoint_thumbprint: "{{ _oidc_endpoint_chain.ca_thumbprint | replace(':', '') }}"
