@@ -1,3 +1,6 @@
+- set_fact:
+    _rosa_account_roles_prefix: "{{ rosa_account_roles_prefix }}-HCP"
+
 - name: delete HCP Worker role
   iam_role:
     name: "{{ _rosa_account_roles_prefix }}-ROSA-Worker-Role"
