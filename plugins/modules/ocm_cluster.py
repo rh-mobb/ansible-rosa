@@ -154,8 +154,8 @@ MIN_ROSA_VERSION = "1.2.23"
 from ansible.module_utils.basic import *
 from packaging import version as check_version
 from semver import parse as semver_parse
-from ansible_collections.rh_mobb.rosa.plugins.module_utils.ocm import OcmModule
-from ansible_collections.rh_mobb.rosa.plugins.module_utils.ocm import OcmClusterModule
+from ..module_utils.ocm import OcmModule
+from ..module_utils.ocm import OcmClusterModule
 from ocm_client.rest import ApiException
 import ocm_client
 import time
@@ -240,8 +240,8 @@ def run_module():
     with ocm_client.ApiClient(OcmModule.ocm_authenticate()) as api_client:
         api_instance = ocm_client.DefaultApi(api_client)
 
-        
-  
+
+
         # Check to see if there is a cluster of the same name
         if not cluster_id:
             cluster_id, err = OcmClusterModule.get_cluster_id(api_instance, name)

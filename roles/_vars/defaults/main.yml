@@ -8,7 +8,7 @@ rosa_private_link: false
 rosa_disable_workload_monitoring: false
 rosa_hcp: false
 
-rosa_version: "4.13.10"
+rosa_version: "4.14.1"
 
 # disable autoscaling
 # rosa_compute_nodes: 3
@@ -28,7 +28,7 @@ rosa_machine_cidr: ~
 rosa_compute_machine_type: m5.xlarge
 
 rosa_hosted_cp: False
-rosa_account_roles_version: "4.13"
+rosa_account_roles_version: "4.14"
 rosa_account_roles_prefix: AnsibleROSA
 ## leave commented out to use the cluster name as the prefix
 # rosa_operator_roles_prefix: ~

@@ -79,36 +79,25 @@ def run_module():
     if not hostname:
         hostname = module.params['host']
     port = module.params['port']
+    dst = (hostname, port)
+    try:
+        ctx = SSL.Context(SSL.TLS_METHOD)
+        s = socket.create_connection(dst)
+        s = SSL.Connection(ctx, s)
+        s.set_connect_state()
+        s.set_tlsext_host_name(str.encode(dst[0]))
 
-    ssl_methods = [
-        (SSL.TLSv1_METHOD,"SSL.TLSv1_METHOD"),
-        (SSL.TLSv1_1_METHOD,"SSL.TLSv1_1_METHOD"),
-        (SSL.TLSv1_2_METHOD,"SSL.TLSv1_2_METHOD"),
-    ]
+        s.sendall(str.encode('HEAD / HTTP/1.0\n\n'))
 
-    for method,method_name in ssl_methods:
-        try:
-            context = SSL.Context(method=method)
-            context.load_verify_locations(cafile=certifi.where())
-
-            conn = SSL.Connection(
-                context, socket=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            )
-            conn.settimeout(5)
-            conn.connect((hostname, port))
-            conn.setblocking(1)
-            conn.do_handshake()
-            conn.set_tlsext_host_name(hostname.encode())
-            cert_chain = conn.get_peer_cert_chain()
-            ca_cert = cert_chain[-1]
-            result['ca_thumbprint'] = ca_cert.digest("sha1")
-            result['ca_cert'] = crypto.dump_certificate(crypto.FILETYPE_PEM, ca_cert).decode("utf-8")
-            for cert in cert_chain:
-                result['chain'].append(crypto.dump_certificate(crypto.FILETYPE_PEM, cert).decode("utf-8"))
-            conn.close()
-        except:
-            pass
-
+        cert_chain = s.get_peer_cert_chain()
+        ca_cert = cert_chain[-1]
+        result['ca_thumbprint'] = ca_cert.digest("sha1")
+        result['ca_cert'] = crypto.dump_certificate(crypto.FILETYPE_PEM, ca_cert).decode("utf-8")
+        for cert in cert_chain:
+            result['chain'].append(crypto.dump_certificate(crypto.FILETYPE_PEM, cert).decode("utf-8"))
+        s.close()
+    except SSL.Error as e:
+        module.fail_json(e) #, msg="failed")
     module.exit_json(**result)
 
 def main():

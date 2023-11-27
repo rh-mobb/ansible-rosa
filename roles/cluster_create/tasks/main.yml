@@ -55,8 +55,20 @@
         _oidc_id: "{{ _oidc_config.oidc_config.id }}"
       when: rosa_hosted_cp | default(False) | bool
 
-    # TODO - get rid of this for the above workflow
-    # - include_tasks: hcp_oidc.yml
+    # HCP roles
+    - set_fact:
+        _role_arn: "arn:aws:iam::{{ aws_account_id }}:role/{{ rosa_account_roles_prefix }}-HCP-ROSA-Installer-Role"
+        _support_role_arn: "arn:aws:iam::{{ aws_account_id }}:role/{{ rosa_account_roles_prefix }}-HCP-ROSA-Support-Role"
+        _worker_iam_role: "arn:aws:iam::{{ aws_account_id }}:role/{{ rosa_account_roles_prefix }}-HCP-ROSA-Worker-Role"
+      when: rosa_hosted_cp | default(False) | bool
+
+    # Classic roles
+    - set_fact:
+        _role_arn: "arn:aws:iam::{{ aws_account_id }}:role/{{ rosa_account_roles_prefix }}-Installer-Role"
+        _support_role_arn: "arn:aws:iam::{{ aws_account_id }}:role/{{ rosa_account_roles_prefix }}-Support-Role"
+        _controlplane_iam_role: "arn:aws:iam::{{ aws_account_id }}:role/{{ rosa_account_roles_prefix }}-ControlPlane-Role"
+        _worker_iam_role: "arn:aws:iam::{{ aws_account_id }}:role/{{ rosa_account_roles_prefix }}-Worker-Role"
+      when: not rosa_hosted_cp | default(False) | bool
 
     - name: create cluster
       ocm_cluster:
@@ -82,11 +94,11 @@
         max_replicas: "{{ rosa_max_replicas | default(omit) }}"
         compute_nodes: "{{ rosa_compute_nodes | default(omit) }}"
         compute_machine_type: "{{ rosa_compute_machine_type | default(omit) }}"
-        role_arn: "arn:aws:iam::{{ aws_account_id }}:role/{{ rosa_account_roles_prefix }}-Installer-Role"
-        support_role_arn: "arn:aws:iam::{{ aws_account_id }}:role/{{ rosa_account_roles_prefix }}-Support-Role"
-        controlplane_iam_role: "arn:aws:iam::{{ aws_account_id }}:role/{{ rosa_account_roles_prefix }}-ControlPlane-Role"
-        worker_iam_role: "arn:aws:iam::{{ aws_account_id }}:role/{{ rosa_account_roles_prefix }}-Worker-Role"
-        operator_roles_prefix: "{{ rosa_operator_roles_prefix | default(cluster_name) }}"
+        role_arn: "{{ _role_arn }}"
+        support_role_arn: "{{ _support_role_arn }}"
+        controlplane_iam_role: "{{ _controlplane_iam_role | default(omit) }}"
+        worker_iam_role: "{{ _worker_iam_role }}"
+        operator_roles_prefix: "{{ cluster_name }}"
         kms_key_arn: "{{ rosa_kms_key_arn | default(None) }}"
       register: _rosa_cluster
 

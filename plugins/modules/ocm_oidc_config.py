@@ -83,7 +83,7 @@ oidc_config:
 '''
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.rh_mobb.rosa.plugins.module_utils.ocm import OcmModule
+from ..module_utils.ocm import OcmModule
 import ocm_client
 from ocm_client.rest import ApiException
 import os

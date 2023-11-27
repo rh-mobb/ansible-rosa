@@ -4,13 +4,13 @@
 
 - with_items: "{{ operator_roles[_cluster_type] }}"
   include_tasks: roles.yml
-  when: _cluster_type == 'classic'
+  # when: _cluster_type == 'classic'
 
-- name: create operator roles for HCP clusters
-  command: |
-    rosa delete operator-roles --yes \
-      --prefix "{{ cluster_name }}" --mode auto
-  when: _cluster_type == 'hcp'
+# - name: delete operator roles for HCP clusters
+#   command: |
+#     rosa delete operator-roles --yes \
+#       --prefix "{{ cluster_name }}" --mode auto
+#   when: _cluster_type == 'hcp'
 
 # - name: delete the operator roles
 #   shell: |
