@@ -1,15 +1,24 @@
 # ansible-rosa
 
-				                                      
-  This project is provided as-is, and is not an official or      
-  Supported Red Hat project. We will happily accept issues and   
-  Pull Requests and provide basic OSS level community support 
+
+  This project is provided as-is, and is not an official or
+  Supported Red Hat project. We will happily accept issues and
+  Pull Requests and provide basic OSS level community support
 
 ***
 
 This project contains a set of modules for working with ROSA as well as some example playbooks.
 
-Will create/delete ROSA clusters but if you know how to work ansible inventories, it can do multiple clusters. By default the cluster will be a single-az public cluster on a BYO VPC network with STS enabled.  modify the inventory in `environment/default` to enable private-link or modify networks.
+Will create/delete ROSA clusters but if you know how to work ansible inventories, it can do multiple clusters.
+
+The repository has a number of example scenarious that are configured as Ansible Inventories found in the `environment` folder.  The `default` environment will provision a single-az public cluster on a BYO VPC cluster. These can be selected by using `make` as such
+
+Examples
+
+* `make create` - default single-az classic cluster.
+* `make create.hcp` - hosted control plane cluster.
+* `make create.pl` - private-link classic cluster.
+* `make create.tgw` - private-link classic cluster with TransitGateway.
 
 
 ## Examples using ROSA Ansible Modules
@@ -20,7 +29,7 @@ Will create/delete ROSA clusters but if you know how to work ansible inventories
 
 1. Download and install the [AWS cli](https://aws.amazon.com/cli/)
 
-1. Download and install the [ROSA cli 1.0.9+](https://github.com/openshift/rosa/releases/tag/v1.0.9)
+1. Download and install the [ROSA cli](https://console.redhat.com/openshift/downloads)
 
 1. Enable the ROSA service in AWS.
 
