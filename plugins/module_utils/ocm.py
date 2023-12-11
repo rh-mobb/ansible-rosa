@@ -131,6 +131,10 @@ def rosa_creator_arn():
     client = boto3.client("sts")
     return client.get_caller_identity()["Arn"]
 
+def aws_account_id():
+    client = boto3.client("sts")
+    return client.get_caller_identity()["Account"]
+
 def rosa_compute_node_count(params):
     # return the requested compute node count if set
     if params['compute_nodes']:
@@ -158,7 +162,7 @@ def rosa_compute_nodes(params, availability_zones):
         )
 
         return compute_nodes
-    
+
     # return compute node object for non-autoscaling use case
     compute_nodes.compute = int(rosa_compute_node_count(params))
 
@@ -264,18 +268,21 @@ class OcmClusterModule(object):
         instance_iam_roles = ocm_client.InstanceIAMRoles(
             worker_role_arn = params['worker_iam_role'],
         )
-        if not params['hosted_cp']:
-            instance_iam_roles.master_role_arn = params['controlplane_iam_role']
-        else:
-            # correct the multi-az input for hosted control planes.  hosted control plane is 
-            # always considered multi-az because the control plane itself is multi-az.  the 
+        if params['hosted_cp']:
+            # correct the multi-az input for hosted control planes.  hosted control plane is
+            # always considered multi-az because the control plane itself is multi-az.  the
             # machine pools are managed differently.
             params['multi_az'] = True
+            # billing account id must be set (todo make it configurable)
+            billing_account_id = params['aws_account_id']
+        else:
+            instance_iam_roles.master_role_arn = params['controlplane_iam_role']
+            billing_account_id = None
         cluster = ocm_client.Cluster(
 
             api = api_visibility((params['private_link'] or params['private'])),
-            aws = ocm_client.AWS( 
-                sts = ocm_client.STS( 
+            aws = ocm_client.AWS(
+                sts = ocm_client.STS(
                     enabled = params['sts'],
                     auto_mode = False, #params['hosted_cp'],
                     instance_iam_roles = instance_iam_roles,
@@ -285,9 +292,9 @@ class OcmClusterModule(object):
                     role_arn = params['role_arn'],
                     support_role_arn = params['support_role_arn'],
                 ),
-                
-                kms_key_arn=params['kms_key_arn'], 
-                
+
+                kms_key_arn=params['kms_key_arn'],
+                billing_account_id = billing_account_id,
                 account_id = params['aws_account_id'],
                 # audit_log
                 etcd_encryption = ocm_client.AwsEtcdEncryption(),
@@ -345,7 +352,7 @@ class OcmClusterModule(object):
                 channel_group = "stable",
             ),
 
-            
+
         )
 
         try:
