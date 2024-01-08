@@ -19,7 +19,7 @@
     cidr: "{{ item.cidr }}"
     az: "{{ item.az }}"
     purge_tags: false
-    resource_tags: "{{ item.resource_tags }}"
+    resource_tags: "{{ item.resource_tags | combine({'kubernetes.io/role/internal-elb': '1'}) }}" #
   with_items: "{{ rosa_vpc_private_subnets }}"
   register: _private_subnets
 
@@ -30,7 +30,7 @@
     cidr: "{{ item.cidr }}"
     az: "{{ item.az }}"
     purge_tags: false
-    resource_tags: "{{ item.resource_tags }}"
+    resource_tags: "{{ item.resource_tags | combine({'kubernetes.io/role/elb': '1'}) }}"
   with_items: "{{ rosa_vpc_public_subnets }}"
   register: _public_subnets
 
