@@ -1,0 +1,104 @@
+---
+- name: create a vpc
+  ec2_vpc_net:
+    name: "{{ rosa_vpc.name }}"
+    cidr_block: "{{ rosa_vpc.cidr }}"
+    region: "{{ rosa_vpc.region }}"
+    dns_support: true
+    dns_hostnames: true
+  register: _vpc
+
+- set_fact:
+    vpc_id: "{{ _vpc.vpc.id }}"
+    cluster_id: "{{ cluster_id | default('tbd') }}"
+
+- name: create private subnets
+  ec2_vpc_subnet:
+    region: "{{ rosa_vpc.region }}"
+    vpc_id: "{{ _vpc.vpc.id }}"
+    cidr: "{{ item.cidr }}"
+    az: "{{ item.az }}"
+    purge_tags: false
+    resource_tags: "{{ item.resource_tags | combine({'kubernetes.io/role/internal-elb': '1'}) }}" #
+  with_items: "{{ rosa_vpc.private_subnets }}"
+  register: _private_subnets
+
+- name: create public subnets
+  ec2_vpc_subnet:
+    region: "{{ rosa_vpc.region }}"
+    vpc_id: "{{ _vpc.vpc.id }}"
+    cidr: "{{ item.cidr }}"
+    az: "{{ item.az }}"
+    purge_tags: false
+    resource_tags: "{{ item.resource_tags | combine({'kubernetes.io/role/elb': '1'}) }}"
+  with_items: "{{ rosa_vpc.public_subnets }}"
+  register: _public_subnets
+
+- name: figure out list of subnets
+  set_fact:
+    _private_subnet_ids: "{{ _private_subnets.results | default([]) | json_query('[*].subnet.id') }}"
+    _public_subnet_ids:  "{{ _public_subnets.results  | default([]) | json_query('[*].subnet.id') }}"
+
+
+- name: attach VPC to transit gateway
+  community.aws.ec2_transit_gateway_vpc_attachment:
+    transit_gateway: "{{ tgw_id }}"
+    region: "{{ rosa_vpc.region }}"
+    name: "{{ rosa_vpc.name }}-tgw-attach"
+    subnets: "{{ _private_subnet_ids }}"
+    ipv6_support: False
+    purge_subnets: False
+    dns_support: True
+  when: tgw_id is defined
+
+# skip if using tgw
+- when: (rosa_vpc.tgw_id != "" ) or
+        (rosa_vpc.public_subnets | length > 0)
+  block:
+    - name: create internet gateway
+      ec2_vpc_igw:
+        vpc_id: "{{ _vpc.vpc.id }}"
+        region: "{{ rosa_vpc.region }}"
+        state: present
+      register: _igw
+
+    - name: create public subnet route table
+      ec2_vpc_route_table:
+        vpc_id: "{{ _vpc.vpc.id }}"
+        region: "{{ rosa_vpc.region }}"
+        tags:
+          Name: "public-route-table"
+        subnets: "{{ _public_subnet_ids }}"
+        routes:
+          - dest: 0.0.0.0/0
+            gateway_id: "{{ _igw.gateway_id }}"
+
+    # routes for private subnets
+    - with_items: "{{ _public_subnets.results }}"
+      include_tasks: nat_gateway_routes.yml
+      loop_control:
+        loop_var: outer_item
+
+
+# when TGW enabled, we need to create the default route to use it
+- when: rosa_tgw_enabled | bool
+  block:
+    - name: create private subnet route table
+      ec2_vpc_route_table:
+        vpc_id: "{{ _vpc.vpc.id }}"
+        region: "{{ rosa_vpc.region }}"
+        tags:
+          Name: "rosa-private-nat-{{ item.subnet.id }}"
+        subnets: "{{ item.subnet.id }}"
+        routes:
+          - dest: 0.0.0.0/0
+            gateway_id: "{{ rosa_vpc.tgw_id }}"
+      with_items: "{{ _private_subnets.results }}"
+      register: _private_subnet_route_table
+
+    - set_fact:
+        _route_table_ids: "{{ _private_subnet_route_table | json_query('results[*].route_table.id') }}"
+
+
+- include_tasks: vpc_endpoints.yml
+  when: rosa_vpc.endpoints_enabled | bool

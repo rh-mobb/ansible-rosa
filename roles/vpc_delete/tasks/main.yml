@@ -1,91 +1,19 @@
 ---
-- ec2_vpc_net_info:
-    filters:
-      "tag:Name": "rosa-{{ cluster_name }}"
-    region: "{{ rosa_region }}"
-  register: vpc_info
-  no_log: True
+- pause:
+    seconds: 30
+    prompt: |
+      the rh_mobb {{ role_name }} role is being deprecated for the
+      more modular rh_mobb rosa_vpc role.  Consider switching.
 
-- when: vpc_info.vpcs | length > 0
-  block:
-    - set_fact:
-        vpc_id: "{{ vpc_info.vpcs[0].vpc_id }}"
-
-    ## NAT Gateway
-    - ec2_vpc_nat_gateway_info:
-        filters:
-          vpc-id: "{{ vpc_id }}"
-        region: "{{ rosa_region }}"
-      register: _nat_gw_info
-      no_log: True
-
-    - name: delete nat gateways
-      ec2_vpc_nat_gateway:
-        region: "{{ rosa_region }}"
-        state: absent
-        nat_gateway_id: "{{ item.nat_gateway_id }}"
-        release_eip: yes
-        wait: yes
-      with_items: "{{ _nat_gw_info.result }}"
-      when: item.state != 'deleted'
-
-    # Internet Gateway
-    - ec2_vpc_igw_info:
-        region: "{{ rosa_region }}"
-        filters:
-          attachment.vpc-id: "{{ vpc_id }}"
-      register: igw_info
-      no_log: True
-
-    - name: delete internet gateway
-      ec2_vpc_igw:
-        region: "{{ rosa_region }}"
-        vpc_id: "{{ vpc_id }}"
-        state: absent
-
-    - include_tasks: vpc_endpoints.yml
-      when: rosa_vpc_endpoints_enabled | bool
-
-    - ec2_vpc_subnet_info:
-        region: "{{ rosa_region }}"
-        filters:
-          vpc-id: "{{ vpc_id }}"
-      register: subnet_info
-      no_log: True
-
-    - name: delete private subnets
-      ec2_vpc_subnet:
-        region: "{{ rosa_region }}"
-        state: absent
-        vpc_id: "{{ vpc_id }}"
-        cidr: "{{ item.cidr_block }}"
-      with_items: "{{ subnet_info.subnets }}"
-      when: item.state != 'deleted'
-
-    ## Route Tables
-    - ec2_vpc_route_table_info:
-        region: "{{ rosa_region }}"
-        filters:
-          vpc-id: "{{ vpc_id }}"
-      register: route_table_info
-      no_log: True
-
-    - name: delete public subnet route table
-      ec2_vpc_route_table:
-        region: "{{ rosa_region }}"
-        state: absent
-        vpc_id: "{{ vpc_id }}"
-        route_table_id: "{{ item.id }}"
-        lookup: id
-      with_items: "{{ route_table_info.route_tables }}"
-      when: item.associations | length == 0
-
-    ## VPC
-    - name: delete the vpc
-      ec2_vpc_net:
-        state: absent
-        # name: "rosa-{{ cluster_name }}"
-        # cidr_block: "{{ rosa_vpc_cidr }}"
-        vpc_id: "{{ vpc_id }}"
-        region: "{{ rosa_region }}"
-
+- include_role:
+    name: rosa_vpc
+  vars:
+    state: absent
+    rosa_vpc:
+      name: "rosa-{{ cluster_name }}-vpc"
+      region: "{{ rosa_region }}"
+      cidr: "{{ rosa_vpc_cidr }}"
+      # tgw_id: "{{ tgw_id | default('')}}"
+      # endpoints_enabled: True
+      # private_subnets: "{{ rosa_vpc_private_subnets }}"
+      # public_subnets: "{{ rosa_vpc_public_subnets }}"

@@ -75,6 +75,10 @@ create.hcp:
 delete.hcp:
 	$(ANSIBLE) delete-cluster.yaml -i ./environment/hcp/hosts
 
+create.new:
+	$(ANSIBLE) install.yml -i ./environment/hcp/hosts
+delete.new:
+	$(ANSIBLE) uninstall.yml -i ./environment/hcp/hosts
 
 docker.create: image
 	docker run --rm \

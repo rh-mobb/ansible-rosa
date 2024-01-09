@@ -1,0 +1,37 @@
+- name: create security group for vpc endpoints
+  amazon.aws.ec2_security_group:
+    name: "{{ rosa_vpc.name }}-endpoint-sg"
+    description: allow traffic to VPC endpoints
+    vpc_id: "{{ vpc_id }}"
+    region: "{{ rosa_vpc.region }}"
+    rules:
+      - proto: tcp
+        ports: [443]
+        cidr_ip: "{{ rosa_vpc.cidr }}"
+        rule_desc: allow all on port 443
+  register: _vpc_endpoint_sg
+
+- name: "Create vpc endpoint for {{ item }}"
+  amazon.aws.ec2_vpc_endpoint:
+    state: present
+    vpc_id: "{{ vpc_id }}"
+    region: "{{ rosa_vpc.region }}"
+    service: "com.amazonaws.{{ rosa_vpc.region }}.{{ item }}"
+    vpc_endpoint_subnets: "{{ _private_subnet_ids }}"
+    vpc_endpoint_type: Interface
+    vpc_endpoint_security_groups: ["{{ _vpc_endpoint_sg.group_id }}"]
+    tags:
+      Name: "{{ rosa_vpc.name }}-{{ item }}"
+  with_items: "{{ vpc_interface_endpoints }}"
+
+- name: "Create vpc gateway endpoint for {{ item }}"
+  amazon.aws.ec2_vpc_endpoint:
+    state: present
+    region: "{{ rosa_vpc.region }}"
+    vpc_id: "{{ vpc_id }}"
+    vpc_endpoint_type: Gateway
+    service: "com.amazonaws.{{ rosa_vpc.region }}.{{ item }}"
+    route_table_ids: "{{ _route_table_ids | default(omit) }}"
+    tags:
+      Name: "{{ rosa_vpc.name }}-{{ item }}"
+  with_items: "{{ vpc_gateway_endpoints }}"

@@ -2,10 +2,10 @@
 # vpc endpoints
 - name: fetch vpc endpoints
   amazon.aws.ec2_vpc_endpoint_info:
-    region: "{{ rosa_region }}"
+    region: "{{ rosa_vpc.region }}"
     # query: endpoints
     filters:
-      vpc-id: "{{ vpc_id }}"
+      vpc-id: "{{ _vpc_id }}"
   register: _sts_vpc_endpoint
   no_log: True
 
@@ -16,17 +16,17 @@
 - block:
     - name: delete vpc endpoints
       amazon.aws.ec2_vpc_endpoint:
-        region: "{{ rosa_region }}"
+        region: "{{ rosa_vpc.region }}"
         state: absent
         vpc_endpoint_id: "{{ item.vpc_endpoint_id }}"
       with_items: "{{ _sts_vpc_endpoint.vpc_endpoints }}"
 
     - name: wait for vpc endpoints to be deleted
       amazon.aws.ec2_vpc_endpoint_info:
-        region: "{{ rosa_region }}"
+        region: "{{ rosa_vpc.region }}"
         # query: endpoints
         filters:
-          vpc-id: "{{ vpc_id }}"
+          vpc-id: "{{ _vpc_id }}"
       register: _check_sts_vpc_endpoint
       until: _check_sts_vpc_endpoint.vpc_endpoints | default([]) | length == 0
       retries: 60
@@ -36,16 +36,16 @@
 
 - name: get vpc endpoint security group
   amazon.aws.ec2_security_group_info:
-    region: "{{ rosa_region }}"
+    region: "{{ rosa_vpc.region }}"
     filters:
-      vpc-id: "{{ vpc_id }}"
-      group-name: "rosa-{{ cluster_name }}-endpoint-sg"
+      vpc-id: "{{ _vpc_id }}"
+      group-name: "{{ rosa_vpc.name }}-endpoint-sg"
   register: _sts_endpoint_sg
   no_log: True
 
 - name: delete vpc endpoint security group
   amazon.aws.ec2_security_group:
-    region: "{{ rosa_region }}"
+    region: "{{ rosa_vpc.region }}"
     group_id: "{{ item.group_id }}"
     state: absent
   with_items: "{{ _sts_endpoint_sg.security_groups }}"

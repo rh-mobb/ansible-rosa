@@ -230,6 +230,7 @@ class OcmModule(object):
         return configuration
 
 class OcmClusterModule(object):
+
     def get_cluster_id(api_instance, cluster_name):
         search = "name = '{}'".format(cluster_name)
         try:
@@ -252,6 +253,7 @@ class OcmClusterModule(object):
         return cluster_info.to_dict(), None
 
     def create_cluster(api_instance, params):
+
         availability_zones, err = getAvailabilityZoneForSubnets(params['subnet_ids'].split(','), params['region'])
         if err:
             return None, err
