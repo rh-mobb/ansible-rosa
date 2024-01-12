@@ -22,6 +22,7 @@
     name: "ROSA-{{ cluster_name }}-jumphost"
     region: "{{ rosa_region }}"
     key_material: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+    tags: "{{ extra_tags }}"
 
 - name: create ssh security group
   ec2_group:
@@ -29,6 +30,7 @@
     description: security group for SSH
     vpc_id: "{{ jumphost_vpc_id }}"
     region: "{{ rosa_region }}"
+    tags: "{{ extra_tags }}"
     rules:
       - proto: tcp
         ports: [22]
@@ -66,8 +68,7 @@
     network:
       assign_public_ip: true
     image_id: "{{ jumphost_ami }}"
-    tags:
-      Name: "ROSA-{{ cluster_name }}-jumphost"
+    tags: "{{ extra_tags | combine({'Name': 'rosa-' + cluster_name + 'jumphost' }) }}"
     wait: true
   register: _jumphost
 
@@ -84,6 +85,7 @@
         description: security group for ALL
         region: "{{ rosa_region }}"
         vpc_id: "{{ vpc_id }}"
+        tags: "{{ extra_tags }}"
         rules:
           - proto: all
             cidr_ip: "{{ rosa_tgw_cidr }}"
@@ -101,8 +103,7 @@
         network:
           assign_public_ip: no
         image_id: "{{ jumphost_ami }}"
-        tags:
-          Name: "ROSA-{{ cluster_name }}-private-jumphost"
+        tags: "{{ extra_tags | combine({'Name': 'rosa-' + cluster_name + '-private-jumphost' }) }}"
   when: jumphost_private_instance | bool
 
 

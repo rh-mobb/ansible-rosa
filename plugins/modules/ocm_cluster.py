@@ -199,7 +199,8 @@ def run_module():
         worker_iam_role=dict(type='str', required=False),
         hosted_cp=dict(type=bool, required=False, default=False),
         oidc_config_id=dict(type=str, required=False),
-        kms_key_arn=dict(type='str', required=False)
+        kms_key_arn=dict(type='str', required=False),
+        tags=dict(type='dict', required=False)
     )
 
     # seed the result dict in the object

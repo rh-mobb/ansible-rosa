@@ -33,13 +33,13 @@
   #     - vars/main.yaml
 
   roles:
-    - name: roles/_vars
+    # - name: roles/_vars
     # - name: roles/network_math
     # - name: roles/tgw_create
     #   when: rosa_tgw_enabled | bool
     # - name: roles/egress_vpc_create
     #   when: rosa_egress_vpc_enabled | bool
-    - name: roles/vpc_delete
+    - name: roles/rosa_vpc
       vars:
         rosa_vpc:
           name: "rosa-{{ cluster_name }}-vpc"

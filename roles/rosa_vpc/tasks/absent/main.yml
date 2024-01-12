@@ -44,7 +44,8 @@
         state: absent
 
     - include_tasks: vpc_endpoints.yml
-      when: rosa_vpc.endpoints_enabled | bool
+      when: (rosa_vpc.endpoints.gateway_endpoints | length > 0) or
+            (rosa_vpc.endpoints.interface_endpoints | length > 0)
 
     - ec2_vpc_subnet_info:
         region: "{{ rosa_vpc.region }}"

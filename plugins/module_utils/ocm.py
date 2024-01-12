@@ -24,6 +24,7 @@ import os
 from pathlib import Path
 import json
 import requests
+import re
 
 # from botocore.exceptions import BotoCoreError
 # from botocore.exceptions import ClientError
@@ -203,6 +204,12 @@ def populateOperatorRoles(prefix, account_id, hcp):
         operator_roles.append(operator_role)
     return operator_roles
 
+def hcp_friendly_tags(tags):
+    for key in tags.keys():
+        tags[key] = re.sub('[^a-zA-Z0-9_\-]', '', tags[key])
+    return tags
+
+
 def api_visibility(private):
     if private:
         return ocm_client.ClusterAPI(
@@ -277,6 +284,8 @@ class OcmClusterModule(object):
             params['multi_az'] = True
             # billing account id must be set (todo make it configurable)
             billing_account_id = params['aws_account_id']
+            # currently HCP can't take special chars in tag values
+            params['tags'] = hcp_friendly_tags(params['tags'])
         else:
             instance_iam_roles.master_role_arn = params['controlplane_iam_role']
             billing_account_id = None
@@ -302,7 +311,7 @@ class OcmClusterModule(object):
                 etcd_encryption = ocm_client.AwsEtcdEncryption(),
                 private_link = params['private_link'],
                 subnet_ids = params['subnet_ids'].split(','),
-                # todo tags = params['tags']
+                tags = params['tags'],
             ),
             ccs = ocm_client.CCS(
                 disable_scp_checks = params['disable_scp_checks'],

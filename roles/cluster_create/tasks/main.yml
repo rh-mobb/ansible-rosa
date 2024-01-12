@@ -6,7 +6,7 @@
       Preparing to create {{ cluster_name }}.
       This task may take up to an hour.
       ***************************************
-      
+
     verbosity: 0
 
 # do this better ... maybe better set during vpc creation and inherited.
@@ -100,6 +100,7 @@
         worker_iam_role: "{{ _worker_iam_role }}"
         operator_roles_prefix: "{{ cluster_name }}"
         kms_key_arn: "{{ rosa_kms_key_arn | default(None) }}"
+        tags: "{{ extra_tags }}"
       register: _rosa_cluster
 
 - debug:

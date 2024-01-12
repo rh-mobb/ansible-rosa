@@ -4,7 +4,7 @@
 - name:         "init"
   hosts:        localhost
   connection:   local
-  gather_facts: false
+  gather_facts: true
   tags:
     - always
 
@@ -24,6 +24,15 @@
       aws_caller_info:
       register: _aws_caller_info
 
+    - name: "set default resource tags"
+      set_fact:
+        extra_tags:
+          cost-center: CC468
+          service-phase: lab
+          app-code: MOBB-001
+          owner: "{{ ansible_user_id }}@redhat.com"
+      when: not extra_tags | default({}) | bool
+
     - ansible.builtin.set_fact:
         aws_account_id: "{{ _aws_caller_info.account }}"
 
@@ -39,7 +48,7 @@
     #   when: rosa_tgw_enabled | bool
     # - name: roles/egress_vpc_create
     #   when: rosa_egress_vpc_enabled | bool
-    - name: roles/vpc_create
+    - name: roles/rosa_vpc
       vars:
         rosa_vpc:
           name: "rosa-{{ cluster_name }}-vpc"
@@ -48,5 +57,8 @@
           tgw_id: "{{ tgw_id | default('')}}"
           private_subnets: "{{ rosa_vpc_private_subnets }}"
           public_subnets: "{{ rosa_vpc_public_subnets }}"
-          endpoints_enabled: True
+          extra_tags: "{{ extra_tags }}"
+          endpoints:
+            gateway_endpoints: [s3]
+            interface_endpoints: [sts,ec2,elasticloadbalancing]
       when: rosa_subnet_ids | default([]) | length == 0

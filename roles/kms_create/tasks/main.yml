@@ -7,3 +7,4 @@
     key_id: "{{ rosa_kms_key_arn }}"
     state: "present"
     policy: "{{ lookup('template', 'kms-policy.json.j2') }}"
+    tags: "{{ extra_tags }}"

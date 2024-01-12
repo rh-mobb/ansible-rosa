@@ -14,6 +14,6 @@
       region: "{{ rosa_region }}"
       cidr: "{{ rosa_vpc_cidr }}"
       tgw_id: "{{ tgw_id | default('')}}"
-      endpoints_enabled: True
       private_subnets: "{{ rosa_vpc_private_subnets }}"
       public_subnets: "{{ rosa_vpc_public_subnets }}"
+      extra_tags: "{{ extra_tags }}"
