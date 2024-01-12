@@ -6,25 +6,19 @@
         rosa_vpc_public_subnets:
           - cidr: "{{ rosa_vpc_cidr | ansible.utils.ipsubnet(_cidr, 0) }}"
             az: "{{ rosa_region }}a"
-            resource_tags: { "Name":"{{ cluster_name }}-public" }
           - cidr: "{{ rosa_vpc_cidr | ansible.utils.ipsubnet(_cidr, 1) }}"
             az: "{{ rosa_region }}b"
-            resource_tags: { "Name":"{{ cluster_name }}-public" }
           - cidr: "{{ rosa_vpc_cidr | ansible.utils.ipsubnet(_cidr, 2) }}"
             az: "{{ rosa_region }}c"
-            resource_tags: { "Name":"{{ cluster_name }}-public" }
       when: rosa_vpc_public_subnets is not defined
     - set_fact:
         rosa_vpc_private_subnets:
           - cidr: "{{ rosa_vpc_cidr | ansible.utils.ipsubnet(_cidr, 3) }}"
             az: "{{ rosa_region }}a"
-            resource_tags: { "Name":"{{ cluster_name }}-private" }
           - cidr: "{{ rosa_vpc_cidr | ansible.utils.ipsubnet(_cidr, 4) }}"
             az: "{{ rosa_region }}b"
-            resource_tags: { "Name":"{{ cluster_name }}-private" }
           - cidr: "{{ rosa_vpc_cidr | ansible.utils.ipsubnet(_cidr, 5) }}"
             az: "{{ rosa_region }}c"
-            resource_tags: { "Name":"{{ cluster_name }}-private" }
       when: rosa_vpc_private_subnets is not defined
   when:
     - rosa_multi_az | bool

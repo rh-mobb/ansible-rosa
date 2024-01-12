@@ -7,6 +7,7 @@
     destination_cidr_block: 0.0.0.0/0
     transit_gateway_route_table_id: "{{ tgw_route_table }}"
     transit_gateway_attachment_id: "{{ _egress_vpc_tgw_attachment_id }}"
+    tags: "{{ extra_tags }}"
   register: _tgw_rt
 
 # - fail:

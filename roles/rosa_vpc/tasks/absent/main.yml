@@ -1,0 +1,92 @@
+---
+- ec2_vpc_net_info:
+    filters:
+      "tag:Name": "{{ rosa_vpc.name }}"
+    region: "{{ rosa_vpc.region }}"
+  register: _vpc_info
+  no_log: True
+
+- when: _vpc_info.vpcs | length > 0
+  block:
+    - set_fact:
+        _vpc_id: "{{ _vpc_info.vpcs[0].vpc_id }}"
+
+    ## NAT Gateway
+    - ec2_vpc_nat_gateway_info:
+        filters:
+          vpc-id: "{{ _vpc_id }}"
+        region: "{{ rosa_vpc.region }}"
+      register: _nat_gw_info
+      no_log: True
+
+    - name: delete nat gateways
+      ec2_vpc_nat_gateway:
+        region: "{{ rosa_vpc.region }}"
+        state: absent
+        nat_gateway_id: "{{ item.nat_gateway_id }}"
+        release_eip: yes
+        wait: yes
+      with_items: "{{ _nat_gw_info.result }}"
+      when: item.state != 'deleted'
+
+    # Internet Gateway
+    - ec2_vpc_igw_info:
+        region: "{{ rosa_vpc.region }}"
+        filters:
+          attachment.vpc-id: "{{ _vpc_id }}"
+      register: igw_info
+      no_log: True
+
+    - name: delete internet gateway
+      ec2_vpc_igw:
+        region: "{{ rosa_vpc.region }}"
+        vpc_id: "{{ _vpc_id }}"
+        state: absent
+
+    - include_tasks: vpc_endpoints.yml
+      when: (rosa_vpc.endpoints.gateway_endpoints | length > 0) or
+            (rosa_vpc.endpoints.interface_endpoints | length > 0)
+
+    - ec2_vpc_subnet_info:
+        region: "{{ rosa_vpc.region }}"
+        filters:
+          vpc-id: "{{ _vpc_id }}"
+      register: subnet_info
+      no_log: True
+
+    - name: delete private subnets
+      ec2_vpc_subnet:
+        region: "{{ rosa_vpc.region }}"
+        state: absent
+        vpc_id: "{{ _vpc_id }}"
+        cidr: "{{ item.cidr_block }}"
+      with_items: "{{ subnet_info.subnets }}"
+      when: item.state != 'deleted'
+
+    ## Route Tables
+    - ec2_vpc_route_table_info:
+        region: "{{ rosa_vpc.region }}"
+        filters:
+          vpc-id: "{{ _vpc_id }}"
+      register: route_table_info
+      no_log: True
+
+    - name: delete public subnet route table
+      ec2_vpc_route_table:
+        region: "{{ rosa_vpc.region }}"
+        state: absent
+        vpc_id: "{{ _vpc_id }}"
+        route_table_id: "{{ item.id }}"
+        lookup: id
+      with_items: "{{ route_table_info.route_tables }}"
+      when: item.associations | length == 0
+
+    ## VPC
+    - name: delete the vpc
+      ec2_vpc_net:
+        state: absent
+        # name: "rosa-{{ cluster_name }}"
+        # cidr_block: "{{ rosa_vpc_cidr }}"
+        vpc_id: "{{ _vpc_id }}"
+        region: "{{ rosa_vpc.region }}"
+

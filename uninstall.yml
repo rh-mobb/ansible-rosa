@@ -1,0 +1,50 @@
+#
+# init
+#
+- name:         "init"
+  hosts:        localhost
+  connection:   local
+  gather_facts: false
+  tags:
+    - always
+
+  tasks:
+    - name: "set a state fact"
+      ansible.builtin.set_fact:
+        state: absent
+
+    # - name: "include variables"
+    #   ansible.builtin.include_vars:
+    #     dir: vars/
+    - ansible.builtin.set_fact:
+        ansible_python_interpreter: ./virtualenv/bin/python
+        staging_dir: "{{ playbook_dir }}/staging"
+
+    - name: "get the aws account id"
+      aws_caller_info:
+      register: _aws_caller_info
+
+    - ansible.builtin.set_fact:
+        aws_account_id: "{{ _aws_caller_info.account }}"
+
+- hosts:      "all"
+  connection: "local"
+  # vars_files:
+  #     - vars/main.yaml
+
+  roles:
+    # - name: roles/_vars
+    # - name: roles/network_math
+    # - name: roles/tgw_create
+    #   when: rosa_tgw_enabled | bool
+    # - name: roles/egress_vpc_create
+    #   when: rosa_egress_vpc_enabled | bool
+    - name: roles/rosa_vpc
+      vars:
+        rosa_vpc:
+          name: "rosa-{{ cluster_name }}-vpc"
+          region: "{{ rosa_region }}"
+          cidr: "{{ rosa_vpc_cidr }}"
+          tgw_id: "{{ tgw_id | default('')}}"
+          endpoints_enabled: True
+      when: rosa_subnet_ids | default([]) | length == 0

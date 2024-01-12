@@ -5,7 +5,7 @@
     region: "{{ rosa_region }}"
     description: "rosa {{ cluster_name }} transit gateway"
     dns_support: yes
-    tags: { "Name": "rosa-{{ cluster_name }}-tgw" }
+    tags: "{{ extra_tags | combine({'Name': 'rosa-' + cluster_name + '-tgw' }) }}"
     auto_associate: yes
     auto_propagate: yes
     # auto_attach: no

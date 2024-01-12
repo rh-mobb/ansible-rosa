@@ -4,6 +4,7 @@
     name: "rosa-{{ cluster_name }}-egress"
     cidr_block: "{{ rosa_egress_vpc_cidr }}"
     region: "{{ rosa_region }}"
+    tags: "{{ extra_tags }}"
   register: _vpc
 
 - set_fact:
@@ -16,7 +17,7 @@
     cidr: "{{ item.cidr }}"
     az: "{{ item.az }}"
     purge_tags: false
-    resource_tags: "{{ item.resource_tags }}"
+    tags: "{{ extra_tags }}"
   with_items: "{{ rosa_egress_vpc_private_subnets }}"
   register: _egress_vpc_private_subnets
 
@@ -27,7 +28,7 @@
     cidr: "{{ item.cidr }}"
     az: "{{ item.az }}"
     purge_tags: false
-    resource_tags: "{{ item.resource_tags }}"
+    tags: "{{ extra_tags }}"
   with_items: "{{ rosa_egress_vpc_public_subnets }}"
   register: _egress_vpc_public_subnets
 
@@ -45,6 +46,7 @@
     purge_subnets: False
     dns_support: True
     region: "{{ rosa_region }}"
+    tags: "{{ extra_tags }}"
   register: _egress_vpc_tgw_attach
 
 - set_fact:
@@ -55,14 +57,14 @@
     vpc_id: "{{ egress_vpc_id }}"
     state: present
     region: "{{ rosa_region }}"
+    tags: "{{ extra_tags }}"
   register: _igw
 
 - name: create public subnet route table
   ec2_vpc_route_table:
     region: "{{ rosa_region }}"
     vpc_id: "{{ egress_vpc_id }}"
-    tags:
-      Name: "public-route-table"
+    tags: "{{ extra_tags | combine({'Name': 'public-route-table' }) }}"
     subnets: "{{ egress_vpc_public_subnet_ids }}"
     routes:
       - dest: 0.0.0.0/0

@@ -1,6 +1,6 @@
 - include_tasks: rosa_vpc.yml
 
 - include_tasks: egress_vpc.yml
-  when: rosa_egress_vpc_enabled | bool
+  when: rosa_egress_vpc.enabled | default(rosa_egress_vpc_enabled) | default(False) | bool
 
 # - fail:

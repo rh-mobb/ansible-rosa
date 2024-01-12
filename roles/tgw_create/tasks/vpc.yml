@@ -4,6 +4,7 @@
     name: "rosa-{{ cluster_name }}-egress"
     cidr_block: "{{ rosa_tgw_vpc_cidr }}"
     region: "{{ rosa_region }}"
+    tags: "{{ extra_tags }}"
   register: _vpc
 
 - set_fact:
@@ -15,7 +16,7 @@
     cidr: "{{ item.cidr }}"
     az: "{{ item.az }}"
     purge_tags: false
-    resource_tags: "{{ item.resource_tags }}"
+    tags: "{{ extra_tags }}"
   with_items: "{{ rosa_tgw_vpc_private_subnets }}"
   register: _private_subnets
 
@@ -25,7 +26,7 @@
     cidr: "{{ item.cidr }}"
     az: "{{ item.az }}"
     purge_tags: false
-    resource_tags: "{{ item.resource_tags }}"
+    tags: "{{ extra_tags }}"
   with_items: "{{ rosa_tgw_vpc_public_subnets }}"
   register: _public_subnets
 
@@ -42,6 +43,7 @@
     ipv6_support: False
     purge_subnets: False
     dns_support: True
+    tags: "{{ extra_tags }}"
   register: _tgw_attach
 
 - set_fact:
@@ -50,14 +52,14 @@
 - name: create internet gateway
   ec2_vpc_igw:
     vpc_id: "{{ tgw_vpc_id }}"
+    tags: "{{ extra_tags }}"
     state: present
   register: _igw
 
 - name: create public subnet route table
   ec2_vpc_route_table:
     vpc_id: "{{ tgw_vpc_id }}"
-    tags:
-      Name: "public-route-table"
+    tags: "{{ extra_tags | combine({'Name': 'public-route-table' }) }}"
     subnets: "{{ _tgw_public_subnet_ids }}"
     routes:
       - dest: 0.0.0.0/0

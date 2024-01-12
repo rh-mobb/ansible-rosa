@@ -1,0 +1,22 @@
+---
+# defaults file for rosa_vpc
+rosa_vpc:
+  extra_tags: {}
+  name: "rosa-vpc"
+  region: "us-east-2"
+  cidr: ""
+  tgw_id: ""
+  endpoints:
+    # set these to empty lists to skip
+    gateway_endpoints: [s3]
+    interface_endpoints: [sts,ec2,elasticloadbalancing]
+## when not set the role `network_math` will attempt to figure it out
+## using subnet math
+# rosa_vpc.public_subnets:
+#   - cidr: "10.0.128.0/17"
+#     az: "us-east-2a"
+#     resource_tags: { "name":"{{ cluster_name }}-public" }
+# rosa_vpc.private_subnets:
+#   - cidr: "10.0.0.0/17"
+#     az: "us-east-2a"
+#     resource_tags: { "name":"{{ cluster_name }}-private" }

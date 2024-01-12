@@ -6,14 +6,14 @@
     state: present
     if_exist_do_not_create: yes
     wait: true
+    tags: "{{ extra_tags }}"
   register: _natgw
 
 - name: create private subnet route table
   ec2_vpc_route_table:
     vpc_id: "{{ egress_vpc_id }}"
     region: "{{ rosa_region }}"
-    tags:
-      Name: "rosa-private-egress-nat-{{ item.subnet.id }}"
+    tags: "{{ extra_tags | combine({'Name': 'rosa-private-egress-nat-' + item.subnet.id }) }}"
     subnets: "{{ item.subnet.id }}"
     routes:
       - dest: 0.0.0.0/0

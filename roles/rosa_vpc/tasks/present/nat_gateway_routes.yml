@@ -6,24 +6,23 @@
 
 # - fail:
 
+# Create NatGW for subnets in VPCs that do not have a transit gateway
 - name: create nat gateway per public subnet (az)
   ec2_vpc_nat_gateway:
     subnet_id: "{{ outer_item.subnet.id }}"
-    region: "{{ rosa_region }}"
+    region: "{{ rosa_vpc.region }}"
     state: present
     if_exist_do_not_create: yes
     wait: true
-    # tags:
-    #   Name: "rosa-public-{{ cluster_name }}-natgw-{{ item.subnet.availability_zone }}"
+    tags: "{{ rosa_vpc.extra_tags }}"
   register: _natgw
-  when: not rosa_tgw_enabled | bool
+  when: not rosa_vpc.tgw_id
 
 - name: create private subnet route table
   ec2_vpc_route_table:
     vpc_id: "{{ _vpc.vpc.id }}"
-    region: "{{ rosa_region }}"
-    tags:
-      Name: "rosa-private-nat-{{ item.subnet.id }}"
+    region: "{{ rosa_vpc.region }}"
+    tags: "{{ rosa_vpc.extra_tags | combine({'Name': 'rosa-private-nat-' + item.subnet.id }) }}"
     subnets: "{{ item.subnet.id }}"
     routes:
       - dest: 0.0.0.0/0

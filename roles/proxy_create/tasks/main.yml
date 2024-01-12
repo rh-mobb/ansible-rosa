@@ -14,6 +14,7 @@
     name: "ROSA-{{ cluster_name }}-proxy"
     region: "{{ rosa_region }}"
     key_material: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+    tags: "{{ extra_tags }}"
 
 
 - name: create ssh security group
@@ -22,6 +23,7 @@
     description: security group for proxy
     vpc_id: "{{ egress_vpc_id }}"
     region: "{{ rosa_region }}"
+    tags: "{{ extra_tags }}"
     rules:
       - proto: tcp
         ports: [22]
@@ -54,8 +56,7 @@
     security_group: "ROSA-{{ cluster_name }}-proxy"
     user_data: "{{ lookup('template', 'user_data.sh.j2') }}"
     image_id: "{{ proxy_ami }}"
-    tags:
-      Name: "ROSA-{{ cluster_name }}-proxy"
+    tags: "{{ extra_tags | combine({'Name': 'rosa-' + cluster_name + '-proxy' }) }}"
   register: proxy_instance
 
 - set_fact:
