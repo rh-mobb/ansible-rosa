@@ -24,15 +24,6 @@
       aws_caller_info:
       register: _aws_caller_info
 
-    - name: "set default resource tags"
-      set_fact:
-        extra_tags:
-          cost-center: CC468
-          service-phase: lab
-          app-code: MOBB-001
-          owner: "{{ ansible_user_id }}@redhat.com"
-      when: not extra_tags | default({}) | bool
-
     - ansible.builtin.set_fact:
         aws_account_id: "{{ _aws_caller_info.account }}"
 

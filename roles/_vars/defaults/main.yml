@@ -63,11 +63,7 @@ rosa_vpc_cidr: "10.0.0.0/16"
 
 rosa_region: "us-east-2"
 
-extra_tags:
-  cost-center: CC468
-  service-phase: lab
-  app-code: MOBB-001
-  owner: "{{ ansible_user_id }}@redhat.com"
+extra_tags: {}
 
 ## when not set the role `network_math` will attempt to figure it out
 ## using subnet math

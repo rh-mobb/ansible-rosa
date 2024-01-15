@@ -7,7 +7,7 @@ rosa_sts: true
 #delete_account_roles: false
 
 #uncomment to add a custom kms key arn
-#rosa_kms_key_arn: "" 
+#rosa_kms_key_arn: ""
 
 # uncomment to pin to a version
 # rosa_version: 4.13.10
@@ -29,3 +29,9 @@ rosa_create_admin: true
 
 # uncomment to enable custom kms workflow
 # rosa_kms_key_arn: "" #arn:aws:kms:us-east-2:<redacted>:key/<redacted>
+
+extra_tags:
+  cost-center: CC468
+  service-phase: lab
+  app-code: MOBB-001
+  owner: "{{ ansible_user_id }}@redhat.com"

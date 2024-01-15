@@ -20,3 +20,9 @@ rosa_multi_az: true
 
 # uncomment to enable custom kms workflow
 # rosa_kms_key_arn: "" #arn:aws:kms:us-east-2:<redacted>:key/<redacted>
+
+extra_tags:
+  cost-center: CC468
+  service-phase: lab
+  app-code: MOBB-001
+  owner: "{{ ansible_user_id }}@redhat.com"
