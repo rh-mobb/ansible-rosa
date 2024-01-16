@@ -64,7 +64,7 @@ acl localnet src 172.16.0.0/12	# RFC1918 possible internal network
 acl localnet src 192.168.0.0/16	# RFC1918 possible internal network
 acl localnet src fc00::/7       # RFC 4193 local private network range
 acl localnet src fe80::/10      # RFC 4291 link-local (directly plugged) machines
-acl whitelist dstdomain "/etc/squid/sites.whitelist.txt"
+acl whitelist dstdomain "/etc/squid/allow-list.txt"
 acl SSL_ports port 443
 acl Safe_ports port 80		# http
 acl Safe_ports port 21		# ftp
