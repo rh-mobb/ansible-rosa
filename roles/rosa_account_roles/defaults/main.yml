@@ -1,0 +1,10 @@
+---
+# defaults file for rosa_account_roles
+rosa_account_roles:
+  hosted_cp: False
+  version: "4.14"
+  prefix: ManagedOpenShift
+
+  # set force to true to delete the default account role
+  # (prefix is ManagedOpenShift or ManagedOpenShift-HCP)
+  force: False

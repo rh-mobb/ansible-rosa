@@ -1,0 +1,7 @@
+- include_tasks: classic.yml
+  when: not rosa_account_roles.hosted_cp | bool
+
+- include_tasks: hcp.yml
+  when: rosa_account_roles.hosted_cp | bool
+
+

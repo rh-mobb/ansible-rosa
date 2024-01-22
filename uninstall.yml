@@ -33,12 +33,26 @@
   #     - vars/main.yaml
 
   roles:
-    # - name: roles/_vars
+    - name: roles/_vars
     # - name: roles/network_math
     # - name: roles/tgw_create
     #   when: rosa_tgw_enabled | bool
     # - name: roles/egress_vpc_create
     #   when: rosa_egress_vpc_enabled | bool
+
+    - name: roles/rosa_cluster
+      vars:
+        rosa_cluster:
+          name: "{{ cluster_name }}"
+          aws_account_id: "{{ aws_account_id }}"
+
+    - name: roles/rosa_account_roles
+      vars:
+        rosa_account_roles:
+          hosted_cp: "{{ rosa_hosted_cp }}"
+          version: "{{ rosa_account_roles_version }}"
+          prefix: "{{ rosa_account_roles_prefix }}"
+
     - name: roles/rosa_vpc
       vars:
         rosa_vpc:

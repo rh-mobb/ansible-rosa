@@ -1,5 +1,15 @@
-- include_tasks: classic.yml
-  when: not rosa_hosted_cp | default('False') | bool
+---
+- pause:
+    seconds: 5
+    prompt: |
+      the rh_mobb {{ role_name }} role is being deprecated for the
+      more modular rh_mobb rosa_account_roles role.  Consider switching.
 
-- include_tasks: hcp.yml
-  when: rosa_hosted_cp | default('False') | bool
+- include_role:
+    name: rosa_account_roles
+  vars:
+    state: present
+    rosa_account_roles:
+      hosted_cp: "{{ rosa_hosted_cp }}"
+      version: "{{ rosa_account_roles_version }}"
+      prefix: "{{ rosa_account_roles_prefix }}"

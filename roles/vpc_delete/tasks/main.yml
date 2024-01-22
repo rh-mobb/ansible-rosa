@@ -1,6 +1,6 @@
 ---
 - pause:
-    seconds: 30
+    seconds: 5
     prompt: |
       the rh_mobb {{ role_name }} role is being deprecated for the
       more modular rh_mobb rosa_vpc role.  Consider switching.

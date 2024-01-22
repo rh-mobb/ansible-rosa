@@ -1,0 +1,150 @@
+---
+- name: what cluster am i creating?
+  debug:
+    msg: |
+      ***************************************
+      Preparing to create {{ rosa_cluster.name }}.
+      This task may take up to an hour.
+      ***************************************
+
+    verbosity: 0
+
+# do this better ... maybe better set during vpc creation and inherited.
+- when: rosa_cluster.subnet_ids | length == 0
+  block:
+    - name: figure out list of subnets
+      set_fact:
+        _private_subnet_ids: "{{ _private_subnets.results | default([]) | json_query('[*].subnet.id') }}"
+        _public_subnet_ids:  "{{ _public_subnets.results  | default([]) | json_query('[*].subnet.id') }}"
+      when:
+        - _private_subnets is defined or _public_subnets is defined
+    - name: set subnet_ids when private-link cluster
+      set_fact:
+        rosa_cluster:
+          subnet_ids: "{{ _private_subnet_ids }}"
+      when: (rosa_private_link | bool)
+    - name: set subnet_ids when public or private cluster
+      set_fact:
+        rosa_cluster:
+          subnet_ids: "{{ _private_subnet_ids + _public_subnet_ids }}"
+      when: (not rosa_private_link | bool)
+
+- name: check if cluster exists
+  ocm_cluster_info:
+    name: "{{ rosa_cluster.name }}"
+  register: _cluster_info
+
+- when: _cluster_info.cluster == {}
+  block:
+    - name: create oidc config
+      ocm_oidc_config:
+        state: present
+      register: _oidc_config
+      when: rosa_cluster.hosted_cp | bool
+
+    - set_fact:
+        _oidc_id: "{{ _oidc_config.oidc_config.id }}"
+      when: rosa_cluster.hosted_cp | bool
+
+    # HCP roles
+    - set_fact:
+        _role_arn: "arn:aws:iam::{{ rosa_cluster.aws_account_id }}:role/{{ rosa_cluster.account_roles_prefix }}-Installer-Role"
+        _support_role_arn: "arn:aws:iam::{{ rosa_cluster.aws_account_id }}:role/{{ rosa_cluster.account_roles_prefix }}-Support-Role"
+        _worker_iam_role: "arn:aws:iam::{{ rosa_cluster.aws_account_id }}:role/{{ rosa_cluster.account_roles_prefix }}-Worker-Role"
+
+    # Extra Classic roles
+    - set_fact:
+        _controlplane_iam_role: "arn:aws:iam::{{ rosa_cluster.aws_account_id }}:role/{{ rosa_cluster.account_roles_prefix }}-ControlPlane-Role"
+      when: not rosa_cluster.hosted_cp | default(False) | bool
+
+    - name: create cluster
+      ocm_cluster:
+        name: "{{ rosa_cluster.name }}"
+        region: "{{ rosa_cluster.region }}"
+        private_link: "{{ rosa_private_link }}"
+        sts: true
+        aws_account_id: "{{ rosa_cluster.aws_account_id | default(omit) }}"
+        machine_cidr: "{{ rosa_cluster.vpc_cidr }}"
+        multi_az: "{{ rosa_cluster.multi_az | bool }}"
+        subnet_ids: "{{ rosa_cluster.subnet_ids | join(',') }}"
+        version: "{{ rosa_cluster.version | default(omit) }}"
+        hosted_cp: "{{ rosa_cluster.hosted_cp | default(omit) }}"
+        oidc_config_id: "{{ _oidc_id | default(omit) }}"
+        http_proxy: "{{ rosa_cluster.http_proxy | default(omit) }}"
+        https_proxy: "{{ rosa_cluster.https_proxy | default(omit) }}"
+        no_proxy: "{{ rosa_cluster.no_proxy | default(omit) }}"
+        additional_trust_bundle_file: "{{ rosa_cluster.additional_trust_bundle_file | default(omit) }}"
+        disable_workload_monitoring: "{{ rosa_cluster.disable_workload_monitoring | bool }}"
+        min_replicas: "{{ rosa_cluster.min_replicas | default(omit) }}"
+        max_replicas: "{{ rosa_cluster.max_replicas | default(omit) }}"
+        compute_nodes: "{{ rosa_cluster.compute_nodes | default(omit) }}"
+        compute_machine_type: "{{ rosa_cluster.compute_machine_type | default(omit) }}"
+        role_arn: "{{ _role_arn }}"
+        support_role_arn: "{{ _support_role_arn }}"
+        controlplane_iam_role: "{{ _controlplane_iam_role | default(omit) }}"
+        worker_iam_role: "{{ _worker_iam_role }}"
+        operator_roles_prefix: "{{ rosa_cluster.name }}"
+        kms_key_arn: "{{ rosa_cluster.kms_key_arn | default(None) }}"
+        tags: "{{ rosa_cluster.tags }}"
+      register: _rosa_cluster
+
+- name: get info about the cluster
+  ocm_cluster_info:
+    name: "{{ rosa_cluster.name }}"
+  register: _cluster_info
+
+- when: _cluster_info.cluster.state == 'waiting'
+  block:
+    - include_role:
+        name: operator_roles_create
+      vars:
+        cluster_id: "{{ _cluster_info.cluster.id }}"
+        oidc_endpoint_url: "{{ _cluster_info.cluster.aws.sts.oidc_endpoint_url }}"
+        oidc_id: "{{ _oidc_id | default(omit) }}"
+
+    - include_role:
+        name: kms_create
+      when: rosa_cluster.kms_key_arn
+
+    - debug:
+        msg: |
+          *******************************************
+          * Waiting for cluster to start installing *
+          *******************************************
+
+    - name: waiting for cluster to start installing
+      ocm_cluster_info:
+        name: "{{ rosa_cluster.name }}"
+      register: _cluster_info
+      until: _cluster_info.cluster.state in ["installing","error"]
+      retries: 10
+      delay: 60
+      no_log: true
+
+- when: rosa_cluster.wait | bool
+  block:
+    - debug:
+        msg: |
+          ***********************************
+          * Waiting for cluster to be ready *
+          ***********************************
+
+          You can watch progress logs by running:
+            $ rosa logs -c  {{ rosa_cluster.name }} install -w
+
+    - name: wait for cluster to be ready
+      ocm_cluster_info:
+        name: "{{ rosa_cluster.name }}"
+      register: _cluster_info
+      until: _cluster_info.cluster.state in ["ready","error"]
+      retries: 120
+      delay: 60
+      no_log: true
+
+- fail:
+    msg: |
+      *****************************************
+      Cluster Install Failed
+      {{ _cluster_info.cluster | to_nice_yaml }}
+      *****************************************
+  when: _cluster_info.cluster.state == 'error'

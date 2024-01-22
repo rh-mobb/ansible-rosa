@@ -3,7 +3,6 @@
 
 
 CLUSTER_NAME ?= ans-$(shell whoami)
-EXTRA_VARS ?= --extra-vars "cluster_name=$(CLUSTER_NAME) rosa_account_roles_prefix=$(CLUSTER_NAME)"
 
 VIRTUALENV ?= "./virtualenv/"
 ANSIBLE = $(VIRTUALENV)/bin/ansible-playbook -v $(EXTRA_VARS)
@@ -47,13 +46,16 @@ delete:
 	$(ANSIBLE) delete-cluster.yaml
 
 create.multiaz:
-	$(ANSIBLE) create-cluster.yaml -i ./environment/multi-az/hosts
+	$(ANSIBLE) create-cluster.yaml -i ./environment/multi-az/hosts \
+	  --extra-vars "cluster_name=$(CLUSTER_NAME) rosa_account_roles_prefix=$(CLUSTER_NAME)"
 
 create.private:
-	$(ANSIBLE) create-cluster.yaml -i ./environment/private-link/hosts
+	$(ANSIBLE) create-cluster.yaml -i ./environment/private-link/hosts \
+	  --extra-vars "cluster_name=$(CLUSTER_NAME) rosa_account_roles_prefix=$(CLUSTER_NAME)"
 
 delete.private:
-	$(ANSIBLE) delete-cluster.yaml -i ./environment/private-link/hosts
+	$(ANSIBLE) delete-cluster.yaml -i ./environment/private-link/hosts \
+	  --extra-vars "cluster_name=$(CLUSTER_NAME) rosa_account_roles_prefix=$(CLUSTER_NAME)"
 
 create.pl: create.private
 
@@ -61,24 +63,31 @@ delete.pl: delete.private
 
 
 delete.multiaz:
-	$(ANSIBLE) delete-cluster.yaml -i ./environment/multi-az/hosts
+	$(ANSIBLE) delete-cluster.yaml -i ./environment/multi-az/hosts \
+	  --extra-vars "cluster_name=$(CLUSTER_NAME) rosa_account_roles_prefix=$(CLUSTER_NAME)"
 
 create.tgw:
-	$(ANSIBLE) create-cluster.yaml -i ./environment/transit-gateway-egress/hosts
+	$(ANSIBLE) create-cluster.yaml -i ./environment/transit-gateway-egress/hosts \
+	  --extra-vars "cluster_name=$(CLUSTER_NAME) rosa_account_roles_prefix=$(CLUSTER_NAME)"
 
 delete.tgw:
-	$(ANSIBLE) delete-cluster.yaml -i ./environment/transit-gateway-egress/hosts
+	$(ANSIBLE) delete-cluster.yaml -i ./environment/transit-gateway-egress/hosts \
+	  --extra-vars "cluster_name=$(CLUSTER_NAME) rosa_account_roles_prefix=$(CLUSTER_NAME)"
 
 create.hcp:
-	$(ANSIBLE) create-cluster.yaml -i ./environment/hcp/hosts
+	$(ANSIBLE) create-cluster.yaml -i ./environment/hcp/hosts \
+	  --extra-vars "cluster_name=$(CLUSTER_NAME) rosa_account_roles_prefix=$(CLUSTER_NAME)-HCP-ROSA"
 
 delete.hcp:
-	$(ANSIBLE) delete-cluster.yaml -i ./environment/hcp/hosts
+	$(ANSIBLE) delete-cluster.yaml -i ./environment/hcp/hosts \
+	  --extra-vars "cluster_name=$(CLUSTER_NAME) rosa_account_roles_prefix=$(CLUSTER_NAME)-HCP-ROSA"
 
 create.new:
-	$(ANSIBLE) install.yml -i ./environment/hcp/hosts
+	$(ANSIBLE) install.yml -i ./environment/hcp/hosts \
+	  --extra-vars "cluster_name=$(CLUSTER_NAME) rosa_account_roles_prefix=$(CLUSTER_NAME)-HCP-ROSA"
 delete.new:
-	$(ANSIBLE) uninstall.yml -i ./environment/hcp/hosts
+	$(ANSIBLE) uninstall.yml -i ./environment/hcp/hosts \
+	  --extra-vars "cluster_name=$(CLUSTER_NAME) rosa_account_roles_prefix=$(CLUSTER_NAME)-HCP-ROSA"
 
 docker.create: image
 	docker run --rm \

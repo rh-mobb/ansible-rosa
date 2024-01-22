@@ -1,13 +1,15 @@
 ---
-# tasks file for roles/account-roles
+- pause:
+    seconds: 5
+    prompt: |
+      the rh_mobb {{ role_name }} role is being deprecated for the
+      more modular rh_mobb rosa_account_roles role.  Consider switching.
 
-- set_fact:
-    _ocp_version: "{{ rosa_version | regex_search('^[0-9]+\\.[0-9]+') }}"
-
-- when: rosa_account_roles_prefix != "ManagedOpenShift"
-  block:
-    - include_tasks: classic.yml
-      when: not rosa_hosted_cp | default('False') | bool
-
-    - include_tasks: hcp.yml
-      when: rosa_hosted_cp | default('False') | bool
+- include_role:
+    name: rosa_account_roles
+  vars:
+    state: absent
+    rosa_account_roles:
+      hosted_cp: "{{ rosa_hosted_cp }}"
+      version: "{{ rosa_account_roles_version }}"
+      prefix: "{{ rosa_account_roles_prefix }}"
