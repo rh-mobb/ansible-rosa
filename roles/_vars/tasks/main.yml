@@ -12,3 +12,11 @@
 
     - set_fact:
         aws_account_id: "{{ _aws_caller_info.account }}"
+
+- fail:
+    msg: |
+      rosa_account_roles_prefix must end in "-HCP-ROSA" for Hosted Control Plane Clusters
+      rosa_account_roles_prefix currently set to: "{{ rosa_account_roles_prefix }}"
+  when:
+    - rosa_account_roles_prefix is not search("^.*-HCP-ROSA$")
+    - rosa_hosted_cp | bool

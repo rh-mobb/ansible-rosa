@@ -1,9 +1,9 @@
 - set_fact:
     _name: "{{ '-'.join([cluster_name,item.namespace,item.name])[:64] }}"
-    when: _cluster_type == 'classic'
-- set_fact:
-    _name: "{{ '-'.join([cluster_name, 'hcp', item.namespace,item.name])[:64] }}"
-    when: _cluster_type == 'hcp'
+#     when: _cluster_type == 'classic'
+# - set_fact:
+#     _name: "{{ '-'.join([cluster_name, 'hcp', item.namespace,item.name])[:64] }}"
+#     when: _cluster_type == 'hcp'
 
 - name: "delete operator policy {{ _name }}"
   iam_policy:

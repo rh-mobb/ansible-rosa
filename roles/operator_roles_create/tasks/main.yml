@@ -3,14 +3,14 @@
     _cluster_type: "{{ rosa_hosted_cp | ternary('hcp','classic') }}"
 
 # tasks file for roles/operator-roles
-- name: check for cluster
-  ocm_cluster_info:
-    name: "{{ cluster_name }}"
-  register: _cluster_info
-  no_log: true
+# - name: check for cluster
+#   ocm_cluster_info:
+#     name: "{{ cluster_name }}"
+#   register: _cluster_info
+#   no_log: true
 
 # oidc provider
-- name: get the cert chain from the host
+- name: get the cert chain from the oidc endpoint
   peer_cert_chain_info:
     host: "{{ oidc_endpoint_url }}"
   register: _oidc_endpoint_chain

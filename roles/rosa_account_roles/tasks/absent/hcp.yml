@@ -1,0 +1,18 @@
+- fail:
+    msg: "rosa_account_roles.prefix should end in '-HCP-ROSA'"
+  when: rosa_account_roles.prefix is not search("^.*-HCP-ROSA$")
+
+- name: delete HCP Worker role
+  iam_role:
+    name: "{{ rosa_account_roles.prefix }}-Worker-Role"
+    state: absent
+
+- name: delete HCP Installer role
+  iam_role:
+    name: "{{ rosa_account_roles.prefix }}-Installer-Role"
+    state: absent
+
+- name: delete HCP Support role
+  iam_role:
+    name: "{{ rosa_account_roles.prefix }}-Support-Role"
+    state: absent

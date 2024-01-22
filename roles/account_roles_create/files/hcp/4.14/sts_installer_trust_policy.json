@@ -1,1 +1,0 @@
-{"Version": "2012-10-17", "Statement": [{"Action": ["sts:AssumeRole"], "Effect": "Allow", "Principal": {"AWS": ["arn:aws:iam::710019948333:role/RH-Managed-OpenShift-Installer"]}}]}

@@ -26,12 +26,11 @@ rosa_vpc_endpoints_enabled: false
 rosa_subnet_ids: []
 rosa_machine_cidr: ~
 rosa_compute_machine_type: m5.xlarge
-
+rosa_min_replicas:
+rosa_max_replicas:
 rosa_hosted_cp: False
 rosa_account_roles_version: "4.14"
-rosa_account_roles_prefix: AnsibleROSA
-## leave commented out to use the cluster name as the prefix
-# rosa_operator_roles_prefix: ~
+rosa_account_roles_prefix: Ansible
 
 rosa_custom_domain_enabled: false
 

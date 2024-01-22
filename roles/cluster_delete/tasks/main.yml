@@ -1,66 +1,81 @@
 ---
-- name: what cluster am i deleting?
-  debug:
-    msg: |
-      ***************************************
-      Preparing to delete {{ cluster_name }}.
-      This task may take up to an hour.
-      ***************************************
-    verbosity: 0
-
-- name: check if cluster exists
-  ocm_cluster_info:
-    name: "{{ cluster_name }}"
-  register: _cluster_exists
-
-## Delete the cluster
-- when: _cluster_exists.cluster != {}
-  block:
-    - set_fact:
-        _cluster_id: "{{ _cluster_exists.cluster.id }}"
-        _operator_roles_prefix: "{{ _cluster_exists.cluster.aws.sts.operator_role_prefix }}"
-        _oidc_endpoint_url: "{{ _cluster_exists.cluster.aws.sts.oidc_endpoint_url }}"
-
-    - name: check for oidc config
-      set_fact:
-        _oidc_config_id: "{{ _cluster_exists.cluster.aws.sts.oidc_config.id | default(None) }}"
-      when: '"oidc_config" in _cluster_exists.cluster.aws.sts.keys()'
-
-    - name: delete cluster
-      ocm_cluster:
-        name: "{{ cluster_name }}"
-        state: absent
-      register: _delete_cluster
-
-    - name: verify the cluster is deleted
-      ocm_cluster_info:
-        name: "{{ cluster_name }}"
-      register: _cluster_deleted
-      changed_when: false
-      failed_when: false
-      until: _cluster_deleted.cluster == {}
-      retries: 120
-      delay: 10
-
-    - fail:
-        msg: "Cluster took too long to delete"
-      when: _cluster_deleted.cluster != {}
-
-# - debug:
-#     var: _cluster_exists
-
-- name: delete oidc config
-  ocm_oidc_config:
-    id: "{{ _oidc_config_id }}"
-    state: absent
-  when: _oidc_config_id | default(None)
+- pause:
+    seconds: 5
+    prompt: |
+      the rh_mobb {{ role_name }} role is being deprecated for the
+      more modular rh_mobb rosa_cluster role.  Consider switching.
 
 - include_role:
-    name: operator_roles_delete
+    name: rosa_cluster
   vars:
-    cluster_id: "{{ _cluster_id }}"
-    operator_roles_prefix: "{{ _operator_roles_prefix }}"
-    oidc_endpoint_url: "{{ _oidc_endpoint_url }}"
-  # when: (_cluster_exists.cluster == {} and _cluster_id is defined) or
-        # ((_cluster_deleted.cluster is defined) and (_cluster_deleted.cluster == {}))
+    state: absent
+    rosa_cluster:
+      name: "{{ cluster_name }}"
+      aws_account_id: "{{ aws_account_id }}"
+
+# ---
+# - name: what cluster am i deleting?
+#   debug:
+#     msg: |
+#       ***************************************
+#       Preparing to delete {{ cluster_name }}.
+#       This task may take up to an hour.
+#       ***************************************
+#     verbosity: 0
+
+# - name: check if cluster exists
+#   ocm_cluster_info:
+#     name: "{{ cluster_name }}"
+#   register: _cluster_exists
+
+# ## Delete the cluster
+# - when: _cluster_exists.cluster != {}
+#   block:
+#     - set_fact:
+#         _cluster_id: "{{ _cluster_exists.cluster.id }}"
+#         _operator_roles_prefix: "{{ _cluster_exists.cluster.aws.sts.operator_role_prefix }}"
+#         _oidc_endpoint_url: "{{ _cluster_exists.cluster.aws.sts.oidc_endpoint_url }}"
+
+#     - name: check for oidc config
+#       set_fact:
+#         _oidc_config_id: "{{ _cluster_exists.cluster.aws.sts.oidc_config.id | default(None) }}"
+#       when: '"oidc_config" in _cluster_exists.cluster.aws.sts.keys()'
+
+#     - name: delete cluster
+#       ocm_cluster:
+#         name: "{{ cluster_name }}"
+#         state: absent
+#       register: _delete_cluster
+
+#     - name: verify the cluster is deleted
+#       ocm_cluster_info:
+#         name: "{{ cluster_name }}"
+#       register: _cluster_deleted
+#       changed_when: false
+#       failed_when: false
+#       until: _cluster_deleted.cluster == {}
+#       retries: 120
+#       delay: 10
+
+#     - fail:
+#         msg: "Cluster took too long to delete"
+#       when: _cluster_deleted.cluster != {}
+
+# # - debug:
+# #     var: _cluster_exists
+
+# - name: delete oidc config
+#   ocm_oidc_config:
+#     id: "{{ _oidc_config_id }}"
+#     state: absent
+#   when: _oidc_config_id | default(None)
+
+# - include_role:
+#     name: operator_roles_delete
+#   vars:
+#     cluster_id: "{{ _cluster_id }}"
+#     operator_roles_prefix: "{{ _operator_roles_prefix }}"
+#     oidc_endpoint_url: "{{ _oidc_endpoint_url }}"
+#   # when: (_cluster_exists.cluster == {} and _cluster_id is defined) or
+#         # ((_cluster_deleted.cluster is defined) and (_cluster_deleted.cluster == {}))
 

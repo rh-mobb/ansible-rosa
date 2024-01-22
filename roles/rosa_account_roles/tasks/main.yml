@@ -1,0 +1,19 @@
+---
+# tasks file for rosa_account_roles
+
+- fail:
+    msg: |
+      rosa_account_roles.prefix must end in "-HCP-ROSA" for Hosted Control Plane Clusters
+      rosa_account_roles.prefix currently set to: "{{ rosa_account_roles.prefix }}"
+  when:
+    - rosa_account_roles.prefix is not search("^.*-HCP-ROSA$")
+    - rosa_account_roles.hosted_cp | bool
+
+
+- name: "run rosa_account_roles present tasks"
+  import_tasks: present/main.yml
+  when: state == 'present'
+
+- name: "run rosa_account_roles absent tasks"
+  import_tasks: absent/main.yml
+  when: state == 'absent'

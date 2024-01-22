@@ -1,0 +1,21 @@
+---
+# tasks file for roles/account-roles
+
+  # only delete default account roles when force is set
+- when: (
+          rosa_account_roles.prefix != "ManagedOpenShift" and
+          rosa_account_roles.prefix != "ManagedOpenShift-HCP"
+        )
+        or
+        ( rosa_account_roles.force | bool and
+          ( rosa_account_roles.prefix == "ManagedOpenShift" or
+            rosa_account_roles.prefix == "ManagedOpenShift-HCP"
+          )
+        )
+
+  block:
+    - include_tasks: classic.yml
+      when: not rosa_account_roles.hosted_cp | bool
+
+    - include_tasks: hcp.yml
+      when: rosa_account_roles.hosted_cp | bool

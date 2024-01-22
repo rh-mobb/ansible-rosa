@@ -1,0 +1,10 @@
+---
+# tasks file for rosa_cluster
+
+- name: "run rosa_cluster present tasks"
+  import_tasks: present/main.yml
+  when: state == 'present'
+
+- name: "run rosa_cluster absent tasks"
+  import_tasks: absent/main.yml
+  when: state == 'absent'
