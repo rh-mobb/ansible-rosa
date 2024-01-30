@@ -1,42 +1,177 @@
----
+- name:         "init"
+  hosts:        localhost
+  connection:   local
+  gather_facts: true
+  tags:
+    - always
+
+  tasks:
+    - name: "set a state fact"
+      ansible.builtin.set_fact:
+        state: present
+
+    - ansible.builtin.set_fact:
+        ansible_python_interpreter: ./virtualenv/bin/python
+        staging_dir: "{{ playbook_dir }}/staging"
+
+    - name: "get the aws account id"
+      aws_caller_info:
+      register: _aws_caller_info
+
+    - ansible.builtin.set_fact:
+        aws_account_id: "{{ _aws_caller_info.account }}"
+
 - hosts:      "all"
   connection: "local"
-  vars_files:
-      - vars/main.yaml
 
   roles:
     - name: roles/_vars
     - name: roles/network_math
-    - name: roles/tgw_create
+
+    - name: roles/rosa_transit_gateway
+      vars:
+        rosa_transit_gateway:
+          name: "rosa-{{ cluster_name }}-tgw"
+          region: "{{ rosa_region }}"
+          tags: "{{ extra_tags }}"
+          cidr: "{{ rosa_tgw_cidr }}"
       when: rosa_tgw_enabled | bool
-    - name: roles/egress_vpc_create
-      when: rosa_egress_vpc_enabled | bool
-    - name: roles/vpc_create
+
+    # Egress VPC for private-link / TGW clusters
+    - name: roles/rosa_egress_vpc
+      vars:
+        rosa_egress_vpc:
+          name: "rosa-{{ cluster_name }}-egress-vpc"
+          region: "{{ rosa_region }}"
+          cidr: "{{ rosa_egress_vpc_cidr }}"
+          transit_gateway: "{{ rosa_transit_gateway.info | default(omit)}}"
+          private_subnets: "{{ rosa_egress_vpc_public_subnets }}"
+          public_subnets: "{{ rosa_egress_vpc_private_subnets }}"
+          extra_tags: "{{ extra_tags }}"
+      when:
+        - rosa_egress_vpc_enabled | bool
+        - rosa_egress_vpc_subnet_ids | default([]) | length == 0
+
+    # ROSA VPC
+    - name: roles/rosa_vpc
+      vars:
+        rosa_vpc:
+          name: "rosa-{{ cluster_name }}-vpc"
+          region: "{{ rosa_region }}"
+          cidr: "{{ rosa_vpc_cidr }}"
+          transit_gateway: "{{ rosa_transit_gateway.info | default(omit)}}"
+          private_subnets: "{{ rosa_vpc_private_subnets }}"
+          public_subnets: "{{ rosa_vpc_public_subnets }}"
+          extra_tags: "{{ extra_tags }}"
+          endpoints:
+            gateway_endpoints: [s3]
+            interface_endpoints: [sts,ec2,elasticloadbalancing]
       when: rosa_subnet_ids | default([]) | length == 0
-    - name: roles/jumphost_create
+
+    # Jumphost
+    - name: roles/rosa_ec2_instance
+      vars:
+        rosa_ec2_instance:
+          name: "rosa-{{ cluster_name }}-jumphost"
+          instance_type: "{{ jumphost_instance_type }}"
+          region: "{{ rosa_region }}"
+          assign_public_ip: true
+          user_data: "{{ lookup('file', playbook_dir+'/roles/rosa_ec2_instance/files/basic_user_data.sh') }}"
+          vpc_id: "{{ rosa_vpc_info['rosa-'+cluster_name+'-egress-vpc'].vpc_id }}"
+          subnet_id: "{{ rosa_vpc_info['rosa-'+cluster_name+'-egress-vpc'].public_subnet_ids[0] }}"
+          ssh_public_key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+          security_group_rules:
+            - proto: tcp
+              ports: [22]
+              cidr_ip: 0.0.0.0/0
+              rule_desc: allow ssh
+            - proto: all
+              cidr_ip: "{{ rosa_tgw_cidr | default(rosa_vpc_cidr) }}"
+              rule_desc: allow all local
+
+          tags: "{{ extra_tags }}"
       when:
         - (rosa_private or rosa_private_link) or
           (enable_jumphost | default(False) | bool)
-    - name: roles/proxy_create
+
+    # Proxy
+    - name: roles/rosa_ec2_instance
+      vars:
+        rosa_ec2_instance:
+          name: "rosa-{{ cluster_name }}-proxy"
+          instance_type: "{{ proxy_instance_type }}"
+          region: "{{ rosa_region }}"
+          user_data_template: "{{ playbook_dir+'/roles/rosa_ec2_instance/templates/proxy_user_data.sh.j2' }}"
+          vpc_id: "{{ rosa_vpc_info['rosa-'+cluster_name+'-egress-vpc'].vpc_id }}"
+          subnet_id: "{{ rosa_vpc_info['rosa-'+cluster_name+'-egress-vpc'].private_subnet_ids[0] }}"
+          ssh_public_key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+          tags: "{{ extra_tags }}"
+          template_vars:
+            ca_key: "{{ lookup('file', playbook_dir+'/roles/rosa_ec2_instance/files/squid-ca-key.pem') }}"
+            ca_cert: "{{ lookup('file', playbook_dir+'/roles/rosa_ec2_instance/files/squid-ca-cert.pem') }}"
+          security_group_rules:
+            - proto: tcp
+              ports: [22]
+              cidr_ip: 0.0.0.0/0
+              rule_desc: allow ssh
+            - proto: all
+              cidr_ip: "{{ rosa_tgw_cidr | default(rosa_vpc_cidr) }}"
+              rule_desc: allow all local
       when:
         - (rosa_private_link | bool) and
           (proxy_enabled | default(False) | bool)
-    - name: roles/account_roles_create
-      when: rosa_sts | bool
-    - name: roles/cluster_create
-    - name: roles/dns_resolver_create
-      when: rosa_tgw_enabled | bool
-    - name: roles/create_admin
-      when: rosa_create_admin | bool
-    - name: roles/finish
 
-# - hosts:      "jumphost"
-#   connection: "ssh"
-#   remote_user: ec2-user
-#   vars:
-#     cluster_api: "{{ hostvars.localhost._cluster_info.cluster.api.url }}"
-#   roles:
-#     - name: roles/post_install
-#       when:
-#         - (rosa_private or rosa_private_link) or
-#           (enable_jumphost | default(False) | bool)
+    - name: roles/rosa_account_roles
+      vars:
+        rosa_account_roles:
+          hosted_cp: "{{ rosa_hosted_cp }}"
+          version: "{{ rosa_account_roles_version }}"
+          prefix: "{{ rosa_account_roles_prefix }}"
+
+    - name: roles/rosa_cluster
+      vars:
+        rosa_cluster:
+          name: "{{ cluster_name }}"
+          aws_account_id: "{{ aws_account_id }}"
+          account_roles_prefix: "{{ rosa_account_roles_prefix }}"
+          region: "{{ rosa_region }}"
+          private_link: "{{ rosa_private_link }}"
+          vpc_cidr: "{{ rosa_vpc_cidr }}"
+          multi_az: "{{ rosa_multi_az }}"
+          version: "{{ rosa_version }}"
+          hosted_cp: "{{ rosa_hosted_cp }}"
+          min_replicas: "{{ rosa_min_replicas }}"
+          max_replicas: "{{ rosa_max_replicas }}"
+          compute_nodes: "{{ rosa_compute_nodes | default(rosa_multi_az | ternary('3', '2')) }}"
+          compute_machine_type: "m5.xlarge"
+          kms_key_arn: "{{ rosa_kms_key_arn }}"
+          tags: "{{ extra_tags }}"
+          http_proxy: "{{ proxy_enabled | bool | ternary('http://'+(rosa_ec2_instance.info['rosa-'+cluster_name+'-proxy'].private_ip_address|default(''))+':3128', omit) }}"
+          https_proxy: "{{ proxy_enabled | bool | ternary('http://'+(rosa_ec2_instance.info['rosa-'+cluster_name+'-proxy'].private_ip_address|default(''))+':3128', omit) }}"
+          additional_trust_bundle_file: "{{ proxy_enabled | bool | ternary('roles/proxy_create/files/squid-ca-cert.pem', omit) }}" # "roles/proxy_create/files/squid-ca-cert.pem"
+          no_proxy: "{{ proxy_enabled | bool | ternary(rosa_no_proxy|default(None), omit) }}"
+          admin_username: "{{ rosa_admin_username | default(omit) }}"
+          admin_password: "{{ rosa_admin_password | default(omit) }}"
+    - name: roles/rosa_dns_resolver
+      vars:
+        rosa_dns_resolver:
+          zone: "{{ cluster_name }}.{{ rosa_cluster.info[cluster_name].dns.base_domain }}."
+          tags: "{{ extra_tags }}"
+          vpcs:
+            - id: "{{ rosa_vpc_info['rosa-'+cluster_name+'-egress-vpc'].vpc_id }}"
+              region: "{{ rosa_region }}"
+            - id: "{{ rosa_vpc_info['rosa-'+cluster_name+'-vpc'].vpc_id }}"
+              region: "{{ rosa_region }}"
+      when: rosa_tgw_enabled | bool
+
+
+# # - hosts:      "jumphost"
+# #   connection: "ssh"
+# #   remote_user: ec2-user
+# #   vars:
+# #     cluster_api: "{{ hostvars.localhost._cluster_info.cluster.api.url }}"
+# #   roles:
+# #     - name: roles/post_install
+# #       when:
+# #         - (rosa_private or rosa_private_link) or
+# #           (enable_jumphost | default(False) | bool)

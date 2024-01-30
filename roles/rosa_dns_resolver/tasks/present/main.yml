@@ -1,0 +1,29 @@
+- name: list all hosted zones
+  community.aws.route53_info:
+    query: hosted_zone
+  register: _hosted_zones
+  no_log: true
+
+- name: get the specific zone
+  set_fact:
+    _route53_zone: "{{ (_hosted_zones | json_query(jmesquery))[0] }}"
+  vars:
+    jmesquery: "HostedZones[?Name == '{{ _cluster_dns }}']"
+
+- set_fact:
+    _route53_zone_id: "{{ _route53_zone.Id | replace('/hostedzone/','') }}"
+
+- name: create route53 vpc association
+  route53_zone:
+    zone: "{{ _cluster_dns }}"
+    hosted_zone_id: "{{ _route53_zone_id }}"
+    tags: "{{ extra_tags }}"
+    vpcs:
+      - id: "{{ egress_vpc_id }}"
+        region: "{{ rosa_region }}"
+      - id: "{{ vpc_id }}"
+        region: "{{ rosa_region }}"
+
+
+# todo - create inbound resolver endpoint
+# https://docs.aws.amazon.com/cli/latest/reference/route53resolver/create-resolver-endpoint.html

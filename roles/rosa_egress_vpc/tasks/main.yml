@@ -1,0 +1,9 @@
+---
+# tasks file for rosa_vpc
+- name: "run rosa_vpc present tasks"
+  import_tasks: present/main.yml
+  when: state == 'present'
+
+- name: "run rosa_vpc absent tasks"
+  import_tasks: absent/main.yml
+  when: state == 'absent'

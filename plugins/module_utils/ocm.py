@@ -264,7 +264,7 @@ class OcmClusterModule(object):
         availability_zones, err = getAvailabilityZoneForSubnets(params['subnet_ids'].split(','), params['region'])
         if err:
             return None, err
-
+        htpasswd = None
         additional_trust_bundle = None
         if params['additional_trust_bundle_file']:
             additional_trust_bundle = Path(params['additional_trust_bundle_file']).read_text()
@@ -289,9 +289,11 @@ class OcmClusterModule(object):
         else:
             instance_iam_roles.master_role_arn = params['controlplane_iam_role']
             billing_account_id = None
+            if params['admin_password']:
+                htpasswd = dict(username=params['admin_username'], password=params['admin_password'])
         cluster = ocm_client.Cluster(
-
             api = api_visibility((params['private_link'] or params['private'])),
+            htpasswd = htpasswd,
             aws = ocm_client.AWS(
                 sts = ocm_client.STS(
                     enabled = params['sts'],
@@ -303,7 +305,6 @@ class OcmClusterModule(object):
                     role_arn = params['role_arn'],
                     support_role_arn = params['support_role_arn'],
                 ),
-
                 kms_key_arn=params['kms_key_arn'],
                 billing_account_id = billing_account_id,
                 account_id = params['aws_account_id'],
@@ -350,9 +351,9 @@ class OcmClusterModule(object):
                 rosa_provisioner = 'ocm-ansible-module'
             ),
             proxy = ocm_client.Proxy(
-                http_proxy = params['http_proxy'],
-                https_proxy = params['https_proxy'],
-                no_proxy = params['no_proxy'],
+                http_proxy = params['http_proxy'] or None,
+                https_proxy = params['https_proxy'] or None,
+                no_proxy = params['no_proxy'] or None,
             ),
             region = ocm_client.CloudRegion(
                 id = params['region'],

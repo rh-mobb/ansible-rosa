@@ -16,7 +16,6 @@
     wait: true
     tags: "{{ rosa_vpc.extra_tags }}"
   register: _natgw
-  when: not rosa_vpc.tgw_id
 
 - name: create private subnet route table
   ec2_vpc_route_table:
@@ -26,6 +25,6 @@
     subnets: "{{ item.subnet.id }}"
     routes:
       - dest: 0.0.0.0/0
-        gateway_id: "{{ _natgw.nat_gateway_id | default(tgw_id) }}"
+        gateway_id: "{{ _natgw.nat_gateway_id | default(rosa_vpc.transit_gateway.id) }}"
   with_items: "{{ _private_subnets.results }}"
   when: item.subnet.availability_zone == outer_item.subnet.availability_zone

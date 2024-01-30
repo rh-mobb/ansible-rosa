@@ -1,0 +1,20 @@
+---
+- include_tasks: vpc.yml
+
+- name: add default route to tgw for egress
+  transit_gateway_route:
+    region: "{{ rosa_egress_vpc.region }}"
+    destination_cidr_block: 0.0.0.0/0
+    transit_gateway_route_table_id: "{{ rosa_egress_vpc.transit_gateway.route_table }}"
+    transit_gateway_attachment_id: "{{ _egress_vpc_tgw_attachment_id }}"
+    # tags: "{{ rosa_egress_vpc.extra_tags }}"
+  register: _tgw_rt
+
+- set_fact:
+    _vpc_info:
+      vpc_id: "{{ _vpc.vpc.id }}"
+      private_subnet_ids: "{{ egress_vpc_private_subnet_ids }}"
+      public_subnet_ids:  "{{ egress_vpc_public_subnet_ids }}"
+
+- set_fact:
+    rosa_vpc_info: "{{ rosa_vpc_info | default({}) | combine({ rosa_egress_vpc.name: _vpc_info }) }}"

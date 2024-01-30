@@ -1,0 +1,11 @@
+---
+# defaults file for rosa_dns_resolver
+rosa_dns_resolver:
+  zone: example.com.
+  tags: {}
+  vpcs:
+    - id: vpc-12345678
+      region: us-east-2
+    - id: vpc-87654321
+      region: us-east-2
+

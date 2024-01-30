@@ -3,6 +3,8 @@
 
 rosa_cluster:
   name: rosa-cluster
+  admin_username: admin
+  admin_password: 'MyRosa1234!'
   subnet_ids: []
   # http_proxy: http://{{ proxy_private_ip }}:3128
   # https_proxy: http://{{ proxy_private_ip }}:3128

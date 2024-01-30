@@ -1,0 +1,7 @@
+---
+# defaults file for rosa_transit_gateway
+rosa_transit_gateway:
+  name: rosa-tgw
+  region: us-east-2
+  cidr: 10.0.0.0/16
+  tags: {}

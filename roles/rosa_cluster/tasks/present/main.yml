@@ -61,7 +61,9 @@
       ocm_cluster:
         name: "{{ rosa_cluster.name }}"
         region: "{{ rosa_cluster.region }}"
-        private_link: "{{ rosa_private_link }}"
+        private_link: "{{ rosa_cluster.private_link }}"
+        admin_username: "{{ rosa_cluster.hosted_cp | ternary(omit,rosa_cluster.admin_username) }}"
+        admin_password: "{{ rosa_cluster.hosted_cp | ternary(omit,rosa_cluster.admin_password) }}"
         sts: true
         aws_account_id: "{{ rosa_cluster.aws_account_id | default(omit) }}"
         machine_cidr: "{{ rosa_cluster.vpc_cidr }}"
@@ -88,7 +90,7 @@
         tags: "{{ rosa_cluster.tags }}"
       register: _rosa_cluster
 
-- name: get info about the cluster
+- name: get current state of the cluster
   ocm_cluster_info:
     name: "{{ rosa_cluster.name }}"
   register: _cluster_info
@@ -148,3 +150,16 @@
       {{ _cluster_info.cluster | to_nice_yaml }}
       *****************************************
   when: _cluster_info.cluster.state == 'error'
+
+- name: configure admin credentials for HCP clusters
+  ocm_idp:
+    name: admin
+    type: htpasswd
+    cluster_name: "{{ cluster_name }}"
+    username: "{{ rosa_cluster.admin_username }}"
+    password: "{{ rosa_cluster.admin_password }}"
+  when: rosa_cluster.hosted_cp | bool
+
+- set_fact:
+    rosa_cluster:
+      info: "{{ rosa_cluster.info | default({}) | combine({ rosa_cluster.name: _cluster_info.cluster }) }}"

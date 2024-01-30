@@ -1,0 +1,80 @@
+---
+- name: create a vpc
+  ec2_vpc_net:
+    name: "{{ rosa_egress_vpc.name }}"
+    cidr_block: "{{ rosa_egress_vpc.cidr }}"
+    region: "{{ rosa_egress_vpc.region }}"
+    tags: "{{ rosa_egress_vpc.extra_tags }}"
+  register: _vpc
+
+- set_fact:
+    egress_vpc_id: "{{ _vpc.vpc.id }}"
+
+- name: create private subnets
+  ec2_vpc_subnet:
+    region: "{{ rosa_egress_vpc.region }}"
+    vpc_id: "{{ egress_vpc_id }}"
+    cidr: "{{ item.cidr }}"
+    az: "{{ item.az }}"
+    purge_tags: false
+    tags: "{{ rosa_egress_vpc.extra_tags }}"
+  with_items: "{{ rosa_egress_vpc.private_subnets }}"
+  register: _egress_vpc_private_subnets
+
+- name: create public subnets
+  ec2_vpc_subnet:
+    region: "{{ rosa_egress_vpc.region }}"
+    vpc_id: "{{ egress_vpc_id }}"
+    cidr: "{{ item.cidr }}"
+    az: "{{ item.az }}"
+    purge_tags: false
+    tags: "{{ rosa_egress_vpc.extra_tags }}"
+  with_items: "{{ rosa_egress_vpc.public_subnets }}"
+  register: _egress_vpc_public_subnets
+
+- name: figure out list of subnets
+  set_fact:
+    egress_vpc_private_subnet_ids: "{{ _egress_vpc_private_subnets.results | default([]) | json_query('[*].subnet.id') }}"
+    egress_vpc_public_subnet_ids:  "{{ _egress_vpc_public_subnets.results  | default([]) | json_query('[*].subnet.id') }}"
+
+- name: attach VPC to transit gateway
+  community.aws.ec2_transit_gateway_vpc_attachment:
+    transit_gateway: "{{ rosa_egress_vpc.transit_gateway.id }}"
+    name: "{{ rosa_egress_vpc.name }}-tgw-attach"
+    subnets: "{{ egress_vpc_private_subnet_ids }}"
+    ipv6_support: False
+    purge_subnets: False
+    dns_support: True
+    region: "{{ rosa_egress_vpc.region }}"
+    tags: "{{ rosa_egress_vpc.extra_tags }}"
+  register: _egress_vpc_tgw_attach
+
+- set_fact:
+    _egress_vpc_tgw_attachment_id: "{{ _egress_vpc_tgw_attach.attachments[0].transit_gateway_attachment_id }}"
+
+- name: create internet gateway
+  ec2_vpc_igw:
+    vpc_id: "{{ egress_vpc_id }}"
+    state: present
+    region: "{{ rosa_egress_vpc.region }}"
+    tags: "{{ rosa_egress_vpc.extra_tags }}"
+  register: _igw
+
+- name: create public subnet route table
+  ec2_vpc_route_table:
+    region: "{{ rosa_egress_vpc.region }}"
+    vpc_id: "{{ egress_vpc_id }}"
+    tags: "{{ rosa_egress_vpc.extra_tags | combine({'Name': 'public-route-table' }) }}"
+    subnets: "{{ egress_vpc_public_subnet_ids }}"
+    routes:
+      - dest: 0.0.0.0/0
+        gateway_id: "{{ _igw.gateway_id }}"
+      - dest: "{{ rosa_egress_vpc.transit_gateway.cidr }}"
+        gateway_id: "{{ rosa_egress_vpc.transit_gateway.id }}"
+
+# Private subnet routes
+- with_items: "{{ _egress_vpc_public_subnets.results }}"
+  include_tasks: nat_gateway_routes.yml
+  loop_control:
+    loop_var: outer_item
+

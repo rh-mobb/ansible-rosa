@@ -200,6 +200,8 @@ def run_module():
         hosted_cp=dict(type=bool, required=False, default=False),
         oidc_config_id=dict(type=str, required=False),
         kms_key_arn=dict(type='str', required=False),
+        admin_username=dict(type='str', required=False, default='admin'),
+        admin_password=dict(type='str', required=False),
         tags=dict(type='dict', required=False)
     )
 
@@ -241,6 +243,8 @@ def run_module():
     with ocm_client.ApiClient(OcmModule.ocm_authenticate()) as api_client:
         api_instance = ocm_client.DefaultApi(api_client)
 
+        if module.params['admin_password'] and module.params['hosted_cp']:
+            module.fail_json("admin_password is not supported for hosted control-plane clusters")
 
 
         # Check to see if there is a cluster of the same name

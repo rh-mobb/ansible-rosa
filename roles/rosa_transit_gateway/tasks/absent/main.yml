@@ -1,0 +1,34 @@
+---
+- name: fetch transit gateway
+  ec2_transit_gateway_info:
+    region: "{{ rosa_transit_gateway.region }}"
+    filters:
+      state: "available"
+      "tag:Name": "{{ rosa_transit_gateway.name }}"
+  register: _tgw
+  no_log: true
+
+- block:
+    - name: fetch transit gateway attachments
+      community.aws.ec2_transit_gateway_vpc_attachment_info:
+        region: "{{ rosa_transit_gateway.region }}"
+        filters:
+          transit-gateway-id: "{{ _tgw.transit_gateways[0].transit_gateway_id }}"
+      register: _tgw_attach_info
+      no_log: true
+
+    - name: detach VPCs from transit gateway
+      community.aws.ec2_transit_gateway_vpc_attachment:
+        region: "{{ rosa_transit_gateway.region }}"
+        state: absent
+        id: "{{ item.transit_gateway_attachment_id }}"
+      with_items: "{{ _tgw_attach_info.attachments }}"
+
+    - name: delete transit gateway
+      ec2_transit_gateway:
+        state: absent
+        region: "{{ rosa_transit_gateway.region }}"
+        description: "{{ rosa_transit_gateway.name }} transit gateway"
+        tags: { "Name": "{{ rosa_transit_gateway.name }}" }
+      when: _tgw.transit_gateways | length > 0
+  when: _tgw.transit_gateways | length > 0
