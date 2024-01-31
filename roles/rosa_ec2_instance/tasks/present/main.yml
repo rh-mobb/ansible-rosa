@@ -1,27 +1,6 @@
 ---
 # tasks file for roles/jumphost_create
 
-# - name: make sure we have a subnet to use egress vpc
-#   set_fact:
-#     jumphost_subnet_id: "{{ egress_vpc_public_subnet_ids[0] }}"
-#     jumphost_vpc_id: "{{ egress_vpc_id }}"
-  # when:
-  #   - jumphost_subnet_id is not defined
-  #   - rosa_egress_vpc_enabled | bool
-
-# - name: make sure we have a subnet to use no egress vpc
-#   set_fact:
-#     jumphost_subnet_id: "{{ _public_subnet_ids[0] }}"
-#     jumphost_vpc_id: "{{ vpc_id }}"
-#   when:
-#     - jumphost_subnet_id is not defined
-#     - not rosa_egress_vpc_enabled | bool
-
-# - fail:
-#     msg: |
-#       vpcs: {{ rosa_vpc_info }}
-#       vpcs: {{ rosa_vpc_info | to_nice_json }}
-
 - name: get vpc details
   ec2_vpc_net_info:
     region: "{{ rosa_ec2_instance.region }}"

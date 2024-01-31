@@ -164,6 +164,7 @@
               region: "{{ rosa_region }}"
       when: rosa_tgw_enabled | bool
 
+    - name: roles/finish
 
 # # - hosts:      "jumphost"
 # #   connection: "ssh"

@@ -36,6 +36,23 @@
 
 - when: _cluster_info.cluster == {}
   block:
+    - name: make sure cluster version is valid
+      ocm_version_info:
+        version: "{{ rosa_cluster.version }}"
+        hosted_cp: "{{ rosa_cluster.hosted_cp }}"
+      register: _ocm_version_info
+
+    - fail:
+        msg: |
+          {{ rosa_cluster.version }} is not a valid version.
+          Run `rosa list versions` or use the ocm_version_info module
+          to see valid versions.
+      when: _ocm_version_info.versions | length == 0
+
+    - name: set cluster version
+      set_fact:
+        _rosa_cluster_version: "{{ _ocm_version_info.versions[0].version }}"
+
     - name: create oidc config
       ocm_oidc_config:
         state: present
@@ -69,7 +86,7 @@
         machine_cidr: "{{ rosa_cluster.vpc_cidr }}"
         multi_az: "{{ rosa_cluster.multi_az | bool }}"
         subnet_ids: "{{ rosa_cluster.subnet_ids | join(',') }}"
-        version: "{{ rosa_cluster.version | default(omit) }}"
+        version: "{{ _rosa_cluster_version }}"
         hosted_cp: "{{ rosa_cluster.hosted_cp | default(omit) }}"
         oidc_config_id: "{{ _oidc_id | default(omit) }}"
         http_proxy: "{{ rosa_cluster.http_proxy | default(omit) }}"

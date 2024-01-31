@@ -17,7 +17,7 @@ rosa_cluster:
   private_link: false
   vpc_cidr: 10.0.0.0/20
   multi_az: false
-  version: 4.14.6
+  version: 4.14
   hosted_cp: false
   autoscaling: false
   min_replicas:
