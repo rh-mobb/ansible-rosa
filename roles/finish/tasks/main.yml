@@ -5,7 +5,7 @@
   ocm_cluster_info:
     name: "{{ cluster_name }}"
   register: _cluster_info
-  # no_log: true
+  no_log: true
   until: _cluster_info.cluster.console is defined
   retries: 120
   delay: 60
@@ -15,7 +15,7 @@
   ocm_cluster_info:
     name: "{{ cluster_name }}"
   register: _cluster_info
-  # no_log: true
+  no_log: true
   until:  _cluster_info.cluster.console.url is defined
   retries: 120
   delay: 60

@@ -33,6 +33,7 @@
   ocm_cluster_info:
     name: "{{ rosa_cluster.name }}"
   register: _cluster_info
+  no_log: true
 
 - when: _cluster_info.cluster == {}
   block:
@@ -41,6 +42,7 @@
         version: "{{ rosa_cluster.version }}"
         hosted_cp: "{{ rosa_cluster.hosted_cp }}"
       register: _ocm_version_info
+      no_log: true
 
     - fail:
         msg: |
@@ -115,11 +117,14 @@
 - when: _cluster_info.cluster.state == 'waiting'
   block:
     - include_role:
-        name: operator_roles_create
+        name: rosa_operator_roles
       vars:
-        cluster_id: "{{ _cluster_info.cluster.id }}"
-        oidc_endpoint_url: "{{ _cluster_info.cluster.aws.sts.oidc_endpoint_url }}"
-        oidc_id: "{{ _oidc_id | default(omit) }}"
+        rosa_operator_roles:
+          hosted_cp: "{{ rosa_cluster.hosted_cp | default(omit) }}"
+          cluster_name: "{{ rosa_cluster.name }}"
+          cluster_id: "{{ _cluster_info.cluster.id }}"
+          oidc_endpoint_url: "{{ _cluster_info.cluster.aws.sts.oidc_endpoint_url }}"
+          # oidc_id: "{{ _oidc_id | default(omit) }}"
 
     - include_role:
         name: kms_create
@@ -180,3 +185,4 @@
 - set_fact:
     rosa_cluster:
       info: "{{ rosa_cluster.info | default({}) | combine({ rosa_cluster.name: _cluster_info.cluster }) }}"
+  no_log: true

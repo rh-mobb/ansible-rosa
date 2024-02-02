@@ -1,0 +1,17 @@
+- set_fact:
+    _name: "{{ '-'.join([rosa_operator_roles.cluster_name, item.namespace,item.name])[:64] }}"
+    _assume_role_policy_document_template: "{{ _cluster_type }}/{{ item.template }}"
+    managed_policy_arn: "{{ item.managed_policy_arn }}"
+
+- name: "create operator role {{ _name }}"
+  iam_role:
+    name: "{{ _name }}"
+    assume_role_policy_document: "{{ lookup('template', _assume_role_policy_document_template) }}"
+    managed_policies: ["{{ managed_policy_arn }}"]
+    tags:
+      red-hat-managed: 'true'
+      operator_name: "{{ item.name }}"
+      operator_namespace: "{{ item.namespace }}"
+      rosa_cluster_id: "{{ rosa_operator_roles.cluster_id }}"
+      rosa_hcp_policies: 'true'
+      rosa_managed_policies: 'true'
