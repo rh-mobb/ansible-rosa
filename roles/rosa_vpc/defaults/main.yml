@@ -6,7 +6,6 @@ rosa_vpc:
   region: "us-east-2"
   cidr: ""
   # set to true if you want this VPC to act as an egress for a TGW
-  egress_vpc: false
   transit_gateway: {}
     # name:
     # id:
@@ -14,13 +13,10 @@ rosa_vpc:
     # route_table:
 
   add_ocp_subnet_tags: true
-  # set to true if you want your nat gws for your private traffic.
   endpoints:
     # set these to empty lists to skip
     gateway_endpoints: [s3]
     interface_endpoints: [sts,ec2,elasticloadbalancing]
-## when not set the role `network_math` will attempt to figure it out
-## using subnet math
 # rosa_vpc.public_subnets:
 #   - cidr: "10.0.128.0/17"
 #     az: "us-east-2a"
