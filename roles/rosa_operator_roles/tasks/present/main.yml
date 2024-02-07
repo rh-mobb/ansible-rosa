@@ -1,0 +1,61 @@
+---
+- set_fact:
+    _cluster_type: "{{ rosa_operator_roles.hosted_cp | ternary('hcp','classic') }}"
+
+# tasks file for roles/operator-roles
+# - name: check for cluster
+#   ocm_cluster_info:
+#     name: "{{ cluster_name }}"
+#   register: _cluster_info
+#   no_log: true
+
+# oidc provider
+- name: get the cert chain from the oidc endpoint
+  peer_cert_chain_info:
+    host: "{{ rosa_operator_roles.oidc_endpoint_url }}"
+  register: _oidc_endpoint_chain
+  # no_log: true
+  # retries: 5
+  # delay: 10
+  # failed_when: _oidc_endpoint_chain.ca_thumbprint != ""
+
+# - debug:
+#     msg: |
+#       chain: {{ _oidc_endpoint_chain }}
+
+- set_fact:
+    _oidc_endpoint_thumbprint: "{{ _oidc_endpoint_chain.ca_thumbprint | replace(':', '') }}"
+    _oidc_endpoint: "{{ rosa_operator_roles.oidc_endpoint_url.replace('https://', '') }}"
+
+- when: _cluster_type == 'classic'
+  block:
+    - name: create oidc provider for cluster
+      oidc_provider:
+        url: "{{ rosa_operator_roles.oidc_endpoint_url }}"
+        client_ids: ["openshift", "sts.amazonaws.com"]
+        thumbprints: "{{ _oidc_endpoint_thumbprint }}"
+        tags:
+          rosa_cluster_id: "{{ rosa_operator_roles.cluster_id }}"
+      register: _oidc_provider_info
+
+    - with_items: "{{ rosa_operator_roles.roles[_cluster_type] }}"
+      include_tasks: classic.yml
+
+- when: _cluster_type == 'hcp'
+  block:
+    - name: create oidc provider for cluster
+      oidc_provider:
+        url: "{{ rosa_operator_roles.oidc_endpoint_url }}"
+        client_ids: ["openshift", "sts.amazonaws.com"]
+        thumbprints: "{{ _oidc_endpoint_thumbprint }}"
+        tags:
+          red-hat-managed: "true"
+      register: _oidc_provider_info
+
+    - with_items: "{{ rosa_operator_roles.roles[_cluster_type] }}"
+      include_tasks: hcp.yml
+
+# - name: create oidc endpoint for cluster
+#   command: "rosa create oidc-provider -c {{ _cluster_id }} --yes --mode auto"
+
+# - fail:

@@ -1,0 +1,24 @@
+---
+- name: create nat gateway per public subnet (az)
+  ec2_vpc_nat_gateway:
+    subnet_id: "{{ outer_item.subnet.id }}"
+    region: "{{ rosa_egress_vpc.region }}"
+    state: present
+    if_exist_do_not_create: yes
+    wait: true
+    tags: "{{ rosa_egress_vpc.extra_tags }}"
+  register: _natgw
+
+- name: create private subnet route table
+  ec2_vpc_route_table:
+    vpc_id: "{{ egress_vpc_id }}"
+    region: "{{ rosa_egress_vpc.region }}"
+    tags: "{{ rosa_egress_vpc.extra_tags | combine({'Name': 'rosa-private-egress-nat-' + item.subnet.id }) }}"
+    subnets: "{{ item.subnet.id }}"
+    routes:
+      - dest: 0.0.0.0/0
+        gateway_id: "{{ _natgw.nat_gateway_id }}"
+      - dest: "{{ rosa_egress_vpc.transit_gateway.cidr }}"
+        gateway_id: "{{ rosa_egress_vpc.transit_gateway.id }}"
+  with_items: "{{ _egress_vpc_private_subnets.results }}"
+  when: item.subnet.availability_zone == outer_item.subnet.availability_zone

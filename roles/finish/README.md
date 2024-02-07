@@ -1,7 +1,7 @@
 finish Role
 =========
 
-This role finishes the installation of a ROSA cluster
+This is a meta role designed to print out useful things about a cluster after its installed.  It shows the URL to the console, API, and the admin password.
 
 License
 -------

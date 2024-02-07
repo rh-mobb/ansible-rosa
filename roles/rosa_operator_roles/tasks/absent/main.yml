@@ -1,0 +1,13 @@
+---
+- set_fact:
+    _cluster_type: "{{ rosa_operator_roles.hosted_cp | ternary('hcp','classic') }}"
+
+- with_items: "{{ rosa_operator_roles.roles[_cluster_type] }}"
+  include_tasks: roles.yml
+
+- name: delete oidc provider for cluster
+  oidc_provider:
+    url: "{{ rosa_operator_roles.oidc_endpoint_url }}"
+    state: absent
+  when:
+    - rosa_operator_roles.oidc_endpoint_url | bool

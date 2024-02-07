@@ -5,7 +5,7 @@
   ocm_cluster_info:
     name: "{{ cluster_name }}"
   register: _cluster_info
-  # no_log: true
+  no_log: true
   until: _cluster_info.cluster.console is defined
   retries: 120
   delay: 60
@@ -15,7 +15,7 @@
   ocm_cluster_info:
     name: "{{ cluster_name }}"
   register: _cluster_info
-  # no_log: true
+  no_log: true
   until:  _cluster_info.cluster.console.url is defined
   retries: 120
   delay: 60
@@ -25,7 +25,7 @@
       ec2_instance_info:
         region: "{{ rosa_region }}"
         filters:
-          "tag:Name": "ROSA-{{ cluster_name }}-jumphost"
+          "tag:Name": "rosa-{{ cluster_name }}-jumphost"
       register: _jumphost_info
       no_log: true
 
@@ -45,17 +45,12 @@
         oc login {{ _cluster_info.cluster.api.url }} \
           --username {{ rosa_admin_username }} --password "{{ rosa_admin_password }}"
   delegate_to: localhost
-  when: rosa_create_admin | bool
 
 - debug:
     msg: |
       Cluster API: {{ _cluster_info.cluster.api.url }}
       Cluster Console: {{ _cluster_info.cluster.console.url }}
-
-      Create a cluster-admin user:
-        rosa create admin --cluster {{ cluster_name }}
   delegate_to: localhost
-  when: not rosa_create_admin | bool
 
 - debug:
     msg: |

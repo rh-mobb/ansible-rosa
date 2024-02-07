@@ -1,0 +1,21 @@
+---
+# defaults file for rosa_vpc
+rosa_egress_vpc:
+  extra_tags: {}
+  name: "rosa-egress-vpc"
+  region: "us-east-2"
+  cidr: ""
+  transit_gateway:
+    name:
+    id:
+    arn:
+    route_table:
+## using subnet math
+# public_subnets:
+#   - cidr: "10.0.128.0/17"
+#     az: "us-east-2a"
+#     resource_tags: { "name":"{{ cluster_name }}-egress-public" }
+# private_subnets:
+#   - cidr: "10.0.0.0/17"
+#     az: "us-east-2a"
+#     resource_tags: { "name":"{{ cluster_name }}-egress-private" }

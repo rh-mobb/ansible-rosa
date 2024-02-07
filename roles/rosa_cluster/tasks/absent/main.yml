@@ -56,11 +56,9 @@
   when: _oidc_config_id | default(None)
 
 - include_role:
-    name: operator_roles_delete
+    name: rosa_operator_roles
   vars:
-    cluster_id: "{{ _cluster_id }}"
-    operator_roles_prefix: "{{ _operator_roles_prefix }}"
-    oidc_endpoint_url: "{{ _oidc_endpoint_url }}"
-  # when: (_cluster_exists.cluster == {} and _cluster_id is defined) or
-        # ((_cluster_deleted.cluster is defined) and (_cluster_deleted.cluster == {}))
+    rosa_operator_roles:
+      operator_roles_prefix: "{{ _operator_roles_prefix }}"
+      oidc_endpoint_url: "{{ _oidc_endpoint_url | default(omit) }}"
 

@@ -1,0 +1,13 @@
+---
+# - debug:
+#     msg: |
+#       {{ ansible_role_name }}:
+#         {{ lookup('ansible.builtin.vars',ansible_role_name) | to_nice_yaml }}
+
+- name: "run {{ ansible_role_name }} present tasks"
+  import_tasks: present/main.yml
+  when: state == 'present'
+
+- name: "run {{ ansible_role_name }} absent tasks"
+  import_tasks: absent/main.yml
+  when: state == 'absent'

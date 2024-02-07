@@ -1,0 +1,14 @@
+---
+- pause:
+    seconds: 5
+    prompt: |
+      the rh_mobb {{ role_name }} role is being deprecated for the
+      more modular rh_mobb rosa_transit_gateway role.  Consider switching.
+
+- include_role:
+    name: rosa_transit_gateway
+  vars:
+    state: absent
+    rosa_transit_gateway:
+      name: "{{ cluster_name }}-tgw"
+      region: "{{ rosa_region }}"

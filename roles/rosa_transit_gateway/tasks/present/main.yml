@@ -1,0 +1,21 @@
+---
+- name: Create a new transit gateway using defaults
+  ec2_transit_gateway:
+    state: present
+    region: "{{ rosa_transit_gateway.region }}"
+    description: "{{ rosa_transit_gateway.name }} transit gateway"
+    dns_support: yes
+    tags: "{{ rosa_transit_gateway.tags | combine({'Name': rosa_transit_gateway.name }) }}"
+    auto_associate: yes
+    auto_propagate: yes
+    # auto_attach: no
+  register: _tgw
+
+- set_fact:
+    rosa_transit_gateway:
+      info:
+        name: "{{ rosa_transit_gateway.name }}"
+        id: "{{ _tgw.transit_gateway.transit_gateway_id }}"
+        arn: "{{ _tgw.transit_gateway.transit_gateway_arn }}"
+        route_table: "{{ _tgw.transit_gateway.options.association_default_route_table_id }}"
+        cidr: "{{ rosa_transit_gateway.cidr }}"

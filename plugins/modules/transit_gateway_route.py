@@ -9,35 +9,36 @@ DOCUMENTATION = r'''
 ---
 module: transit_gateway_route
 
-short_description: Creates an IAM entity to describe an identity provider (IdP) that supports OpenID Connect (OIDC)
+short_description: Creates a transit gateway route
 
 # If this is part of a collection, you need to use semantic versioning,
 # i.e. the version is of the form "2.5.0" and not "2.4".
 version_added: "1.0.0"
 
 description: |
-  Creates an IAM entity to describe an identity provider (IdP) that supports OpenID Connect (OIDC) .
-  The OIDC provider that you create with this operation can be used as a principal in a role's trust policy. Such a policy establishes a trust relationship between Amazon Web Services and the OIDC provider.
+  Creates a transit gateway route to a specified transit gateway route table.
 
 options:
-    url:
-        description: Creates an IAM entity to describe an identity provider (IdP) that supports OpenID Connect (OIDC). The OIDC provider that you create with this operation can be used as a principal in a role's trust policy. Such a policy establishes a trust relationship between Amazon Web Services and the OIDC provider.
+    destination_cidr_block:
+        description: The CIDR range used for destination matches. Routing decisions are based on the most specific match.
         required: true
         type: str
-    thumbprints:
-        description: |
-            A list of server certificate thumbprints for the OpenID Connect (OIDC) identity provider's server certificates. Typically this list includes only one entry. However, IAM lets you have up to five thumbprints for an OIDC provider. This lets you maintain multiple thumbprints if the identity provider is rotating certificates.
-            The server certificate thumbprint is the hex-encoded SHA-1 hash value of the X.509 certificate used by the domain where the OpenID Connect provider makes its keys available. It is always a 40-character string.
-            You must provide at least one thumbprint when creating an IAM OIDC provider. For example, assume that the OIDC provider is server.example.com and the provider stores its keys at https://keys.server.example.com/openid-connect. In that case, the thumbprint string would be the hex-encoded SHA-1 hash value of the certificate used by https://keys.server.example.com.
+    region:
+        description: The AWS region to use.
         required: true
-        type: list
-    client_ids:
-        description: |
-            Provides a list of client IDs, also known as audiences. When a mobile or web app registers with an OpenID Connect provider, they establish a value that identifies the application. This is the value that's sent as the client_id parameter on OAuth requests.
-            You can register multiple client IDs with the same provider. For example, you might have multiple applications that use the same OIDC provider. You cannot register more than 100 client IDs with a single IAM OIDC provider.
-            There is no defined format for a client ID. The CreateOpenIDConnectProviderRequest operation accepts client IDs up to 255 characters long.
+        type: str
+    transit_gateway_route_table_id:
+        description: The ID of the transit gateway route table.
+        required: true
+        type: str
+    transit_gateway_attachment_id:
+        description: The ID of the transit gateway attachment.
+        required: true
+        type: str
+    blackhole:
+        description: Indicates whether to drop traffic that matches this route (blackhole). Defaults to false.
         required: false
-        type: list
+        type: bool
     tags:
         description: AWS tags
         required: false
@@ -55,35 +56,24 @@ author:
 '''
 
 EXAMPLES = r'''
-# Pass in a message
-- name: Test with a message
-  my_namespace.my_collection.transit_gateway_route:
-    name: hello world
-
-# pass in a message and have changed true
-- name: Test with a message and changed output
-  my_namespace.my_collection.transit_gateway_route:
-    name: hello world
-    new: true
-
-# fail the module
-- name: Test failure of the module
-  my_namespace.my_collection.transit_gateway_route:
-    name: fail me
+# Create a transit gateway route
+- name: Create a transit gateway route
+    my_namespace.my_collection.transit_gateway_route:
+        destination_cidr_block: 0.0.0.0/0
+        region: us-east-1
+        transit_gateway_route_table_id: tgw-rtb-1234567890
+        transit_gateway_attachment_id: tgw-attach-1234567890
+        blackhole: false
+        state: present
 '''
 
 RETURN = r'''
 # These are examples of possible return values, and in general should use other names for return values.
-original_message:
-    description: The original name param that was passed in.
-    type: str
-    returned: always
-    sample: 'hello world'
-message:
-    description: The output message that the test module generates.
-    type: str
-    returned: always
-    sample: 'goodbye'
+routes:
+    - destination_cidr_block: 0.0.0.0/0
+      region: us-east-1
+      transit_gateway_route_table_id: tgw-rtb-1234567890
+      transit_gateway_attachment_id: tgw-attach-1234567890
 '''
 
 try:
@@ -91,13 +81,10 @@ try:
     from botocore.exceptions import ClientError
 except ImportError:
     pass  # Handled by AnsibleAWSModule
+from ansible.module_utils.common.dict_transformations import camel_dict_to_snake_dict
 
-# from ansible_collections.amazon.aws.plugins.module_utils.acm import ACMServiceManager
-from ansible_collections.amazon.aws.plugins.module_utils.tagging import ansible_dict_to_boto3_tag_list
-from ansible_collections.amazon.aws.plugins.module_utils.tagging import boto3_tag_list_to_ansible_dict
 from ansible_collections.amazon.aws.plugins.module_utils.retries import AWSRetry
 from ansible_collections.community.aws.plugins.module_utils.modules import AnsibleCommunityAWSModule as AnsibleAWSModule
-from time import sleep
 from re import sub
 
 def snake_case(s):
@@ -109,10 +96,7 @@ def snake_case(s):
 def process_response(response_in):
     if not response_in:
         return response_in
-    response_out = dict()
-    for key in response_in.keys():
-        response_out[snake_case(key)] = response_in[key]
-    return response_out
+    return camel_dict_to_snake_dict(response_in)
 
 def get_tgw_rt(connection,tgw_rt_id, tgw_att_id):
     filters = [dict(

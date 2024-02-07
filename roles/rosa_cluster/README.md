@@ -1,7 +1,7 @@
-Role Name
+rosa_cluster
 =========
 
-A brief description of the role goes here.
+The rosa_cluster role will create or destroy a ROSA cluster
 
 Requirements
 ------------
@@ -11,28 +11,56 @@ Any pre-requisites that may not be covered by Ansible itself or the role should 
 Role Variables
 --------------
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
-
-Dependencies
-------------
-
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
-
-Example Playbook
-----------------
-
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
-
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+```yaml
+state: present|absent
+rosa_cluster:
+  name: rosa-cluster
+  admin_username: admin
+  admin_password: 'MyRosa1234!'
+  subnet_ids: []
+  http_proxy: http://{{ proxy_private_ip }}:3128
+  https_proxy: http://{{ proxy_private_ip }}:3128
+  no_proxy: ~
+  additional_trust_bundle_file: "roles/proxy_create/files/squid-ca-cert.pem"
+  disable_workload_monitoring: false
+  aws_account_id: ~
+  account_roles_prefix: Managed-OpenShift
+  region: us-east-2
+  private_link: false
+  vpc_cidr: 10.0.0.0/20
+  multi_az: false
+  version: 4.14
+  hosted_cp: false
+  autoscaling: false
+  min_replicas:
+  max_replicas:
+  compute_nodes: # 3 for multi-az, 2 for single-az
+  compute_machine_type: "m5.xlarge"
+  role_arn:
+  support_role_arn:
+  controlplane_iam_role:
+  worker_iam_role:
+  operator_roles_prefix:
+  kms_key_arn:
+  tags: {}
+  wait: true
+```
 
 License
 -------
 
-BSD
+Copyright 2024 Red Hat
 
-Author Information
-------------------
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+

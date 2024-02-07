@@ -1,0 +1,83 @@
+---
+# tasks file for roles/jumphost_create
+
+- name: get vpc details
+  ec2_vpc_net_info:
+    region: "{{ rosa_ec2_instance.region }}"
+    vpc_ids: "{{ rosa_ec2_instance.vpc_id }}"
+  register: _vpc
+
+- name: set vpc cidr
+  set_fact:
+    _vpc_id: "{{ _vpc.vpcs[0].id }}"
+    _vpc_cidr: "{{ _vpc.vpcs[0].cidr_block }}"
+
+- name: create ssh key
+  ec2_key:
+    name: "{{ rosa_ec2_instance.name }}-ssh-key"
+    region: "{{ rosa_ec2_instance.region }}"
+    key_material: "{{ rosa_ec2_instance.ssh_public_key }}"
+    tags: "{{ rosa_ec2_instance.tags }}"
+
+- name: create ssh security group
+  ec2_group:
+    name: "{{ rosa_ec2_instance.name }}-ssh"
+    description: security group for SSH
+    vpc_id: "{{ _vpc_id }}"
+    region: "{{ rosa_ec2_instance.region }}"
+    tags: "{{ rosa_ec2_instance.tags }}"
+    rules: "{{ rosa_ec2_instance.security_group_rules }}"
+
+# jumphost_ami: ami-07b1d7739c91ed3fc
+# jumphost_ami_name: "RHEL-8.3.0_HVM-*-x86_64-*Hourly*"
+
+- block:
+    - name: determine ami image for instance
+      ec2_ami_info:
+        owners: "{{ rosa_ec2_instance.ami_owner }}"
+        region: "{{ rosa_ec2_instance.region }}"
+        filters:
+          name: "{{ rosa_ec2_instance.ami_name }}"
+      register: _ami_facts
+
+    - set_fact:
+        rosa_ec2_instance:
+          ami: "{{ _ami_facts.images[0].image_id }}"
+  when: rosa_ec2_instance.ami == ""
+
+- set_fact:
+    _user_data: "{{ lookup('template',rosa_ec2_instance.user_data_template) }}"
+  when: rosa_ec2_instance.user_data_template
+  no_log: true
+
+- set_fact:
+    _user_data: "{{ rosa_ec2_instance.user_data }}"
+  when: not rosa_ec2_instance.user_data_template
+  no_log: true
+
+
+- name: start instance
+  ec2_instance:
+    name: "{{ rosa_ec2_instance.name }}"
+    region: "{{ rosa_ec2_instance.region }}"
+    key_name: "{{ rosa_ec2_instance.name }}-ssh-key"
+    vpc_subnet_id: "{{ rosa_ec2_instance.subnet_id }}"
+    instance_type: "{{ rosa_ec2_instance.instance_type }}"
+    security_group: "{{ rosa_ec2_instance.name }}-ssh"
+    user_data: "{{ _user_data | default(omit) }}"
+    network:
+      assign_public_ip: "{{ rosa_ec2_instance.assign_public_ip }}"
+    image_id: "{{ rosa_ec2_instance.ami }}"
+    tags: "{{ rosa_ec2_instance.tags | combine({'Name': rosa_ec2_instance.name }) }}"
+    wait: true
+  no_log: true
+  register: _ec2_instance
+
+- set_fact:
+    _ec2_instance_info: "{{ _ec2_instance.instances[0] }}"
+  no_log: true
+
+- set_fact:
+    rosa_ec2_instance:
+      info: "{{ rosa_ec2_instance.info | default({}) | combine({ rosa_ec2_instance.name: _ec2_instance_info }) }}"
+  no_log: true

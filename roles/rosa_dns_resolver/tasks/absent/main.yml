@@ -1,0 +1,34 @@
+
+
+- set_fact:
+    route53_zone: "{{ _cluster_info.cluster.name }}.{{ _cluster_info.cluster.dns.base_domain }}."
+
+- name: list all hosted zones
+  community.aws.route53_info:
+    query: hosted_zone
+  register: hosted_zones
+
+- set_fact:
+    _route53_zone: "{{ (hosted_zones | json_query(jmesquery))[0] }}"
+  vars:
+    jmesquery: "HostedZones[?Name == '{{ _cluster_dns }}']"
+
+- name: check route53 vpc associations
+  shell: |
+    aws route53 list-hosted-zones-by-vpc --vpc-id {{ vpcs[0].id }} \
+    --vpc-region {{ vpcs[0].region }} \
+    --query 'HostedZoneSummaries[*].Name' --output text
+  register: _vpc_assoc
+  changed_when: false
+  failed_when: false
+
+- name: remove route53 vpc association
+  shell: |
+    aws route53 disassociate-vpc-from-hosted-zone \
+      --hosted-zone-id {{ _route53_zone.Id }} \
+      --vpc VPCId={{ vpcs[0].id }},VPCRegion={{ vpcs[0].region }} \
+      --output text
+  when: route53_zone in _vpc_assoc.stdout
+
+# todo - create inbound resolver endpoint
+# https://docs.aws.amazon.com/cli/latest/reference/route53resolver/create-resolver-endpoint.html
