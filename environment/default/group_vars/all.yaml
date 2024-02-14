@@ -1,4 +1,4 @@
-cluster_name: ansible-rosa
+cluster_name: rosa-cwooley-ans
 # rosa_disable_workload_monitoring: true
 rosa_private_link: false
 # note private-link forces private to be true
