@@ -59,6 +59,6 @@
     name: rosa_operator_roles
   vars:
     rosa_operator_roles:
-      operator_roles_prefix: "{{ _operator_roles_prefix }}"
+      operator_roles_prefix: "{{ _operator_roles_prefix | default(omit) }}"
       oidc_endpoint_url: "{{ _oidc_endpoint_url | default(omit) }}"
-
+  when: _operator_roles_prefix is defined
