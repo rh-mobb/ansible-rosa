@@ -40,10 +40,12 @@ pull: docker.image.pull
 
 
 create:
-	$(ANSIBLE) create-cluster.yaml
+	$(ANSIBLE) create-cluster.yaml -i ./environment/default/hosts \
+	  --extra-vars "cluster_name=$(CLUSTER_NAME) rosa_account_roles_prefix=$(CLUSTER_NAME)"
 
 delete:
-	$(ANSIBLE) delete-cluster.yaml
+	$(ANSIBLE) delete-cluster.yaml -i ./environment/default/hosts \
+	  --extra-vars "cluster_name=$(CLUSTER_NAME) rosa_account_roles_prefix=$(CLUSTER_NAME)"
 
 create.multiaz:
 	$(ANSIBLE) create-cluster.yaml -i ./environment/multi-az/hosts \
