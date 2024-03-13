@@ -148,7 +148,7 @@
           tags: "{{ extra_tags }}"
           http_proxy: "{{ proxy_enabled | bool | ternary('http://'+(rosa_ec2_instance.info['rosa-'+cluster_name+'-proxy'].private_ip_address|default(''))+':3128', omit) }}"
           https_proxy: "{{ proxy_enabled | bool | ternary('http://'+(rosa_ec2_instance.info['rosa-'+cluster_name+'-proxy'].private_ip_address|default(''))+':3128', omit) }}"
-          additional_trust_bundle_file: "{{ proxy_enabled | bool | ternary('roles/proxy_create/files/squid-ca-cert.pem', omit) }}" # "roles/proxy_create/files/squid-ca-cert.pem"
+          additional_trust_bundle_file: "{{ proxy_enabled | bool | ternary('roles/rosa_ec2_instance/files/squid-ca-cert.pem', omit) }}"
           no_proxy: "{{ proxy_enabled | bool | ternary(rosa_no_proxy|default(None), omit) }}"
           admin_username: "{{ rosa_admin_username | default(omit) }}"
           admin_password: "{{ rosa_admin_password | default(omit) }}"
