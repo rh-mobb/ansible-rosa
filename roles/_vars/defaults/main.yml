@@ -41,7 +41,7 @@ rosa_custom_domain_enabled: false
 # jumphost_ami: ami-07b1d7739c91ed3fc
 jumphost_ami: ""
 jumphost_ami_name: "RHEL-8.8.0_HVM-*-x86_64-*Hourly*"
-jumphost_instance_type: t1.micro
+jumphost_instance_type: t2.small
 # jumphost_instance_type: t2.nano
 # jumphost_instance_type: m4.large
 

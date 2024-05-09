@@ -1,5 +1,5 @@
 ---
-- name: Create a new transit gateway using defaults
+- name: Create a new transit gateway
   ec2_transit_gateway:
     state: present
     region: "{{ rosa_transit_gateway.region }}"

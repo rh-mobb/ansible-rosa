@@ -19,3 +19,8 @@
   iam_role:
     name: "{{ _name }}"
     state: absent
+
+- name: "delete instance profile {{ _name }}"
+  amazon.aws.iam_instance_profile:
+    name: "{{ _name }}"
+    state: absent

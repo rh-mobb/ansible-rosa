@@ -11,12 +11,6 @@
     state: absent
   register: _delete
   failed_when: ('error' in _delete.keys()) and (_delete.error.code != 'NoSuchEntity')
-  when: not rosa_hosted_cp | default('False') | bool
-
-- name: delete support role
-  iam_role:
-    name: "{{ _rosa_account_roles.prefix }}-Support-Role"
-    state: absent
 
 - name: delete installer policy
   iam_policy:
@@ -26,12 +20,6 @@
     state: absent
   register: _delete
   failed_when: ('error' in _delete.keys()) and (_delete.error.code != 'NoSuchEntity')
-  when: not rosa_hosted_cp | default('False') | bool
-
-- name: delete installer role
-  iam_role:
-    name: "{{ _rosa_account_roles.prefix }}-Installer-Role"
-    state: absent
 
 - name: delete ControlPlane policy
   iam_policy:
@@ -41,13 +29,6 @@
     state: absent
   register: _delete
   failed_when: ('error' in _delete.keys()) and (_delete.error.code != 'NoSuchEntity')
-  when: not rosa_hosted_cp | default('False') | bool
-
-- name: delete ControlPlane role
-  iam_role:
-    name: "{{ _rosa_account_roles.prefix }}-ControlPlane-Role"
-    state: absent
-  when: not rosa_hosted_cp | default('False') | bool
 
 - name: delete Worker policy
   iam_policy:
@@ -57,4 +38,43 @@
     state: absent
   register: _delete
   failed_when: ('error' in _delete.keys()) and (_delete.error.code != 'NoSuchEntity')
-  when: not rosa_hosted_cp | default('False') | bool
+
+- name: delete support role
+  iam_role:
+    name: "{{ _rosa_account_roles.prefix }}-Support-Role"
+    state: absent
+
+- name: delete installer role
+  iam_role:
+    name: "{{ _rosa_account_roles.prefix }}-Installer-Role"
+    state: absent
+
+- name: delete ControlPlane role
+  iam_role:
+    name: "{{ _rosa_account_roles.prefix }}-ControlPlane-Role"
+    state: absent
+
+- name: delete worker role
+  iam_role:
+    name: "{{ _rosa_account_roles.prefix }}-Worker-Role"
+    state: absent
+
+- name: delete support instance profile
+  amazon.aws.iam_instance_profile:
+    name: "{{ _rosa_account_roles.prefix }}-Worker-Role"
+    state: absent
+
+- name: delete installer instance profile
+  amazon.aws.iam_instance_profile:
+    name: "{{ _rosa_account_roles.prefix }}-Worker-Role"
+    state: absent
+
+- name: delete ControlPlane instance profile
+  amazon.aws.iam_instance_profile:
+    name: "{{ _rosa_account_roles.prefix }}-Worker-Role"
+    state: absent
+
+- name: delete worker instance profile
+  amazon.aws.iam_instance_profile:
+    name: "{{ _rosa_account_roles.prefix }}-Worker-Role"
+    state: absent

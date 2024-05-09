@@ -1,11 +1,12 @@
 .DEFAULT_GOAL := help
 .PHONY: help virtualenv kind image deploy
 
+VERBOSITY ?= "-vvv"
 
 CLUSTER_NAME ?= ans-$(shell whoami)
 
 VIRTUALENV ?= "./virtualenv/"
-ANSIBLE = $(VIRTUALENV)/bin/ansible-playbook -v $(EXTRA_VARS)
+ANSIBLE = $(VIRTUALENV)/bin/ansible-playbook $(VERBOSITY) $(EXTRA_VARS)
 
 IGNORE_CERTS ?= false
 IGNORE_CERTS_OPTION=
@@ -112,3 +113,12 @@ galaxy.build:
 galaxy.publish:
 	VERSION=$$(yq e '.version' galaxy.yml); \
 	ansible-galaxy collection publish rh_mobb-rosa-$$VERSION.tar.gz --api-key=$$ANSIBLE_GALAXY_API_KEY
+
+squid.certs:
+	openssl req -new -newkey rsa:2048 -sha256 -days 365 \
+	  -subj '/C=US/CN=squid.proxy' \
+	  -nodes -x509 -extensions v3_ca -keyout roles/rosa_ec2_instance/files/squid-ca-key.pem \
+		-out roles/rosa_ec2_instance/files/squid-ca-cert.pem
+	cat roles/rosa_ec2_instance/files/squid-ca-cert.pem \
+	    roles/rosa_ec2_instance/files/squid-ca-key.pem \
+			> roles/rosa_ec2_instance/files/squid-ca-cert-key.pem
