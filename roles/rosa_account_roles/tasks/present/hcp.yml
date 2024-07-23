@@ -6,6 +6,7 @@
     name: "{{ rosa_account_roles.prefix }}-Support-Role"
     assume_role_policy_document: "{{ lookup('file',('hcp',rosa_account_roles.version,'sts_support_trust_policy.json')|path_join) }}"
     managed_policies: ["arn:aws:iam::aws:policy/service-role/ROSASRESupportPolicy"]
+    create_instance_profile: false
     tags:
       red-hat-managed: "true"
       rosa_hcp_policies: "true"
@@ -19,6 +20,7 @@
     name: "{{ rosa_account_roles.prefix }}-Installer-Role"
     assume_role_policy_document: "{{ lookup('file',('hcp',rosa_account_roles.version,'sts_installer_trust_policy.json')|path_join) }}"
     managed_policies: ["arn:aws:iam::aws:policy/service-role/ROSAInstallerPolicy"]
+    create_instance_profile: false
     tags:
       red-hat-managed: "true"
       rosa_hcp_policies: "true"
@@ -32,6 +34,7 @@
     name: "{{ rosa_account_roles.prefix }}-Worker-Role"
     assume_role_policy_document: "{{ lookup('file',('hcp',rosa_account_roles.version,'sts_instance_worker_trust_policy.json')|path_join) }}"
     managed_policies: ["arn:aws:iam::aws:policy/service-role/ROSAWorkerInstancePolicy"]
+    create_instance_profile: false
     tags:
       red-hat-managed: "true"
       rosa_hcp_policies: "true"

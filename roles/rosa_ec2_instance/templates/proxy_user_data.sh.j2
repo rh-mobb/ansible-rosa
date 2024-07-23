@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e -x
 
-sudo dnf install -y wget tmux curl python36 python36-devel net-tools gcc libffi-devel openssl-devel jq bind-utils podman squid
+sudo dnf install -y wget tmux curl python36 python36-devel net-tools gcc libffi-devel openssl-devel jq bind-utils podman squid policycoreutils-python-utils
 
 mkdir -p /etc/squid/certs
 
@@ -15,16 +15,29 @@ cat << EOF | sudo tee /etc/squid/allow-list.txt
 # install
 registry.redhat.io
 quay.io
+cdn01.quay.io
+cdn02.quay.io
+cdn03.quay.io
+registry.redhat.io
+quay.io
 *.quay.io
 sso.redhat.com
 quay-registry.s3.amazonaws.com
-cm-quay-production-s3.s3.amazonaws.com
+ocm-quay-production-s3.s3.amazonaws.com
+quayio-production-s3.s3.amazonaws.com
 cart-rhcos-ci.s3.amazonaws.com
 openshift.org
 registry.access.redhat.com
+registry.connect.redhat.com
+access.redhat.com
 console.redhat.com
 sso.redhat.com
 pull.q1w2.quay.rhcloud.com
+www.okd.io
+www.redhat.com
+aws.amazon.com
+catalog.redhat.com
+dvbwgdztaeq9o.cloudfront.net
 *.q1w2.quay.rhcloud.com
 # telemetry
 cert-api.access.redhat.com
@@ -32,13 +45,18 @@ api.access.redhat.com
 infogw.api.openshift.com
 console.redhat.com
 observatorium.api.openshift.com
+observatorium-mst.api.openshift.com
+
 # aws
 ec2.amazonaws.com
 events.amazonaws.com
+events.{{ rosa_ec2_instance.region }}.amazonaws.com
 iam.amazonaws.com
 route53.amazonaws.com
 sts.amazonaws.com
+sts.{{ rosa_ec2_instance.region }}.amazonaws.com
 tagging.us-east-1.amazonaws.com
+tagging.{{ rosa_ec2_instance.region }}.amazonaws.com
 ec2.{{ rosa_ec2_instance.region }}.amazonaws.com
 elasticloadbalancing.{{ rosa_ec2_instance.region }}.amazonaws.com
 *.s3.dualstack.{{ rosa_ec2_instance.region }}.amazonaws.com
