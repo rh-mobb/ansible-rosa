@@ -10,6 +10,7 @@
       rosa_role_type: support
       rosa_openshift_version: "{{ rosa_account_roles.version }}"
       rosa_role_prefix: "{{ rosa_account_roles.prefix }}"
+      create_instance_profile: false
 
 - name: create support policy
   iam_policy:
@@ -27,6 +28,7 @@
       rosa_role_type: installer
       rosa_openshift_version: "{{ rosa_account_roles.version }}"
       rosa_role_prefix: "{{ rosa_account_roles.prefix }}"
+      create_instance_profile: false
 
 - name: create installer policy
   iam_policy:
@@ -44,6 +46,7 @@
       rosa_role_type: instance_controlplane
       rosa_openshift_version: "{{ rosa_account_roles.version }}"
       rosa_role_prefix: "{{ rosa_account_roles.prefix }}"
+      create_instance_profile: false
 
 - name: create controlplane policy
   iam_policy:
@@ -61,6 +64,7 @@
       rosa_role_type: instance_worker
       rosa_openshift_version: "{{ rosa_account_roles.version }}"
       rosa_role_prefix: "{{ rosa_account_roles.prefix }}"
+      create_instance_profile: false
 
 - name: create worker policy
   iam_policy:

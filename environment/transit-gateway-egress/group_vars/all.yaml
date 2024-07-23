@@ -24,7 +24,7 @@ rosa_egress_vpc_multi_az: true
 # defaults file for roles/vpc
 rosa_egress_vpc_cidr: "10.10.0.0/16"
 
-jumphost_instance_type: t2.micro
+jumphost_instance_type: t2.small
 
 proxy_enabled: true
 

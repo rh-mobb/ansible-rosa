@@ -87,8 +87,3 @@
           name: "rosa-{{ cluster_name }}-vpc"
           region: "{{ rosa_region }}"
       when: rosa_subnet_ids | default([]) | length == 0
-
-
-
-
-

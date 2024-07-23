@@ -1,7 +1,7 @@
 # base version of ansible
 # ansible~=2.10
-ansible-core~=2.15
-
+# ansible-core~=2.15
+ansible==10.1.0
 # https://github.com/readthedocs/readthedocs.org/issues/9038
 Jinja2<3.1
 
