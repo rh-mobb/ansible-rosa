@@ -82,9 +82,9 @@ Modules live under [plugins/modules/](plugins/modules/) and are loaded via [ansi
 | Module | Typical use |
 |--------|-------------|
 | `rosa_cluster` / `rosa_cluster_info` | Legacy module names and return keys; delegate to OCM via [module_utils/ocm_cluster_lib.py](plugins/module_utils/ocm_cluster_lib.py) |
-| `rosa_admin_info` / `rosa_autoscaler_info` / `rosa_machine_pool_info` / `rosa_upgrade_info` / `rosa_versions_info` | Legacy ``rosa describe/list`` return keys; delegate via [module_utils/ocm_info_lib.py](plugins/module_utils/ocm_info_lib.py) |
+| `rosa_admin_info` / `rosa_autoscaler_info` / `rosa_machine_pool_info` / `rosa_machine_pools_info` / `rosa_upgrade_info` / `rosa_versions_info` | Legacy ``rosa describe/list`` return keys; delegate via [module_utils/ocm_info_lib.py](plugins/module_utils/ocm_info_lib.py) |
 | `ocm_cluster` / `ocm_cluster_info` / `ocm_version_info` | OCM API via [rh-mobb/ocm-python](https://github.com/rh-mobb/ocm-python) |
-| `ocm_admin_info` / `ocm_autoscaler_info` / `ocm_machine_pool_info` / `ocm_upgrade_info` | OCM cluster sub-resource lookups (same lib as rosa info wrappers) |
+| `ocm_admin_info` / `ocm_autoscaler_info` / `ocm_machine_pool_info` / `ocm_machine_pools_info` / `ocm_upgrade_info` | OCM cluster sub-resource lookups (same lib as rosa info wrappers) |
 | `ocm_oidc_config` / `oidc_provider` / `ocm_idp` | OIDC / IdP configuration |
 | `ec2_transit_gateway` / `transit_gateway_route` | TGW resources |
 | `route53_zone` | DNS zones |

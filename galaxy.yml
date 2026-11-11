@@ -1,6 +1,6 @@
 namespace: rh_mobb
 name: rosa
-version: 4.0.0
+version: 4.1.0
 readme: README.md
 authors:
   - Paul Czarkowski <pczarkow@redhat.com>
