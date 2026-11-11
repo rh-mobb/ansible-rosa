@@ -35,5 +35,5 @@ netaddr==0.8.0
 
 pyopenssl==23.3.0
 
-# ocm modules
-git+https://github.com/rh-mobb/ocm-python.git@0.3.0
+# ocm modules (ocm-python 0.4.0+ requires Python >= 3.11)
+git+https://github.com/rh-mobb/ocm-python.git@0.4.0

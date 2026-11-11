@@ -41,51 +41,30 @@ options:
         required: false
         type: str
 
-# Specify this value according to your collection
-# in format of namespace.collection.doc_fragment_name
-extends_documentation_fragment:
-    - rh_mobb.ansible_rosa.my_doc_fragment_name
-
 author:
     - Paul Czarkowski (@paulczar)
 '''
 
 EXAMPLES = r'''
 # create a oidc config
-- name: create  oidc config
-    rh_mobb.ansible_rosa.ocm_oidc_config:
-      state: present
+- name: create oidc config
+  rh_mobb.rosa.ocm_oidc_config:
+    state: present
 '''
 
 RETURN = r'''
-# These are examples of possible return values, and in general should use other names for return values.
+changed:
+    description: Whether an OIDC config was created or deleted.
+    type: bool
 oidc_config:
-    name:
-        id: ID of oidc config
-        type: str
-        returned: always
-        sample: '254431u95bhurrsq9sqt591vflfmgbt0'
-    managed:
-        description: is it a managed oidc config
-        type: bool
-        returned: always
-        sample: True
-    issuer_url:
-        description: url of oidc issuer
-        type: str
-        returned:  always
-        sample: 'https://dvbwgdztaeq9o.cloudfront.net/254431u95bhurrsq9sqt591vflfmgbt0'
-    installer_role_arn:
-        description: ARN of the AWS role to assume when installing the cluster as to reveal the secret, supplied in request. It is only to be used in Unmanaged Oidc Config.
-        type: str
-        returned:  always
-        sample:
+    description: OCM OIDC config object (present state).
+    type: dict
 '''
 
 from ansible.module_utils.basic import AnsibleModule
 from ..module_utils.ocm import OcmModule
 import ocm_client
-from ocm_client.rest import ApiException
+from ocm_client.exceptions import ApiException
 import os
 from pathlib import Path
 import json

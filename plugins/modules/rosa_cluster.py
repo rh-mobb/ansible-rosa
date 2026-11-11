@@ -4,18 +4,22 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import (absolute_import, division, print_function)
-from sys import stdout
+
 __metaclass__ = type
 
 DOCUMENTATION = r'''
 ---
 module: rosa_cluster
 
-short_description: Create Rosa Cluster
+short_description: Manage a ROSA cluster
 
 version_added: "1.0.0"
 
-description: Creates ROSA (RedHat Openshift on AWS) Cluster
+description: |
+    Creates or deletes ROSA clusters.     Implements the historical module parameter and return keys; uses OCM API
+    via ocm_cluster internally.
+    Requires OCM credentials and the same BYO-VPC/IAM inputs as ocm_cluster
+    when creating clusters.
 
 options:
     name:
@@ -47,7 +51,7 @@ options:
         required: false
         type: int
     enable_autoscaling:
-        description: region
+        description: Enable machine pool autoscaling (requires min_replicas and max_replicas).
         required: false
         type: bool
     min_replicas:
@@ -125,6 +129,34 @@ options:
         type: str
         choices: ['present','absent', 'dry-run', 'describe']
         default: present
+    role_arn:
+        description: STS installer role ARN.
+        required: false
+        type: str
+    support_role_arn:
+        description: STS support role ARN.
+        required: false
+        type: str
+    controlplane_iam_role:
+        description: Control plane IAM role (classic).
+        required: false
+        type: str
+    worker_iam_role:
+        description: Worker IAM role.
+        required: false
+        type: str
+    hosted_cp:
+        description: Hosted control plane cluster.
+        required: false
+        type: bool
+    operator_roles_prefix:
+        description: Operator IAM roles prefix.
+        required: false
+        type: str
+    oidc_config_id:
+        description: OIDC config id for HCP.
+        required: false
+        type: str
 
 author:
     - Paul Czarkowski (@paulczar)
@@ -143,23 +175,22 @@ EXAMPLES = r'''
 '''
 
 RETURN = r'''
-stdout: str
-stderr: str
-password: str
-# These are examples of possible return values, and in general should use other names for return values.
+changed:
+    description: Whether a cluster create/delete was requested
+    type: bool
+commands:
+    description: Command audit list (synthetic OCM invocation)
+    type: list
+details:
+    description: Cluster details (OCM API shape)
+    type: dict
 '''
 
-MIN_ROSA_VERSION = "1.2.22"
+from ansible.module_utils.basic import AnsibleModule
+from ..module_utils.ocm_cluster_lib import rosa_cluster_run
 
-from ansible.module_utils.basic import *
-from packaging import version as check_version
-from semver import parse as semver_parse
-import time
-import json
-from tempfile import mkdtemp
 
 def run_module():
-    # define available arguments/parameters a user can pass to the module
     module_args = dict(
         name=dict(type='str', required=True),
         region=dict(type='str', required=False),
@@ -187,180 +218,24 @@ def run_module():
         disable_scp_checks=dict(type='bool', required=False),
         disable_workload_monitoring=dict(type='bool', required=False, default=False),
         wait=dict(type='bool', required=False),
-        state=dict(type='str', default='present', choices=['present','absent','dry-run', 'describe']),
+        state=dict(type='str', default='present', choices=['present', 'absent', 'dry-run', 'describe']),
         role_arn=dict(type='str', required=False),
         support_role_arn=dict(type='str', required=False),
         controlplane_iam_role=dict(type='str', required=False),
         worker_iam_role=dict(type='str', required=False),
         hosted_cp=dict(type=bool, required=False),
         operator_roles_prefix=dict(type=str, required=False),
-        oidc_config_id=dict(type=str, required=False)
+        oidc_config_id=dict(type=str, required=False),
     )
 
-    # seed the result dict in the object
-    # we primarily care about changed and state
-    # changed is if this module effectively modified the target
-    # state will include any data that you want your module to pass back
-    # for consumption, for example, in a subsequent task
-    result = dict(
-        changed=False,
-        commands=[],
-        details=None,
-    )
-
-    # the AnsibleModule object will be our abstraction working with Ansible
-    # this includes instantiation, a couple of common attr would be the
-    # args/params passed to the execution, as well as if the module
-    # supports check mode
     module = AnsibleModule(
         argument_spec=module_args,
-        supports_check_mode=True
+        supports_check_mode=True,
     )
 
-    # if the user is working with this module in only check mode we do not
-    # want to make any changes to the environment, just return the current
-    # state with no modifications
-    if module.check_mode:
-        module.exit_json(**result)
-
-    # check that rosa binary exists
-    rosa = module.get_bin_path("rosa", required=True)
-    if rosa == None:
-        module.fail_json(msg='rosa cli not found in $PATH', **result)
-
-    # check that rosa is minimum version
-    # MIN_ROSA_VERSION
-    rosa_version_cmd = [rosa, "version"]
-    # rosa_version_cmd = [rosa, "version", "|", "head", "-1"]
-    rc, stdout, stderr = module.run_command(rosa_version_cmd)
-    rosa_version = stdout.rstrip().split('\n')[0]
-    if rc != 0:
-        module.fail_json(msg='could not run rosa version', **result)
-    if check_version.parse(rosa_version) < check_version.parse(MIN_ROSA_VERSION):
-        module.fail_json(msg="rosa version %s does not meet minimum of %s" % (rosa_version, MIN_ROSA_VERSION), **result)
-
-    params = module.params
-    state = params.pop('state')
-    name = params.pop('name')
-    wait = params.pop('wait')
-    sts = params.pop('sts')
-    aws_account_id = params.pop('aws_account_id')
-    if not params['operator_roles_prefix']:
-        params['operator_roles_prefix'] = name
-    # cluster_version = params['version']
-    # cluster_semver = semver_parse(cluster_version)
-    # sts_version = str(cluster_semver['major']) + "." + str(cluster_semver['minor'])
-
-    describe_args = [rosa, "describe", "cluster", "-c", name, "--output", "json"]
-    if state == "absent":
-        args = [rosa, "delete", "cluster", "-y", "-c", name]
-    else:
-        args = [rosa, "create", "cluster", "-y", "-c", name]
-
-        if state == "dry-run":
-            args.append("--dry-run")
-
-        if sts:
-            if not aws_account_id:
-                module.fail_json(msg="must provide aws account id when using sts\n", **result)
-            args.append("--sts")
-            args.extend(['--mode', 'manual'])
-
-        for param, value in params.items():
-            if not value: continue
-            if param == "multi_az": args.append("--multi-az")
-            elif param == "hosted_cp": args.append("--hosted-cp")
-            elif param == "enable_autoscaling": args.append("--enable-autoscaling")
-            elif param == "private": args.append("--private")
-            elif param == "private_link": args.append("--private-link")
-            elif param == "disable_scp_checks": args.append("--disable-scp-checks")
-            elif param == "disable_workload_monitoring": args.append("--disable-workload-monitoring")
-            elif param == "region" or param == "profile":
-                args.extend([argify(param), value])
-                describe_args.extend([argify(param), value])
-            else: args.extend([argify(param), value])
-
-    describe_rc, describe_stdout, describe_stderr = rosa_describe_cluster(module, rosa, name)
-
-    # if the cluster already exists
-    if describe_rc == 0:
-        # delete on absent
-        if state == "absent":
-            result['changed'] = True
-            rc, stdout, stderr = module.run_command(args)
-            reason = "delete the cluster"
-            command = " ".join(args)
-            result['commands'].append(commands(rc, stdout, stderr, reason, args))
-            if rc != 0:
-                module.fail_json(msg="failed to delete cluster\n%s" % (stderr), **result)
-            if not wait:
-                module.exit_json(**result)
-
-    if describe_rc == 1:
-        # if the cluster doesn't exist, create it
-        if state in ['present', 'dry-run'] and "There is no cluster with identifier or name" in describe_stderr:
-            if state == 'present':
-                result['changed'] = True
-            with tempfile.TemporaryDirectory() as tmpdirname:
-                rc, stdout, stderr = module.run_command(args, cwd=tmpdirname)
-            # result['details'] = cluster_details(stdout)
-            result['commands'].append(commands(rc, stdout, stderr, 'create cluster', args))
-            if rc != 0:
-                module.fail_json(msg="failed to create cluster\n%s" % (stderr), **result)
-        else:
-            # unknown error, better fail.
-            module.fail_json(msg="failed for unknown reason\n%s" % (describe_stderr), **result)
-
-    if wait and state in ['present', 'absent']:
-        # ready = re.compile(r'State:\s+ready')
-        done = None
-        counter = 1
-        while not done:
-            time.sleep(60)
-            rc, stdout, stderr = rosa_describe_cluster(module, rosa, name)
-            if rc == 0 and state == 'present' and cluster_details(stdout)['ready']:
-                done = "success"
-            if rc == 1 and state == 'absent' and "There is no cluster with identifier or name" in stderr:
-                done = "success"
-            counter += 1
-            if counter > 60:
-                done = "timeout"
-
-        if done == 'timeout':
-            result['details'] = cluster_details(stdout)
-            module.fail_json(msg="cluster did not finish provisioning within an hour\n%s" % (command_result['stderr']), **result)
-
-    if state == "present":
-        rc, stdout, stderr = rosa_describe_cluster(module, rosa, name)
-        result['details'] = cluster_details(stdout)
-    elif state == "dry-run":
-        result['details'] = '{"output": "successful dry-run"}'
+    result = rosa_cluster_run(module)
     module.exit_json(**result)
 
-def rosa_describe_cluster(module, rosa, name):
-    args = [rosa, "describe", "cluster", "-c", name, "--output", "json"]
-    rc, stdout, stderr = module.run_command(args)
-    return rc, stdout, stderr
-
-def cluster_details(stdout):
-    try:
-        return json.loads(stdout)
-    except:
-        return stdout
-
-def commands(rc, stdout, stderr, reason, args):
-    cr = dict(
-            reason=reason,
-            command=" ".join(args),
-            rc=rc,
-            stdout=stdout,
-            stderr=stderr
-    )
-    return cr
-
-
-def argify(param):
-    return "--" + param.replace("_", "-")
 
 def main():
     run_module()

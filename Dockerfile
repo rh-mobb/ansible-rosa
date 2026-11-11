@@ -1,14 +1,15 @@
 #
-# BUILD
+# BUILD — Python 3.11+ required (ocm-python 0.4.0)
 #
 
-FROM fedora:33 as build
+FROM fedora:41 as build
 
 ENV HOME=/home/ansible
 
 RUN dnf -y install \
-    bash gcc musl-devel libffi-devel git gpgme-devel libxml2-devel \
-    libxslt-devel curl cargo openssl-devel python-devel unzip
+    bash gcc git libffi-devel openssl-devel python3-devel \
+    libxml2-devel libxslt-devel curl unzip \
+    && dnf clean all
 
 RUN groupadd ansible --g 1000 && useradd -s /bin/bash -g ansible -u 1000 ansible -d ${HOME}
 
@@ -37,19 +38,16 @@ RUN /ansible/virtualenv/bin/pip3 install -r /ansible/requirements.txt
 COPY . /ansible
 
 
-FROM fedora:33
+FROM fedora:41
 
 ENV HOME=/home/ansible
 
-# # update the image
 RUN dnf -y install \
-    bash openssl unzip glibc groff
+    bash openssl unzip glibc groff \
+    && dnf clean all
 
 RUN groupadd ansible --g 1000 && useradd -s /bin/bash -g ansible -u 1000 ansible -d ${HOME}
 RUN mkdir -p /ansible/virtualenv && chown -R ansible:ansible /ansible
-
-# # copy executables from build image
-# COPY --from=build /usr/local/bin /usr/local/bin
 
 COPY --chown=ansible:ansible . /ansible
 COPY --chown=ansible:ansible --from=build ${HOME}/.local ${HOME}/.local
@@ -57,11 +55,8 @@ COPY --chown=ansible:ansible --from=build /ansible/virtualenv /ansible/virtualen
 
 USER ansible:ansible
 
-# # set pathing
 ENV PATH=${HOME}/.local/bin:./virtualenv/bin:/ansible/staging/bin:$PATH
-ENV PYTHONPATH=./virtualenv/lib/python3.8/site-packages/
 ENV ANSIBLE_PYTHON_INTERPRETER=./virtualenv/bin/python
-# # set kubeconfig and ansible options
 ENV KUBECONFIG=/ansible/staging/.kube/config
 ENV ANSIBLE_FORCE_COLOR=1
 
