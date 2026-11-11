@@ -18,26 +18,28 @@ help:
 	@echo GLHF
 
 virtualenv:
+		@python3 -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)' \
+			|| (echo "Python 3.11+ required (ocm-python 0.4.0)" && exit 1)
 		LC_ALL=en_US.UTF-8 python3 -m venv $(VIRTUALENV)
 		. $(VIRTUALENV)/bin/activate
 		$(VIRTUALENV)/bin/pip install pip --upgrade
 		LC_ALL=en_US.UTF-8 $(VIRTUALENV)/bin/pip3 install -r requirements.txt #--use-feature=2020-resolver
 		$(VIRTUALENV)/bin/ansible-galaxy collection install -r requirements.yml $(IGNORE_CERTS_OPTION)
 
-docker.image:
-	docker build -t quay.io/pczar/ansible-rosa .
+podman.image:
+	podman build -t quay.io/pczar/ansible-rosa .
 
-docker.image.push:
-	docker push quay.io/pczar/ansible-rosa
+podman.image.push:
+	podman push quay.io/pczar/ansible-rosa
 
-docker.image.pull:
-	docker pull quay.io/pczar/ansible-rosa
+podman.image.pull:
+	podman pull quay.io/pczar/ansible-rosa
 
-# docker shortcuts
-build: docker.image
-image: docker.image
-push: docker.image.push
-pull: docker.image.pull
+# podman shortcuts
+build: podman.image
+image: podman.image
+push: podman.image.push
+pull: podman.image.pull
 
 
 create:
@@ -92,17 +94,17 @@ delete.new:
 	$(ANSIBLE) uninstall.yml -i ./environment/hcp/hosts \
 	  --extra-vars "cluster_name=$(CLUSTER_NAME) rosa_account_roles_prefix=$(CLUSTER_NAME)-HCP-ROSA"
 
-docker.create: image
-	docker run --rm \
-		-v $(HOME)/.ocm.json:/home/ansible/.ocm.json \
-		-v $(HOME)/.aws:/home/ansible/.aws \
+podman.create: image
+	podman run --rm \
+		-v $(HOME)/.ocm.json:/home/ansible/.ocm.json:Z \
+		-v $(HOME)/.aws:/home/ansible/.aws:Z \
 	  -ti quay.io/pczar/ansible-rosa \
 		$(ANSIBLE) -v create-cluster.yaml
 
-docker.delete: image
-	docker run --rm \
-		-v $(HOME)/.ocm.json:/home/ansible/.ocm.json \
-		-v $(HOME)/.aws:/home/ansible/.aws \
+podman.delete: image
+	podman run --rm \
+		-v $(HOME)/.ocm.json:/home/ansible/.ocm.json:Z \
+		-v $(HOME)/.aws:/home/ansible/.aws:Z \
 	  -ti quay.io/pczar/ansible-rosa \
 		$(ANSIBLE) -v delete-cluster.yaml
 

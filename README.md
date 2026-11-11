@@ -23,7 +23,11 @@ Examples
 
 ## Examples using ROSA Ansible Modules
 
+Module reference (OCM and `rosa_*` wrappers, AWS helpers): [docs/modules.md](docs/modules.md). Per-module help after `make virtualenv`: `./virtualenv/bin/ansible-doc rh_mobb.rosa.<module_name>`.
+
 ## Prerequisites
+
+1. **Python 3.11 or newer** on the control host (required by [ocm-python](https://github.com/rh-mobb/ocm-python) 0.4.0 OCM modules).
 
 1. Create a [Red Hat](https://cloud.redhat.com) account, if you do not already have one. Then, check your email for a verification link. You will need these credentials to install ROSA.
 
@@ -56,14 +60,29 @@ To authenticate to AWS / ROSA you can use the tools directly to auth or set ansi
 
 ## Prepare Ansible
 
-* Clone down the repo:
+### Install only the collection (from Ansible Galaxy)
+
+```bash
+ansible-galaxy collection install rh_mobb.rosa
+```
+
+Galaxy installs dependent collections (`amazon.aws`, `community.aws`) automatically. You still need **Python 3.11+** on the control host and the Python libraries OCM modules use—either clone this repo and run `make virtualenv`, or install from the copy shipped inside the collection:
+
+```bash
+COLLECTION_PATH="$(ansible-config dump | awk -F= '/COLLECTIONS_PATHS/{print $2}' | awk '{print $1}')"
+pip3 install -r "${COLLECTION_PATH%/}/ansible_collections/rh_mobb/rosa/requirements.txt"
+```
+
+Configure AWS and OCM/ROSA credentials as usual (`aws configure`, `rosa login`, or equivalent environment variables).
+
+### Clone the repo (playbooks and example inventories)
 
 ```bash
 git clone https://github.com/rh-mobb/ansible-rosa.git
 cd ansible-rosa
 ```
 
-* Create python virtualenv:
+Create the local virtualenv (Ansible, Galaxy collections from `requirements.yml`, and Python deps):
 
 ```bash
 make virtualenv
@@ -124,9 +143,11 @@ Setting the variable 'rosa_kms_key_arn' to a kms arn, will execute the procedure
 
 ## Other
 
-### Deploy a Cluster with ansible in a docker image
+### Deploy a Cluster with ansible in a Podman container
 
-1. Build the docker image
+Requires [Podman](https://podman.io/) on the control host. Images build from the repo [Dockerfile](Dockerfile).
+
+1. Build the container image
 
     ```bash
     make image
@@ -137,13 +158,13 @@ Setting the variable 'rosa_kms_key_arn' to a kms arn, will execute the procedure
     * If you've already logged in locally:
 
     ```bash
-    make docker.create
+    make podman.create
     ```
 
     * If you want to let ansible log you in (fill out the variables):
 
     ```bash
-    docker run -ti -e AWS_ACCESS_KEY_ID="" \
+    podman run --rm -ti -e AWS_ACCESS_KEY_ID="" \
        -e AWS_SECRET_ACCESS_KEY="" -e ROSA_TOKEN="" \
        quay.io/pczar/ansible-rosa \
        ansible-playbook create-cluster.yaml
@@ -152,13 +173,13 @@ Setting the variable 'rosa_kms_key_arn' to a kms arn, will execute the procedure
 3. Delete the cluster
 
     ```bash
-    make docker.delete
+    make podman.delete
     ```
 
     or
 
     ```bash
-    docker run -ti -e AWS_ACCESS_KEY_ID="" \
+    podman run --rm -ti -e AWS_ACCESS_KEY_ID="" \
        -e AWS_SECRET_ACCESS_KEY="" -e ROSA_TOKEN="" \
        quay.io/pczar/ansible-rosa \
        ansible-playbook delete-cluster.yaml

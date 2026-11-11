@@ -19,7 +19,7 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 import ocm_client
-from ocm_client.rest import ApiException
+from ocm_client.exceptions import ApiException
 import os
 from pathlib import Path
 import json
@@ -33,6 +33,41 @@ import boto3
 #     pass  # Handled by AnsibleAWSModule
 
 OCM_HOST = "https://api.openshift.com"
+
+
+def _decode_ocm_http_response(http_response):
+    """Parse JSON body from an ocm_client REST response (without_preload_content)."""
+    body = http_response.data
+    if isinstance(body, bytes):
+        body = body.decode('utf-8')
+    if not body:
+        return {}
+    return json.loads(body)
+
+
+def _escape_ocm_search_literal(value):
+    return str(value).replace("'", "''")
+
+
+def _identity_provider_type(idp):
+    raw = idp.get('type') if isinstance(idp, dict) else getattr(idp, 'type', None)
+    if raw is None:
+        return None
+    if hasattr(raw, 'value'):
+        return raw.value
+    return str(raw)
+
+
+def _idp_field(idp, *path, default=None):
+    cur = idp
+    for key in path:
+        if isinstance(cur, dict):
+            cur = cur.get(key)
+        else:
+            cur = getattr(cur, key, None)
+        if cur is None:
+            return default
+    return cur
 
 DEFAULT_COMPUTE_NODES_MULTI_AZ = 3
 DEFAULT_COMPUTE_NODES_SINGLE_AZ = 2
@@ -206,7 +241,7 @@ def populateOperatorRoles(prefix, account_id, hcp):
 
 def hcp_friendly_tags(tags):
     for key in tags.keys():
-        tags[key] = re.sub('[^a-zA-Z0-9_\-]', '', tags[key])
+        tags[key] = re.sub(r'[^a-zA-Z0-9_\-]', '', tags[key])
     return tags
 
 
@@ -229,35 +264,38 @@ class OcmModule(object):
         response = requests.post(user['token_url'], auth=auth, data=params)
         access_token = response.json()['access_token']
 
-        configuration = ocm_client.Configuration(
-            host = OCM_HOST
+        return ocm_client.Configuration(
+            host=OCM_HOST,
+            access_token=access_token,
         )
-
-        configuration.access_token = access_token
-        return configuration
 
 class OcmClusterModule(object):
 
     def get_cluster_id(api_instance, cluster_name):
-        search = "name = '{}'".format(cluster_name)
+        # Typed list responses may fail Pydantic validation on nested OCM link fields (0.4.0).
+        search = "name = '{}'".format(_escape_ocm_search_literal(cluster_name))
         try:
-            api_response = api_instance.api_clusters_mgmt_v1_clusters_get(search=search, size="1")
+            http_response = api_instance.api_clusters_mgmt_v1_clusters_get_without_preload_content(
+                search=search,
+                size=1,
+            )
+            page = _decode_ocm_http_response(http_response)
         except ApiException as e:
-            return None, "Exception when calling DefaultApi->api_clusters_mgmt_v1_clusters_cluster_id_get: {}\n".format(e)
-        if len(api_response.items) > 0:
-            return api_response.items[0].id, None
-        else:
-            return None, None
-            # module.fail_json("Exception when calling DefaultApi->api_clusters_mgmt_v1_clusters_cluster_id_get: %s\n" % e)
+            return None, "Exception when calling DefaultApi->api_clusters_mgmt_v1_clusters_get: {}\n".format(e)
+        items = page.get('items') or []
+        if items:
+            return items[0].get('id'), None
+        return None, None
 
     def get_cluster_info(api_instance, cluster_id):
         try:
-            cluster_info = api_instance.api_clusters_mgmt_v1_clusters_cluster_id_get(cluster_id)
+            http_response = api_instance.api_clusters_mgmt_v1_clusters_cluster_id_get_without_preload_content(
+                cluster_id
+            )
+            cluster_info = _decode_ocm_http_response(http_response)
         except ApiException as e:
             return None, "Exception when calling DefaultApi->api_clusters_mgmt_v1_clusters_cluster_id_get: {}\n".format(e)
-        # if not len(cluster_info.to_dict()) == 1:
-        #     return None, "Incorrect number of cluster results:\n {}".format(cluster_info.to_str())
-        return cluster_info.to_dict(), None
+        return cluster_info, None
 
     def create_cluster(api_instance, params):
 
@@ -371,26 +409,34 @@ class OcmClusterModule(object):
             # Check if kms_key_arn is not null or empty and remove it from param dict
             # if kms_key_arn is == '' (user does not require a custom kms key) install will fail if kms_key_arn param is not removed
             if cluster.aws.kms_key_arn == '':
-               cluster.aws.__setattr__("kms_key_arn", None)
+                cluster.aws.kms_key_arn = None
 
-            cluster_create = api_instance.api_clusters_mgmt_v1_clusters_post(cluster=cluster)
+            http_response = api_instance.api_clusters_mgmt_v1_clusters_post_without_preload_content(
+                cluster=cluster
+            )
+            cluster_create = _decode_ocm_http_response(http_response)
         except ApiException as e:
             return cluster.to_dict(), "Exception when calling DefaultApi->api_clusters_mgmt_v1_clusters_post: {}\n".format(e)
-        return cluster_create.to_dict(), None
+        return cluster_create, None
         # return cluster.to_dict(), None
 
 class OcmIdpModule(object):
     def get_cluster_idps(api_instance, cluster_id):
         try:
-            api_request = api_instance.api_clusters_mgmt_v1_clusters_cluster_id_identity_providers_get(cluster_id,page=1,size=-1)
+            http_response = api_instance.api_clusters_mgmt_v1_clusters_cluster_id_identity_providers_get_without_preload_content(
+                cluster_id,
+                page=1,
+                size=-1,
+            )
+            page = _decode_ocm_http_response(http_response)
         except ApiException as e:
             return None, "Exception when calling DefaultApi->api_clusters_mgmt_v1_clusters_cluster_id_identity_providers_get: %s\n" % e
-            # module.fail_json("Exception when calling DefaultApi->api_clusters_mgmt_v1_clusters_cluster_id_identity_providers_get: %s\n" % e)
-        return api_request.items, None
+        return page.get('items') or [], None
 
     def get_existing_htpasswd_idps(existing_idps):
         for idp in existing_idps:
-            if idp.type == 'HTPasswdIdentityProvider':
+            idp_type = _identity_provider_type(idp)
+            if idp_type in ('HTPasswdIdentityProvider', 'HTPASSWDIDENTITYPROVIDER'):
                 return idp
 
     def htpasswd_idp_builder(username, password, name):
@@ -408,9 +454,13 @@ class OcmIdpModule(object):
 
     def create_htpasswd_idp(api_instance, cluster_id, identity_provider):
         try:
-            api_response = api_instance.api_clusters_mgmt_v1_clusters_cluster_id_identity_providers_post(cluster_id, identity_provider=identity_provider)
+            http_response = api_instance.api_clusters_mgmt_v1_clusters_cluster_id_identity_providers_post_without_preload_content(
+                cluster_id,
+                identity_provider=identity_provider,
+            )
+            api_response = _decode_ocm_http_response(http_response)
         except ApiException as e:
-            return None, "Exception when calling DefaultApi->api_clusters_mgmt_v1_clusters_cluster_id_identity_providers_post: {}}\n".format(e)
+            return None, "Exception when calling DefaultApi->api_clusters_mgmt_v1_clusters_cluster_id_identity_providers_post: {}\n".format(e)
         return api_response, None
 
     def create_cluster_role(api_instance, cluster_id, role, username):
@@ -422,7 +472,7 @@ class OcmIdpModule(object):
         try:
             create_role = api_instance.api_clusters_mgmt_v1_clusters_cluster_id_groups_group_id_users_post(cluster_id, group_id, user=user)
         except ApiException as e:
-            if e.body.id not in ["400"]:
+            if e.status != 400:
                 return None, "Exception when calling DefaultApi->api_clusters_mgmt_v1_clusters_cluster_id_groups_group_id_users_post: {}\n".format(e)
         return create_role, None
 

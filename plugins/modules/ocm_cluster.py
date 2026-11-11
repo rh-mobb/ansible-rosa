@@ -4,7 +4,7 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import (absolute_import, division, print_function)
-from sys import stdout
+
 __metaclass__ = type
 
 DOCUMENTATION = r'''
@@ -15,7 +15,7 @@ short_description: Create Rosa Cluster
 
 version_added: "1.0.0"
 
-description: Creates ROSA (RedHat Openshift on AWS) Cluster
+description: Creates ROSA (RedHat Openshift on AWS) Cluster via OCM API.
 
 options:
     name:
@@ -143,28 +143,19 @@ EXAMPLES = r'''
 '''
 
 RETURN = r'''
-stdout: str
-stderr: str
-password: str
-# These are examples of possible return values, and in general should use other names for return values.
+cluster:
+    description: Cluster object from OCM
+    type: dict
+changed:
+    description: Whether a cluster was created or deleted
+    type: bool
 '''
 
-MIN_ROSA_VERSION = "1.2.23"
+from ansible.module_utils.basic import AnsibleModule
+from ..module_utils.ocm_cluster_lib import ocm_cluster_run
 
-from ansible.module_utils.basic import *
-from packaging import version as check_version
-from semver import parse as semver_parse
-from ..module_utils.ocm import OcmModule
-from ..module_utils.ocm import OcmClusterModule
-from ocm_client.rest import ApiException
-import ocm_client
-import time
-import json
-import string
-import random
 
 def run_module():
-    # define available arguments/parameters a user can pass to the module
     module_args = dict(
         name=dict(type='str', required=True),
         region=dict(type='str', required=False),
@@ -191,7 +182,7 @@ def run_module():
         disable_scp_checks=dict(type='bool', required=False),
         disable_workload_monitoring=dict(type='bool', required=False, default=False),
         wait=dict(type='bool', required=False),
-        state=dict(type='str', default='present', choices=['present','absent','dry-run']),
+        state=dict(type='str', default='present', choices=['present', 'absent', 'dry-run']),
         role_arn=dict(type='str', required=False),
         support_role_arn=dict(type='str', required=False),
         operator_roles_prefix=dict(type='str', required=False),
@@ -201,119 +192,18 @@ def run_module():
         oidc_config_id=dict(type=str, required=False),
         kms_key_arn=dict(type='str', required=False),
         admin_username=dict(type='str', required=False, default='admin'),
-        admin_password=dict(type='str', required=False),
-        tags=dict(type='dict', required=False)
+        admin_password=dict(type='str', required=False, no_log=True),
+        tags=dict(type='dict', required=False),
     )
 
-    # seed the result dict in the object
-    # we primarily care about changed and state
-    # changed is if this module effectively modified the target
-    # state will include any data that you want your module to pass back
-    # for consumption, for example, in a subsequent task
-    result = dict(
-        changed=False,
-        cluster=dict()
-    )
-
-    # the AnsibleModule object will be our abstraction working with Ansible
-    # this includes instantiation, a couple of common attr would be the
-    # args/params passed to the execution, as well as if the module
-    # supports check mode
     module = AnsibleModule(
         argument_spec=module_args,
-        supports_check_mode=True
+        supports_check_mode=True,
     )
 
-    # if the user is working with this module in only check mode we do not
-    # want to make any changes to the environment, just return the current
-    # state with no modifications
-    if module.check_mode:
-        module.exit_json(**result)
+    result = ocm_cluster_run(module)
+    module.exit_json(**result)
 
-    # validate inputs
-    name = module.params['name']
-    cluster_id = ""
-
-    if module.params['state'] != 'absent':
-        if not module.params['operator_roles_prefix']:
-            prefix = ''.join(random.choices(string.ascii_lowercase +
-                                string.digits, k=4))
-            module.params['operator_roles_prefix'] = "{}-{}".format(module.params['name'], prefix)
-
-    with ocm_client.ApiClient(OcmModule.ocm_authenticate()) as api_client:
-        api_instance = ocm_client.DefaultApi(api_client)
-
-        if module.params['admin_password'] and module.params['hosted_cp']:
-            module.fail_json("admin_password is not supported for hosted control-plane clusters")
-
-
-        # Check to see if there is a cluster of the same name
-        if not cluster_id:
-            cluster_id, err = OcmClusterModule.get_cluster_id(api_instance, name)
-            if err:
-                module.fail_json(err)
-        if cluster_id:
-            cluster_info, err = OcmClusterModule.get_cluster_info(api_instance, cluster_id)
-            if err:
-                module.fail_json(err)
-            if module.params['state'] == "present":
-                result['cluster'] = cluster_info
-                module.exit_json(**result)
-
-        if module.params['state'] == "absent":
-            deprovision = True
-            dry_run = False
-            try:
-                api_instance.api_clusters_mgmt_v1_clusters_cluster_id_delete(cluster_id, deprovision=deprovision, dry_run=dry_run)
-            except ApiException as e:
-                err = "Exception when calling DefaultApi->api_clusters_mgmt_v1_clusters_cluster_id_delete: {}\n".format(e)
-                module.fail_json(err)
-            result['changed'] = True
-            cluster_info, err = OcmClusterModule.get_cluster_info(api_instance, cluster_id)
-            if err:
-                result['cluster'] = {}
-            else:
-                result['cluster'] = cluster_info
-            module.exit_json(**result)
-
-            # todo we should fetch the cluster status and return it vs just returning empty dict
-            module.exit_json(**result)
-
-        if module.params['state'] == "present":
-            # check region is available
-            # https://api.openshift.com/api/clusters_mgmt/v1/cloud_providers/aws/regions
-            # check version is available
-            # https://api.openshift.com/api/clusters_mgmt/v1/versions?page=1&search=enabled+%3D+%27true%27+AND+rosa_enabled+%3D+%27true%27+AND+channel_group+%3D+%27stable%27&size=100
-            # get list of flavors
-            # https://api.openshift.com/api/clusters_mgmt/v1/flavours/osd-4
-                # "kind": "Flavour",
-                # "name": "OpenShift Dedicated 4.X",
-                # "id": "osd-4",
-            # check machine types (POST)
-            # https://api.openshift.com/api/clusters_mgmt/v1/aws_inquiries/machine_types?order=category+asc&page=1&size=100
-                #   "aws": {
-                #     "sts": {
-                #       "role_arn": "arn:aws:iam::660250927410:role/ManagedOpenShift-Installer-Role"
-                #     }
-                #   },
-                #   "region": {
-                #     "kind": "CloudRegion",
-                #     "id": "us-east-2"
-                #   }
-                # }
-            # check quotas
-            # https://api.openshift.com/api/accounts_mgmt/v1/organizations/1rkxPO7W12geIcRWITwI0I8VIQV/quota_cost?fetchRelatedResources=true&page=1&search=quota_id~%3D%27gpu%27&size=-1'
-
-            cluster_info, err = OcmClusterModule.create_cluster(api_instance, module.params)
-            result['cluster'] = cluster_info
-            if err:
-                module.fail_json("cluster:\n{}\n{}".format(cluster_info,err),**result)
-            result['changed'] = True
-            module.exit_json(**result)
-
-        elif module.params['state'] == "dry-run":
-            # result['details'] = '{"output": "successful dry-run"}'
-            module.exit_json(**result)
 
 def main():
     run_module()

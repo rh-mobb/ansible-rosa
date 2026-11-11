@@ -6,3 +6,5 @@ bin/*
 *.gz
 *.swp
 *__pycache__*
+.history/
+rh_mobb-rosa-*.tar.gz

@@ -1,6 +1,6 @@
 namespace: rh_mobb
 name: rosa
-version: 3.0.3
+version: 4.0.0
 readme: README.md
 authors:
   - Paul Czarkowski <pczarkow@redhat.com>
@@ -14,7 +14,9 @@ tags:
   - openshift
   - aws
   - redhat
-dependencies: {}
+dependencies:
+  amazon.aws: '>=6.0.0'
+  community.aws: '>=6.0.0'
 repository: https://github.com/rh-mobb/ansible-rosa
 documentation: https://github.com/rh-mobb/ansible-rosa
 homepage: https://github.com/rh-mobb/ansible-rosa
@@ -27,3 +29,6 @@ build_ignore:
   - bin
   - tmp
   - temp
+  - .history
+  - '**/.history/**'
+  - '**/*.py.old'

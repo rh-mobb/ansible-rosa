@@ -1,9 +1,10 @@
-FROM registry.access.redhat.com/ubi8/ubi as build
+# BUILD — Python 3.11+ required (ocm-python 0.4.0)
+FROM registry.access.redhat.com/ubi9/ubi as build
 
-RUN yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
-RUN yum -y install \
-    bash gcc libffi-devel git gpgme-devel libxml2-devel \
-    libxslt-devel curl openssl-devel python3-devel unzip
+RUN dnf -y install \
+    bash gcc git libffi-devel openssl-devel python3.11 python3.11-devel \
+    libxml2-devel libxslt-devel curl unzip \
+    && dnf clean all
 
 RUN mkdir -p /opt/bin && mkdir /opt/aws
 
@@ -15,31 +16,28 @@ RUN curl -slL https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip \
         -o awscli.zip && unzip awscli.zip && aws/install -i /opt/aws -b /opt/bin
 
 
-RUN groupadd ansible --g 1000 && useradd -s /bin/bash -g ansible -u 1000 ansible -d /home/ansible
-USER ansible:ansible
-
-RUN mkdir -p /ansible/virtualenv && chown -R ansible:ansible /ansible
+RUN groupadd ansible --g 1000 && useradd -s /bin/bash -g ansible -u 1000 ansible -d /home/ansible \
+    && mkdir -p /ansible/virtualenv && chown -R ansible:ansible /ansible
 
 WORKDIR /ansible
 
-COPY ./requirements.txt /ansible/requirements.txt
+COPY --chown=ansible:ansible ./requirements.txt /ansible/requirements.txt
 
-RUN python3 -m venv /ansible/virtualenv
+USER ansible:ansible
+
+RUN python3.11 -m venv /ansible/virtualenv
 RUN /ansible/virtualenv/bin/python3 -m pip install --upgrade pip
 RUN /ansible/virtualenv/bin/pip3 install -r /ansible/requirements.txt
 
-FROM registry.access.redhat.com/ubi8/ubi-minimal
+FROM registry.access.redhat.com/ubi9/ubi-minimal
 
-# # update the image
-RUN microdnf --enablerepo=ubi-8-baseos -y install \
-    openssl unzip python3 \
-    shadow-utils \
+RUN microdnf --enablerepo=ubi-9-baseos -y install \
+    openssl unzip shadow-utils \
     && microdnf clean all
 
 RUN groupadd ansible --g 1000 && useradd -s /bin/bash -g ansible -u 1000 ansible -d /ansible
-RUN mkdir -p ./virtualenv && chown -R ansible:ansible ./virtualenv
+RUN mkdir -p /ansible/virtualenv && chown -R ansible:ansible /ansible
 
-# # copy executables from build image
 COPY --from=build /opt /opt
 
 COPY --chown=ansible:ansible . /ansible
@@ -47,13 +45,9 @@ COPY --chown=ansible:ansible --from=build /ansible/virtualenv /ansible/virtualen
 
 USER ansible:ansible
 
-# # set pathing
 ENV PATH=/opt/bin:./virtualenv/bin:$PATH
-ENV PYTHONPATH=./virtualenv/lib/python3.8/site-packages/
 ENV ANSIBLE_PYTHON_INTERPRETER=./virtualenv/bin/python
-# # set kubeconfig and ansible options
 ENV KUBECONFIG=/ansible/.kube/config
 ENV ANSIBLE_FORCE_COLOR=1
 
 WORKDIR /ansible
-

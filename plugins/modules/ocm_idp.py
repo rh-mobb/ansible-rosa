@@ -56,11 +56,6 @@ options:
         required: false
         type: str
 
-# Specify this value according to your collection
-# in format of namespace.collection.doc_fragment_name
-extends_documentation_fragment:
-    - rh_mobb.ansible_rosa.my_doc_fragment_name
-
 author:
     - Paul Czarkowski (@paulczar)
 '''
@@ -68,11 +63,11 @@ author:
 EXAMPLES = r'''
 # create a htpasswd idp
 - name: create htpasswd idp
-    rh_mobb.ansible_rosa.ocm_idp:
-      name: admin
-      password: 'admin1234567890!'
-      username: admin
-      type: htpasswd
+  rh_mobb.rosa.ocm_idp:
+    name: admin
+    password: "{{ vault_ocp_password }}"
+    username: admin
+    type: htpasswd
 '''
 
 RETURN = r'''
@@ -103,8 +98,9 @@ from ansible.module_utils.basic import AnsibleModule
 from ..module_utils.ocm import OcmModule
 from ..module_utils.ocm import OcmIdpModule
 from ..module_utils.ocm import OcmClusterModule
+from ..module_utils.ocm import _idp_field
 import ocm_client
-from ocm_client.rest import ApiException
+from ocm_client.exceptions import ApiException
 import os
 from pathlib import Path
 import json
@@ -189,14 +185,15 @@ def run_module():
             if existing_idps:
                 existing_htpasswd = OcmIdpModule.get_existing_htpasswd_idps(existing_idps)
                 if existing_htpasswd:
-                    if existing_htpasswd.name == module.params['name']:
-                        result['name'] = existing_htpasswd.name
-                        result['type'] = existing_htpasswd.type
-                        result['username'] = existing_htpasswd.htpasswd.username
+                    existing_name = _idp_field(existing_htpasswd, 'name')
+                    if existing_name == module.params['name']:
+                        result['name'] = existing_name
+                        result['type'] = _idp_field(existing_htpasswd, 'type')
+                        result['username'] = _idp_field(existing_htpasswd, 'htpasswd', 'username')
                         result['password'] = ''
                         module.exit_json(**result)
                     else:
-                        module.fail_json("an htpasswd IDP called {} already exists. OCM only supports a single IDP.".format(existing_htpasswd.name))
+                        module.fail_json("an htpasswd IDP called {} already exists. OCM only supports a single IDP.".format(existing_name))
             # construct the htpasswd object
             identity_provider = OcmIdpModule.htpasswd_idp_builder(
                                     username=module.params['username'],
@@ -209,9 +206,9 @@ def run_module():
             if err:
                 module.fail_json(err)
 
-            result['name'] = new_htpasswd_idp.name
-            result['type'] = new_htpasswd_idp.type
-            result['username'] = new_htpasswd_idp.htpasswd.username
+            result['name'] = _idp_field(new_htpasswd_idp, 'name')
+            result['type'] = _idp_field(new_htpasswd_idp, 'type')
+            result['username'] = _idp_field(new_htpasswd_idp, 'htpasswd', 'username')
             result['password'] = ''
             result['changed'] = True
 
