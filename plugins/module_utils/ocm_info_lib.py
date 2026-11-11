@@ -87,6 +87,33 @@ def _machine_pool_from_response(http_response):
     return payload, None
 
 
+def _cluster_is_hcp(cluster):
+    return bool((cluster.get('hypershift') or {}).get('enabled'))
+
+
+def fetch_machine_pools(api_instance, cluster_id, cluster):
+    hcp = _cluster_is_hcp(cluster)
+    try:
+        if hcp:
+            http_response = api_instance.api_clusters_mgmt_v1_clusters_cluster_id_node_pools_get_without_preload_content(
+                cluster_id,
+                page=1,
+                size=-1,
+            )
+        else:
+            http_response = api_instance.api_clusters_mgmt_v1_clusters_cluster_id_machine_pools_get_without_preload_content(
+                cluster_id,
+                page=1,
+                size=-1,
+            )
+    except ApiException as e:
+        return None, "Exception when listing machine pools: {}\n".format(e)
+    items, payload = _list_page_from_response(http_response)
+    if isinstance(payload, dict) and _is_error_payload(payload):
+        return None, "OCM machine pools error: {}".format(payload.get('reason', payload))
+    return items, None
+
+
 def fetch_machine_pool(api_instance, cluster_id, machine_pool):
     try:
         http_response = api_instance.api_clusters_mgmt_v1_clusters_cluster_id_machine_pools_machine_pool_id_get_without_preload_content(
@@ -198,6 +225,36 @@ def ocm_machine_pool_info_run(module):
             )
         result['machine_pool'] = pool
     return result
+
+
+def ocm_machine_pools_info_run(module):
+    result = dict(machine_pools=[])
+    if module.check_mode:
+        return result
+
+    cluster_ref = module.params['cluster']
+    with ocm_client.ApiClient(OcmModule.ocm_authenticate()) as api_client:
+        api_instance = ocm_client.DefaultApi(api_client)
+        cluster_id, cluster, err = resolve_cluster(api_instance, cluster_ref)
+        if err:
+            module.fail_json(msg=err)
+        if not cluster_id:
+            module.fail_json(msg="Unable to find cluster: {}".format(cluster_ref))
+        pools, err = fetch_machine_pools(api_instance, cluster_id, cluster)
+        if err:
+            module.fail_json(msg=err)
+        result['machine_pools'] = pools or []
+    return result
+
+
+def rosa_machine_pools_info_run(module):
+    result = ocm_machine_pools_info_run(module)
+    cluster = module.params['cluster']
+    wrapped = dict(commands=[], machine_pools=result.get('machine_pools', []))
+    wrapped['commands'].append(
+        _synthetic_command('list_machine_pools', cluster, wrapped['machine_pools']),
+    )
+    return wrapped
 
 
 def ocm_admin_info_run(module):

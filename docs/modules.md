@@ -30,7 +30,9 @@ Collection modules live under `plugins/modules/`. Each file’s `DOCUMENTATION` 
 | [rosa_admin_info](#cluster-info-pairs) | Same + `commands` | Same |
 | [ocm_autoscaler_info](#cluster-info-pairs) | Cluster autoscaler | `rosa describe autoscaler` |
 | [rosa_autoscaler_info](#cluster-info-pairs) | Same + `commands` | Same |
-| [ocm_machine_pool_info](#cluster-info-pairs) | Machine pool or HCP node pool | `rosa describe machinepool` |
+| [ocm_machine_pools_info](#cluster-info-pairs) | All machine or node pools | `rosa list machinepool` |
+| [rosa_machine_pools_info](#cluster-info-pairs) | Same + `commands` | Same |
+| [ocm_machine_pool_info](#cluster-info-pairs) | One machine pool or HCP node pool | `rosa describe machinepool` |
 | [rosa_machine_pool_info](#cluster-info-pairs) | Same + `commands` | Same |
 | [ocm_upgrade_info](#cluster-info-pairs) | Scheduled upgrade policies | `rosa describe upgrade` |
 | [rosa_upgrade_info](#cluster-info-pairs) | Same + `commands` | Not `rosa list upgrades` |
@@ -141,6 +143,22 @@ Shared behavior: `cluster` (name or ID) is required unless noted. Implementation
 | `cluster` | yes |
 
 **Returns:** `autoscaler` (+ `commands` on rosa wrapper).
+
+### `ocm_machine_pools_info` / `rosa_machine_pools_info`
+
+| Option | Required |
+|--------|----------|
+| `cluster` | yes |
+
+Lists all pools on the cluster (classic `machine_pools`, HCP `node_pools`).
+
+**Returns:** `machine_pools` (+ `commands` on rosa wrapper).
+
+```yaml
+- rh_mobb.rosa.ocm_machine_pools_info:
+    cluster: my-cluster
+  register: pools
+```
 
 ### `ocm_machine_pool_info` / `rosa_machine_pool_info`
 

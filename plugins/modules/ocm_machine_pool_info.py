@@ -18,6 +18,7 @@ version_added: "1.0.0"
 description: |
     Returns a machine pool or HCP node pool from OCM (mirrors ``rosa describe machinepool``).
     Classic clusters use machine pools; hosted control plane clusters use node pools with the same ID.
+    Use ocm_machine_pools_info to list all pools on a cluster.
 
 options:
     cluster:
